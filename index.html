@@ -24,45 +24,17 @@
             height: 100vh;
             width: 100vw;
             overflow: hidden;
-            transition: all 0.3s ease;
         }
 
         body {
             font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            padding: 10px;
+            padding: 15px;
             position: relative;
             color: #2c3e50;
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        /* الوضع الأفقي */
-        body.landscape-mode .container {
-            max-width: 1920px;
-            transform: rotate(0deg);
-        }
-
-        body.landscape-mode .schedule-table th,
-        body.landscape-mode .schedule-table td {
-            font-size: clamp(0.8rem, 1.5vw, 1.1rem);
-        }
-
-        /* الوضع العمودي */
-        body.portrait-mode .container {
-            max-width: 1080px;
-            transform: rotate(0deg);
-        }
-
-        body.portrait-mode .schedule-table th,
-        body.portrait-mode .schedule-table td {
-            font-size: clamp(0.7rem, 1.8vw, 1rem);
-        }
-
-        body.portrait-mode .stats-cards {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
         }
 
         /* الخلفية المتحركة */
@@ -84,145 +56,48 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            max-width: 100%;
-            max-height: 100%;
-            transition: all 0.3s ease;
-        }
-
-        /* شريط التحكم */
-        .control-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        /* زر تبديل الاتجاه */
-        .orientation-toggle-btn {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 40px;
-            padding: 10px 25px;
-            display: inline-flex;
-            align-items: center;
             gap: 12px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-            flex-shrink: 0;
-            border: 2px solid transparent;
+            max-width: 1920px;
+            max-height: 100%;
         }
 
-        .orientation-toggle-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .orientation-toggle-btn.landscape {
-            border-color: #27ae60;
-            background: linear-gradient(135deg, #f0fff4, #ffffff);
-        }
-
-        .orientation-toggle-btn.portrait {
-            border-color: #e74c3c;
-            background: linear-gradient(135deg, #fff0f0, #ffffff);
-        }
-
-        .orientation-toggle-btn i {
-            font-size: 1.5rem;
-            transition: all 0.5s ease;
-        }
-
-        .orientation-toggle-btn.landscape i {
-            transform: rotate(90deg);
-            color: #27ae60;
-        }
-
-        .orientation-toggle-btn.portrait i {
-            transform: rotate(0deg);
-            color: #e74c3c;
-        }
-
-        .current-orientation {
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 25px;
-            border-radius: 40px;
-            font-size: 1rem;
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .orientation-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 1.5s infinite;
-        }
-
-        .orientation-indicator.landscape {
-            background: #27ae60;
-            box-shadow: 0 0 15px #27ae60;
-        }
-
-        .orientation-indicator.portrait {
-            background: #e74c3c;
-            box-shadow: 0 0 15px #e74c3c;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.2); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        /* باقي التنسيقات كما هي */
+        /* الهيدر */
         .header {
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 12px 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 25px;
+            padding: 15px 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
             border: 2px solid rgba(255, 255, 255, 0.5);
             flex-shrink: 0;
         }
 
         .school-name {
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .school-name h1 {
             color: #2c3e50;
-            font-size: clamp(1.5rem, 3vw, 2.5rem);
-            font-weight: 700;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
         }
 
         .school-name h1 i {
             color: #e74c3c;
-            margin: 0 10px;
+            margin: 0 15px;
             animation: pulse 2s infinite;
         }
 
         .school-name .subtitle {
             color: #7f8c8d;
-            font-size: clamp(0.8rem, 1.5vw, 1.2rem);
-            border-bottom: 2px solid var(--primary-color);
+            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+            font-weight: 400;
+            border-bottom: 3px solid var(--primary-color);
             display: inline-block;
-            padding-bottom: 4px;
+            padding-bottom: 5px;
         }
 
         .info-bar {
@@ -230,62 +105,93 @@
             justify-content: space-between;
             align-items: center;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            padding: 10px 20px;
-            border-radius: 15px;
+            padding: 12px 25px;
+            border-radius: 18px;
             color: white;
-            gap: 10px;
-            font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: clamp(0.9rem, 1.8vw, 1.2rem);
         }
 
+        .date-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .date-info i {
+            font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+        }
+
+        .update-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 18px;
+            border-radius: 35px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* بطاقات الإحصائيات */
         .stats-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 15px;
             flex-shrink: 0;
         }
 
         .stat-card {
             background: rgba(255, 255, 255, 0.98);
-            border-radius: 15px;
-            padding: 12px 15px;
+            backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 15px 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            gap: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             border: 2px solid rgba(255, 255, 255, 0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
         }
 
         .stat-icon {
-            width: 45px;
-            height: 45px;
+            width: 55px;
+            height: 55px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: white;
             flex-shrink: 0;
         }
 
         .stat-details h3 {
             color: #7f8c8d;
-            font-size: clamp(0.7rem, 1.2vw, 0.9rem);
-            margin-bottom: 3px;
+            font-size: clamp(0.8rem, 1.4vw, 1rem);
+            margin-bottom: 5px;
+            font-weight: 500;
         }
 
         .stat-details .stat-number {
             color: #2c3e50;
-            font-size: clamp(1.3rem, 2.5vw, 2rem);
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
             font-weight: 800;
+            line-height: 1;
         }
 
+        /* حاوية الجدول */
         .table-container {
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
             border: 2px solid rgba(255, 255, 255, 0.8);
             flex: 1;
             display: flex;
@@ -294,30 +200,32 @@
             min-height: 0;
         }
 
+        /* الجدول */
         .schedule-table {
             width: 100%;
             height: 100%;
             border-collapse: separate;
-            border-spacing: 0 6px;
+            border-spacing: 0 8px;
             table-layout: fixed;
         }
 
         .schedule-table tr {
-            height: calc((100% - 60px) / 8);
+            height: calc((100% - 70px) / 8);
         }
 
         .schedule-table th {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             font-weight: 700;
-            padding: 8px 5px;
+            padding: 12px 8px;
+            font-size: clamp(0.9rem, 1.6vw, 1.2rem);
             text-align: center;
             border: none;
             white-space: nowrap;
         }
 
         .schedule-table th:first-child {
-            border-radius: 12px 0 0 12px;
+            border-radius: 15px 0 0 15px;
             width: 8%;
         }
 
@@ -334,29 +242,37 @@
         }
 
         .schedule-table th:last-child {
-            border-radius: 0 12px 12px 0;
+            border-radius: 0 15px 15px 0;
             width: 40%;
         }
 
         .schedule-table td {
             background: white;
-            padding: 6px 8px;
+            padding: 10px 12px;
             text-align: center;
+            font-size: clamp(0.85rem, 1.5vw, 1.1rem);
             border: none;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .schedule-table td:first-child {
-            border-radius: 12px 0 0 12px;
+            border-radius: 15px 0 0 15px;
             font-weight: 700;
             color: var(--primary-color);
+            background: linear-gradient(to left, white, #f0f7ff);
         }
 
         .schedule-table td:last-child {
-            border-radius: 0 12px 12px 0;
+            border-radius: 0 15px 15px 0;
+        }
+
+        .schedule-table tr:hover td {
+            background: #f8faff;
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.15);
         }
 
         .booked {
@@ -364,6 +280,12 @@
         }
 
         .booked td {
+            background: transparent !important;
+            color: white !important;
+            font-weight: 500;
+        }
+
+        .booked td:first-child {
             background: transparent !important;
             color: white !important;
         }
@@ -377,11 +299,11 @@
         .experiment-badge {
             display: inline-block;
             background: rgba(52, 152, 219, 0.15);
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+            padding: 6px 15px;
+            border-radius: 35px;
+            font-size: clamp(0.8rem, 1.4vw, 1rem);
             font-weight: 600;
-            border: 1px solid var(--primary-color);
+            border: 2px solid var(--primary-color);
             color: var(--primary-color);
             max-width: 100%;
             overflow: hidden;
@@ -397,61 +319,42 @@
 
         .period-number {
             display: inline-block;
-            width: 28px;
-            height: 28px;
-            line-height: 28px;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
             text-align: center;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border-radius: 50%;
             font-weight: 700;
-            font-size: 0.85rem;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+            font-size: 0.95rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
+        /* الفوتر */
         .footer {
             text-align: center;
             color: white;
-            font-size: clamp(0.7rem, 1.2vw, 0.9rem);
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            padding: 8px;
+            font-size: clamp(0.8rem, 1.4vw, 1rem);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 10px;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 30px;
+            border-radius: 40px;
             backdrop-filter: blur(5px);
             flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .toast-message {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 40px;
-            font-size: 1rem;
-            backdrop-filter: blur(10px);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 2000;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .toast-message.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
+        /* مؤشر التحميل */
         .tv-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(52, 152, 219, 0.2);
-            border-top: 4px solid var(--primary-color);
-            border-right: 4px solid var(--secondary-color);
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(52, 152, 219, 0.2);
+            border-top: 5px solid var(--primary-color);
+            border-right: 5px solid var(--secondary-color);
             border-radius: 50%;
             animation: tvSpin 1.2s infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 15px;
         }
 
         @keyframes tvSpin {
@@ -459,27 +362,48 @@
             50% { transform: rotate(180deg) scale(1.1); }
             100% { transform: rotate(360deg) scale(1); }
         }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* تحسينات للشاشات الصغيرة */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .stats-cards {
+                gap: 8px;
+            }
+            
+            .stat-card {
+                padding: 10px;
+            }
+            
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.3rem;
+            }
+            
+            .period-number {
+                width: 25px;
+                height: 25px;
+                line-height: 25px;
+                font-size: 0.8rem;
+            }
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="landscape-mode">
+<body>
     <div class="tv-background"></div>
     
     <div class="container">
-        <!-- شريط التحكم مع زر التبديل -->
-        <div class="control-bar">
-            <div class="orientation-toggle-btn landscape" id="orientationToggle">
-                <i class="fas fa-rotate" id="toggleIcon"></i>
-                <span class="btn-text">تبديل اتجاه الشاشة</span>
-            </div>
-            
-            <div class="current-orientation" id="orientationDisplay">
-                <span class="orientation-indicator landscape" id="orientationIndicator"></span>
-                <span id="orientationStatus">الوضع الأفقي</span>
-            </div>
-        </div>
-
         <div class="header">
             <div class="school-name">
                 <h1>
@@ -487,7 +411,7 @@
                     مدرسة الحوراء
                     <i class="fas fa-microscope"></i>
                 </h1>
-                <div class="subtitle">نظام حجوزات المختبر - شاشة التلفاز</div>
+                <div class="subtitle">نظام حجوزات المختبر المدرسي</div>
             </div>
             
             <div class="info-bar">
@@ -497,7 +421,7 @@
                 </div>
                 <div class="update-info">
                     <i class="fas fa-sync-alt fa-fw"></i>
-                    <span>تحديث تلقائي | 5 دقائق</span>
+                    <span>تحديث تلقائي كل 5 دقائق</span>
                 </div>
             </div>
         </div>
@@ -528,9 +452,9 @@
 
         <div class="table-container">
             <div id="tableContainer" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                <div class="loading-state" style="text-align: center;">
+                <div style="text-align: center;">
                     <div class="tv-spinner"></div>
-                    <p style="font-size: 1rem; color: #666;">جاري تحميل جدول الحصص...</p>
+                    <p style="font-size: 1.2rem; color: #666;">جاري تحميل جدول الحصص...</p>
                 </div>
             </div>
         </div>
@@ -540,100 +464,12 @@
         </div>
     </div>
 
-    <div class="toast-message" id="toastMessage">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastText">تم التبديل إلى الوضع الأفقي</span>
-    </div>
-
     <script>
         // المتغيرات العامة
-        let currentOrientation = 'landscape';
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
 
-        // عناصر الصفحة
-        const body = document.body;
-        const toggleBtn = document.getElementById('orientationToggle');
-        const toggleIcon = document.getElementById('toggleIcon');
-        const orientationStatus = document.getElementById('orientationStatus');
-        const orientationIndicator = document.getElementById('orientationIndicator');
-        const toastMessage = document.getElementById('toastMessage');
-        const toastText = document.getElementById('toastText');
-
-        // دالة عرض رسالة منبثقة
-        function showToast(message, type = 'success') {
-            toastText.textContent = message;
-            toastMessage.classList.add('show');
-            
-            const icon = toastMessage.querySelector('i');
-            if (type === 'success') {
-                icon.style.color = '#27ae60';
-            } else {
-                icon.style.color = '#e74c3c';
-            }
-            
-            setTimeout(() => {
-                toastMessage.classList.remove('show');
-            }, 2000);
-        }
-
-        // دالة تحديث واجهة المستخدم حسب الاتجاه
-        function updateOrientationUI(orientation) {
-            // إزالة الكلاسات القديمة
-            body.classList.remove('landscape-mode', 'portrait-mode');
-            
-            if (orientation === 'landscape') {
-                body.classList.add('landscape-mode');
-                orientationStatus.textContent = 'الوضع الأفقي';
-                orientationIndicator.className = 'orientation-indicator landscape';
-                toggleBtn.className = 'orientation-toggle-btn landscape';
-                toggleIcon.style.transform = 'rotate(90deg)';
-                showToast('تم التبديل إلى الوضع الأفقي', 'success');
-            } else {
-                body.classList.add('portrait-mode');
-                orientationStatus.textContent = 'الوضع العمودي';
-                orientationIndicator.className = 'orientation-indicator portrait';
-                toggleBtn.className = 'orientation-toggle-btn portrait';
-                toggleIcon.style.transform = 'rotate(0deg)';
-                showToast('تم التبديل إلى الوضع العمودي', 'success');
-            }
-            
-            // إعادة حساب حجم الجدول
-            setTimeout(calculateTableFontSize, 100);
-        }
-
-        // دالة تبديل الاتجاه
-        function toggleOrientation() {
-            if (currentOrientation === 'landscape') {
-                currentOrientation = 'portrait';
-            } else {
-                currentOrientation = 'landscape';
-            }
-            
-            updateOrientationUI(currentOrientation);
-            
-            // حفظ التفضيل
-            try {
-                localStorage.setItem('preferredOrientation', currentOrientation);
-            } catch (e) {
-                console.log('LocalStorage غير متاح');
-            }
-            
-            // محاولة قفل الشاشة إذا كان ممكناً
-            try {
-                if (screen.orientation && screen.orientation.lock) {
-                    if (currentOrientation === 'landscape') {
-                        screen.orientation.lock('landscape').catch(() => {});
-                    } else {
-                        screen.orientation.lock('portrait').catch(() => {});
-                    }
-                }
-            } catch (e) {
-                console.log('قفل الشاشة غير مدعوم');
-            }
-        }
-
-        // دالة حساب حجم الجدول
+        // دالة حساب حجم الجدول المناسب
         function calculateTableFontSize() {
             const container = document.querySelector('.table-container');
             if (!container) return;
@@ -666,7 +502,7 @@
                 document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${arabicDate}`;
 
                 let bookedCount = 0;
-                let html = '<table class="schedule-table"><tr><th>#</th><th>الحصة</th><th>المعلمة</th><th>الصف</th><th>التجربة</th></tr>';
+                let html = '<table class="schedule-table"><tr><th>#</th><th>الحصة</th><th>المعلمة</th><th>الصف/الفصل</th><th>اسم التجربة</th></tr>';
 
                 schoolPeriods.forEach((period, index) => {
                     let booking = null;
@@ -682,7 +518,7 @@
                         if (rowDate === today && rowPeriod === period) {
                             booking = {
                                 teacher: row[3] || "غير محدد",
-                                grade: (row[5] && row[6] ? `${row[5]}-${row[6]}` : "غير محدد"),
+                                grade: (row[5] && row[6] ? `${row[5]} - ${row[6]}` : "غير محدد"),
                                 experiment: row[7] || "بدون تجربة"
                             };
                             bookedCount++;
@@ -693,7 +529,7 @@
                     if (booking) {
                         html += `<tr class="booked">
                             <td><span class="period-number">${index + 1}</span></td>
-                            <td>${period}</td>
+                            <td><strong>${period}</strong></td>
                             <td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>
                             <td><i class="fas fa-users"></i> ${booking.grade}</td>
                             <td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.experiment}</span></td>
@@ -701,7 +537,7 @@
                     } else {
                         html += `<tr>
                             <td><span class="period-number">${index + 1}</span></td>
-                            <td>${period}</td>
+                            <td><strong>${period}</strong></td>
                             <td colspan="3" class="empty-cell">
                                 <i class="fas fa-ban"></i> شاغر - متاح للحجز
                             </td>
@@ -716,15 +552,17 @@
                 document.getElementById('totalPeriods').textContent = schoolPeriods.length;
                 
                 tableContainer.innerHTML = html;
+                
+                // حساب حجم الخط المناسب بعد تحميل الجدول
                 calculateTableFontSize();
 
             } catch (error) {
                 document.getElementById('tableContainer').innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 10px;"></i>
-                        <h3 style="color: #e74c3c; font-size: 1.2rem;">خطأ في الاتصال</h3>
-                        <p style="color: #666; margin: 10px 0;">${error.message}</p>
-                        <button onclick="fetchSchedule()" style="margin-top: 10px; padding: 8px 25px; background: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer;">
+                    <div style="text-align: center; padding: 30px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #e74c3c; margin-bottom: 15px;"></i>
+                        <h3 style="color: #e74c3c; font-size: 1.5rem; margin-bottom: 10px;">خطأ في الاتصال</h3>
+                        <p style="color: #666; margin: 15px 0;">يرجى التحقق من اتصال الإنترنت</p>
+                        <button onclick="fetchSchedule()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 40px; font-size: 1.1rem; cursor: pointer;">
                             <i class="fas fa-sync-alt"></i> إعادة المحاولة
                         </button>
                     </div>
@@ -732,64 +570,15 @@
             }
         }
 
-        // استرجاع التفضيل المحفوظ
-        function loadSavedOrientation() {
-            try {
-                const saved = localStorage.getItem('preferredOrientation');
-                if (saved && (saved === 'landscape' || saved === 'portrait')) {
-                    currentOrientation = saved;
-                } else {
-                    // الكشف التلقائي عن الاتجاه
-                    if (window.matchMedia("(orientation: portrait)").matches) {
-                        currentOrientation = 'portrait';
-                    } else {
-                        currentOrientation = 'landscape';
-                    }
-                }
-            } catch (e) {
-                // إذا فشل الوصول لـ localStorage، نستخدم الكشف التلقائي
-                if (window.matchMedia("(orientation: portrait)").matches) {
-                    currentOrientation = 'portrait';
-                } else {
-                    currentOrientation = 'landscape';
-                }
-            }
-            
-            updateOrientationUI(currentOrientation);
-        }
-
         // مراقبة تغيير حجم النافذة
         window.addEventListener('resize', () => {
             calculateTableFontSize();
         });
 
-        // مراقبة تغيير الاتجاه الفعلي للجهاز
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                if (window.matchMedia("(orientation: portrait)").matches) {
-                    currentOrientation = 'portrait';
-                } else {
-                    currentOrientation = 'landscape';
-                }
-                updateOrientationUI(currentOrientation);
-            }, 100);
-        });
-
         // تهيئة الصفحة
         document.addEventListener('DOMContentLoaded', function() {
-            // تحميل الاتجاه المحفوظ
-            loadSavedOrientation();
-            
-            // إضافة مستمع الحدث للزر
-            toggleBtn.addEventListener('click', toggleOrientation);
-            
-            // تحميل البيانات
             fetchSchedule();
-            
-            // تحديث دوري كل 5 دقائق
-            setInterval(fetchSchedule, 300000);
-            
-            // حساب الحجم بعد التحميل
+            setInterval(fetchSchedule, 300000); // تحديث كل 5 دقائق
             window.addEventListener('load', calculateTableFontSize);
         });
     </script>
