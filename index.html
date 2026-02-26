@@ -12,14 +12,13 @@
             box-sizing: border-box;
         }
 
-        /* تحسين العرض على شاشة التلفاز */
         :root {
-            --tv-scale: 1.2; /* تحجيم عام للتلفاز */
             --primary-color: #3498db;
             --secondary-color: #2980b9;
             --success-color: #27ae60;
             --warning-color: #f39c12;
             --danger-color: #e74c3c;
+            --orientation-mode: landscape; /* القيمة الافتراضية */
         }
 
         body {
@@ -33,9 +32,34 @@
             justify-content: center;
             align-items: center;
             overflow-x: hidden;
+            transition: all 0.5s ease;
         }
 
-        /* خلفية متحركة محسنة للتلفاز */
+        /* الوضع القسري - أفقي */
+        body.forced-landscape {
+            transform: rotate(0deg);
+            width: 100vw;
+            height: 100vh;
+        }
+
+        body.forced-landscape .container {
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        /* الوضع القسري - عمودي */
+        body.forced-portrait {
+            transform: rotate(0deg);
+            width: 100vw;
+            height: 100vh;
+        }
+
+        body.forced-portrait .container {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        /* خلفية متحركة */
         .tv-background {
             position: fixed;
             top: 0;
@@ -47,96 +71,112 @@
             opacity: 0.15;
         }
 
-        .tv-background::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="white" stroke-width="0.5" stroke-opacity="0.1"/></svg>');
-            animation: moveGrid 20s linear infinite;
-        }
-
-        @keyframes moveGrid {
-            from { transform: translateY(0); }
-            to { transform: translateY(100px); }
-        }
-
         .container {
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 1920px; /* الحد الأقصى لشاشة التلفاز */
+            max-width: 1920px;
             margin: 0 auto;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
 
-        /* الوضع الرأسي */
-        @media (orientation: portrait) {
-            .container {
-                max-width: 100%;
-            }
-            
-            .header {
-                margin-bottom: 15px;
-            }
-            
-            .school-name h1 {
-                font-size: clamp(1.8rem, 5vw, 3rem);
-            }
-            
-            .stats-cards {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-            }
-            
-            .stat-card {
-                padding: 12px;
-            }
-            
-            .schedule-table th,
-            .schedule-table td {
-                padding: 12px 8px;
-                font-size: clamp(0.8rem, 2.5vw, 1.2rem);
-            }
+        /* شريط التحكم العلوي */
+        .control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        /* الوضع الأفقي */
-        @media (orientation: landscape) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header {
-                margin-bottom: 20px;
-            }
-            
-            .school-name h1 {
-                font-size: clamp(2rem, 4vw, 3.5rem);
-            }
-            
-            .stats-cards {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 20px;
-            }
-            
-            .schedule-table th,
-            .schedule-table td {
-                padding: 15px;
-                font-size: clamp(1rem, 2vw, 1.4rem);
-            }
+        /* زر تبديل الاتجاه المحسن */
+        .orientation-toggle-btn {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 60px;
+            padding: 15px 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            z-index: 1000;
         }
 
-        /* تحجيم تلقائي للشاشات الكبيرة */
-        @media (min-width: 1920px) {
-            :root {
-                --tv-scale: 1.5;
-            }
-            
-            body {
-                font-size: 18px;
-            }
+        .orientation-toggle-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary-color);
+        }
+
+        .orientation-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        .orientation-toggle-btn i {
+            font-size: 1.8rem;
+            transition: all 0.5s ease;
+        }
+
+        .orientation-toggle-btn.landscape i {
+            transform: rotate(90deg);
+            color: #27ae60;
+        }
+
+        .orientation-toggle-btn.portrait i {
+            transform: rotate(0deg);
+            color: #e74c3c;
+        }
+
+        .btn-text {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* مؤشر الاتجاه الحالي */
+        .current-orientation {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .orientation-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        .orientation-indicator.landscape {
+            background: #27ae60;
+            box-shadow: 0 0 15px #27ae60;
+        }
+
+        .orientation-indicator.portrait {
+            background: #e74c3c;
+            box-shadow: 0 0 15px #e74c3c;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
         .header {
@@ -167,12 +207,6 @@
             color: #e74c3c;
             margin: 0 15px;
             animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
         }
 
         .school-name .subtitle {
@@ -220,15 +254,6 @@
             align-items: center;
             gap: 10px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .update-info i {
-            animation: spin 3s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
         }
 
         .stats-cards {
@@ -293,11 +318,10 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
             overflow-x: auto;
             overflow-y: auto;
-            max-height: calc(100vh - 300px); /* تحسين التمرير */
+            max-height: calc(100vh - 300px);
             border: 2px solid rgba(255, 255, 255, 0.8);
         }
 
-        /* تخصيص شريط التمرير */
         .table-container::-webkit-scrollbar {
             width: 12px;
             height: 12px;
@@ -317,7 +341,7 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0 12px;
-            min-width: 800px; /* ضمان عرض مناسب */
+            min-width: 800px;
         }
 
         .schedule-table th {
@@ -383,14 +407,12 @@
         .booked td:first-child {
             background: transparent !important;
             color: white !important;
-            font-weight: 700;
         }
 
         .empty-cell {
             color: #95a5a6 !important;
             font-style: italic;
             background: linear-gradient(135deg, #f8f9fa, #ecf0f1) !important;
-            font-size: clamp(0.9rem, 2vw, 1.2rem);
         }
 
         .experiment-badge {
@@ -424,28 +446,6 @@
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         }
 
-        .loading-state {
-            text-align: center;
-            padding: 60px;
-        }
-
-        .tv-spinner {
-            width: 70px;
-            height: 70px;
-            border: 6px solid rgba(52, 152, 219, 0.2);
-            border-top: 6px solid var(--primary-color);
-            border-right: 6px solid var(--secondary-color);
-            border-radius: 50%;
-            animation: tvSpin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            margin: 0 auto 25px;
-        }
-
-        @keyframes tvSpin {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-
         .footer {
             margin-top: 25px;
             text-align: center;
@@ -458,67 +458,47 @@
             backdrop-filter: blur(5px);
         }
 
-        .footer a {
-            color: #ffd700;
-            text-decoration: none;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.5);
-            padding-bottom: 2px;
-            transition: all 0.3s ease;
-        }
-
-        .footer a:hover {
-            color: white;
-            border-bottom-color: white;
-        }
-
-        /* مؤشر اتجاه الشاشة */
-        .orientation-badge {
+        /* رسالة منبثقة */
+        .toast-message {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.6);
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            backdrop-filter: blur(5px);
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
         }
 
-        .orientation-badge i {
-            font-size: 1.2rem;
+        .toast-message.show {
+            transform: translateY(0);
+            opacity: 1;
         }
 
-        @media (orientation: landscape) {
-            .orientation-badge i {
-                transform: rotate(90deg);
-            }
+        .toast-message i {
+            margin-left: 10px;
+            color: #27ae60;
         }
 
-        /* تحسينات للأداء على التلفاز */
-        @media (hover: none) and (pointer: coarse) {
-            .stat-card:hover {
-                transform: none;
-            }
-            
-            .schedule-table tr:hover td {
-                transform: none;
+        /* تحسينات للشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .control-bar {
+                flex-direction: column;
+                align-items: stretch;
             }
             
-            .stat-card {
-                transition: none;
+            .orientation-toggle-btn {
+                justify-content: center;
             }
-        }
-
-        /* تحسين العرض للشاشات الكبيرة جداً */
-        @media (min-width: 2000px) {
-            .container {
-                transform: scale(1.2);
-                transform-origin: center center;
+            
+            .current-orientation {
+                justify-content: center;
             }
         }
     </style>
@@ -528,12 +508,22 @@
 <body>
     <div class="tv-background"></div>
     
-    <div class="orientation-badge" id="orientationBadge">
-        <i class="fas fa-mobile-alt"></i>
-        <span id="orientationText">وضع أفقي</span>
-    </div>
-    
     <div class="container">
+        <!-- شريط التحكم مع زر التبديل -->
+        <div class="control-bar">
+            <div class="orientation-toggle-btn" id="orientationToggle">
+                <i class="fas fa-rotate" id="toggleIcon"></i>
+                <span class="btn-text">تبديل اتجاه الشاشة</span>
+                <i class="fas fa-arrow-left" style="font-size: 1.2rem; color: var(--primary-color);"></i>
+            </div>
+            
+            <div class="current-orientation" id="orientationDisplay">
+                <span class="orientation-indicator landscape" id="orientationIndicator"></span>
+                <span id="orientationStatus">الوضع الأفقي</span>
+                <i class="fas fa-tv" style="margin-right: 10px;"></i>
+            </div>
+        </div>
+
         <div class="header">
             <div class="school-name">
                 <h1>
@@ -589,51 +579,162 @@
         </div>
 
         <div class="footer">
-            <p><i class="fas fa-tv"></i> محسن لشاشات التلفاز - يدعم الوضع الأفقي والرأسي <i class="fas fa-rotate"></i> | جميع الحقوق محفوظة &copy; 2024 - مدرسة الحوراء</p>
+            <p><i class="fas fa-tv"></i> محسن لشاشات التلفاز - يدعم التبديل بين الأفقي والعمودي <i class="fas fa-rotate"></i> | جميع الحقوق محفوظة &copy; 2024 - مدرسة الحوراء</p>
         </div>
     </div>
 
+    <!-- رسالة منبثقة للتأكيد -->
+    <div class="toast-message" id="toastMessage">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastText">تم التبديل إلى الوضع الأفقي</span>
+    </div>
+
+    <style>
+        .tv-spinner {
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(52, 152, 219, 0.2);
+            border-top: 6px solid var(--primary-color);
+            border-right: 6px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: tvSpin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 0 auto 25px;
+        }
+
+        @keyframes tvSpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+    </style>
+
     <script>
+        // المتغيرات العامة
+        let currentOrientation = 'landscape'; // landscape أو portrait
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
 
-        // كشف اتجاه الشاشة
-        function detectOrientation() {
-            const orientationBadge = document.getElementById('orientationBadge');
-            const orientationText = document.getElementById('orientationText');
+        // عناصر الصفحة
+        const toggleBtn = document.getElementById('orientationToggle');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const orientationDisplay = document.getElementById('orientationStatus');
+        const orientationIndicator = document.getElementById('orientationIndicator');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastText = document.getElementById('toastText');
+        const body = document.body;
+
+        // دالة عرض رسالة منبثقة
+        function showToast(message, isSuccess = true) {
+            toastText.textContent = message;
+            toastMessage.classList.add('show');
             
-            if (window.matchMedia("(orientation: portrait)").matches) {
-                orientationText.textContent = 'وضع عمودي';
-                orientationBadge.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+            if (isSuccess) {
+                toastMessage.querySelector('i').style.color = '#27ae60';
             } else {
-                orientationText.textContent = 'وضع أفقي';
-                orientationBadge.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+                toastMessage.querySelector('i').style.color = '#e74c3c';
+            }
+            
+            setTimeout(() => {
+                toastMessage.classList.remove('show');
+            }, 2000);
+        }
+
+        // دالة تحديث واجهة المستخدم حسب الاتجاه
+        function updateOrientationUI(orientation) {
+            // تحديث النص
+            if (orientation === 'landscape') {
+                orientationDisplay.textContent = 'الوضع الأفقي';
+                orientationIndicator.className = 'orientation-indicator landscape';
+                toggleBtn.className = 'orientation-toggle-btn landscape';
+                toggleIcon.style.transform = 'rotate(90deg)';
+                
+                // تحديث متغير CSS
+                document.documentElement.style.setProperty('--orientation-mode', 'landscape');
+                
+                // تغيير خلفية الزر
+                toggleBtn.style.borderColor = '#27ae60';
+            } else {
+                orientationDisplay.textContent = 'الوضع العمودي';
+                orientationIndicator.className = 'orientation-indicator portrait';
+                toggleBtn.className = 'orientation-toggle-btn portrait';
+                toggleIcon.style.transform = 'rotate(0deg)';
+                
+                // تحديث متغير CSS
+                document.documentElement.style.setProperty('--orientation-mode', 'portrait');
+                
+                // تغيير خلفية الزر
+                toggleBtn.style.borderColor = '#e74c3c';
             }
         }
 
-        // مراقبة تغيير اتجاه الشاشة
-        window.addEventListener('resize', detectOrientation);
-        window.addEventListener('orientationchange', detectOrientation);
-        detectOrientation();
+        // دالة تبديل الاتجاه
+        function toggleOrientation() {
+            // تغيير الاتجاه
+            if (currentOrientation === 'landscape') {
+                currentOrientation = 'portrait';
+                body.classList.remove('forced-landscape');
+                body.classList.add('forced-portrait');
+                
+                // محاولة قفل الشاشة إذا كان ذلك ممكناً
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('portrait').catch(() => {
+                        // إذا فشل، نستخدم CSS فقط
+                        console.log('لا يمكن قفل الشاشة، استخدام CSS فقط');
+                    });
+                }
+                
+                showToast('تم التبديل إلى الوضع العمودي');
+            } else {
+                currentOrientation = 'landscape';
+                body.classList.remove('forced-portrait');
+                body.classList.add('forced-landscape');
+                
+                // محاولة قفل الشاشة إذا كان ذلك ممكناً
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {
+                        // إذا فشل، نستخدم CSS فقط
+                        console.log('لا يمكن قفل الشاشة، استخدام CSS فقط');
+                    });
+                }
+                
+                showToast('تم التبديل إلى الوضع الأفقي');
+            }
+            
+            // تحديث واجهة المستخدم
+            updateOrientationUI(currentOrientation);
+            
+            // حفظ التفضيل في localStorage
+            localStorage.setItem('preferredOrientation', currentOrientation);
+            
+            // إعادة تحجيم الجدول
+            setTimeout(autoScale, 100);
+        }
 
-        // تحجيم تلقائي بناء على حجم الشاشة
+        // دالة تحجيم تلقائي
         function autoScale() {
             const container = document.querySelector('.container');
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
             
-            // حساب نسبة التحجيم المثالية
-            if (screenWidth >= 1920 && screenHeight >= 1080) {
-                container.style.transform = 'scale(1)';
-            } else if (screenWidth < 1280) {
-                container.style.transform = 'scale(0.9)';
-                container.style.transformOrigin = 'top center';
+            if (currentOrientation === 'landscape') {
+                if (screenWidth >= 1920) {
+                    container.style.transform = 'scale(1)';
+                } else if (screenWidth < 1280) {
+                    container.style.transform = 'scale(0.9)';
+                } else {
+                    container.style.transform = 'scale(1)';
+                }
+            } else {
+                // تحجيم مختلف للوضع العمودي
+                if (screenHeight >= 1080) {
+                    container.style.transform = 'scale(1)';
+                } else {
+                    container.style.transform = 'scale(0.85)';
+                }
             }
         }
 
-        window.addEventListener('load', autoScale);
-        window.addEventListener('resize', autoScale);
-
+        // دالة تحميل البيانات
         async function fetchSchedule() {
             try {
                 document.getElementById('tableContainer').innerHTML = `
@@ -649,8 +750,6 @@
                 const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
                 
                 const now = new Date();
-                
-                // تنسيق التاريخ بالعربية
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 const arabicDate = now.toLocaleDateString('ar-SA', options);
                 document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day fa-fw"></i> ${arabicDate}`;
@@ -660,6 +759,7 @@
 
                 schoolPeriods.forEach((period, index) => {
                     let booking = null;
+                    const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
 
                     for (let i = 1; i < rows.length; i++) {
                         const row = rows[i];
@@ -667,7 +767,6 @@
 
                         const rowDate = row[2];
                         const rowPeriod = row[4];
-                        const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
 
                         if (rowDate === today && rowPeriod === period) {
                             booking = {
@@ -722,13 +821,62 @@
             }
         }
 
-        // تشغيل التحديث
-        fetchSchedule();
-        setInterval(fetchSchedule, 300000); // كل 5 دقائق
+        // استرجاع التفضيل المحفوظ
+        function loadSavedOrientation() {
+            const saved = localStorage.getItem('preferredOrientation');
+            if (saved) {
+                currentOrientation = saved;
+                if (saved === 'portrait') {
+                    body.classList.add('forced-portrait');
+                } else {
+                    body.classList.add('forced-landscape');
+                }
+                updateOrientationUI(saved);
+            } else {
+                // الكشف التلقائي عن الاتجاه
+                if (window.matchMedia("(orientation: portrait)").matches) {
+                    currentOrientation = 'portrait';
+                    body.classList.add('forced-portrait');
+                } else {
+                    currentOrientation = 'landscape';
+                    body.classList.add('forced-landscape');
+                }
+                updateOrientationUI(currentOrientation);
+            }
+        }
 
-        // تحميل فوري عند تغيير اتجاه الشاشة
-        window.addEventListener('orientationchange', () => {
-            setTimeout(autoScale, 100);
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedOrientation();
+            
+            // إضافة مستمع حدث للزر
+            toggleBtn.addEventListener('click', toggleOrientation);
+            
+            // تشغيل التحميل
+            fetchSchedule();
+            
+            // تحديث دوري
+            setInterval(fetchSchedule, 300000);
+            
+            // مراقبة تغيير حجم الشاشة
+            window.addEventListener('resize', autoScale);
+            
+            // مراقبة تغيير الاتجاه الفعلي
+            window.addEventListener('orientationchange', function() {
+                setTimeout(() => {
+                    if (window.matchMedia("(orientation: portrait)").matches) {
+                        currentOrientation = 'portrait';
+                        body.classList.add('forced-portrait');
+                        body.classList.remove('forced-landscape');
+                    } else {
+                        currentOrientation = 'landscape';
+                        body.classList.add('forced-landscape');
+                        body.classList.remove('forced-portrait');
+                    }
+                    updateOrientationUI(currentOrientation);
+                    autoScale();
+                }, 100);
+            });
         });
     </script>
 </body>
