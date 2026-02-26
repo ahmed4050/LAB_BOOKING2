@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>شاشة حجز المختبر</title>
+    <meta http-equiv="refresh" content="300">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: white; padding: 20px; }
+        h1 { text-align: center; color: #4CAF50; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: #2d2d2d; font-size: 1.5rem; }
+        th, td { border: 1px solid #444; padding: 15px; text-align: center; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #383838; }
+        .no-data { text-align: center; font-size: 1.8rem; margin-top: 50px; color: #aaa; }
+        .date-header { text-align: center; font-size: 1.2rem; color: #ffeb3b; }
+    </style>
+</head>
+<body>
+
+    <h1>جدول حجوزات المختبر المدرسي</h1>
+    <div id="currentDate" class="date-header"></div>
+    <div id="tableContainer">جاري تحميل البيانات...</div>
+
+    <script>
+        // رابط CSV الخاص بك
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
+
+        async function fetchSchedule() {
+            try {
+                const response = await fetch(csvUrl);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => row.split(','));
+                
+                // الحصول على تاريخ اليوم بتنسيق مشابه للإكسل (YYYY/MM/DD)
+                const now = new Date();
+                const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+                document.getElementById('currentDate').innerText = "تاريخ اليوم: " + today;
+
+                let html = '<table><tr><th>الحصة</th><th>المعلمة</th><th>الصف/الفصل</th><th>التجربة</th></tr>';
+                let hasData = false;
+
+                // نبدأ من 1 لتجاوز رؤوس الأعمدة
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.length < 5) continue;
+
+                    const rowDate = row[2].trim(); // عمود التاريخ
+
+                    if (rowDate === today) {
+                        hasData = true;
+                        html += `<tr>
+                            <td>${row[4]}</td> <td>${row[3]}</td> <td>${row[5]}-${row[6]}</td> <td>${row[7]}</td> </tr>`;
+                    }
+                }
+
+                html += '</table>';
+                document.getElementById('tableContainer').innerHTML = hasData ? html : '<div class="no-data">لا توجد حجوزات مسجلة لهذا اليوم</div>';
+
+            } catch (error) {
+                document.getElementById('tableContainer').innerHTML = "خطأ في تحميل البيانات. تأكد من اتصال الإنترنت.";
+            }
+        }
+
+        fetchSchedule();
+    </script>
+</body>
+</html>
