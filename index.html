@@ -23,7 +23,8 @@
         html, body {
             height: 100vh;
             width: 100vw;
-            overflow: hidden; /* منع التمرير على مستوى الصفحة */
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         body {
@@ -35,6 +36,33 @@
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        /* الوضع الأفقي */
+        body.landscape-mode .container {
+            max-width: 1920px;
+            transform: rotate(0deg);
+        }
+
+        body.landscape-mode .schedule-table th,
+        body.landscape-mode .schedule-table td {
+            font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+        }
+
+        /* الوضع العمودي */
+        body.portrait-mode .container {
+            max-width: 1080px;
+            transform: rotate(0deg);
+        }
+
+        body.portrait-mode .schedule-table th,
+        body.portrait-mode .schedule-table td {
+            font-size: clamp(0.7rem, 1.8vw, 1rem);
+        }
+
+        body.portrait-mode .stats-cards {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
         }
 
         /* الخلفية المتحركة */
@@ -56,41 +84,58 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 8px; /* تقليل المسافات */
+            gap: 8px;
             max-width: 100%;
             max-height: 100%;
+            transition: all 0.3s ease;
         }
 
-        /* شريط التحكم العلوي - أصغر حجماً */
+        /* شريط التحكم */
         .control-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            flex-shrink: 0; /* منع الانكماش */
+            flex-shrink: 0;
         }
 
-        /* زر تبديل الاتجاه المحسن - أصغر */
+        /* زر تبديل الاتجاه */
         .orientation-toggle-btn {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 40px;
-            padding: 8px 20px;
+            padding: 10px 25px;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: #2c3e50;
             flex-shrink: 0;
+            border: 2px solid transparent;
+        }
+
+        .orientation-toggle-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .orientation-toggle-btn.landscape {
+            border-color: #27ae60;
+            background: linear-gradient(135deg, #f0fff4, #ffffff);
+        }
+
+        .orientation-toggle-btn.portrait {
+            border-color: #e74c3c;
+            background: linear-gradient(135deg, #fff0f0, #ffffff);
         }
 
         .orientation-toggle-btn i {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             transition: all 0.5s ease;
         }
 
@@ -105,21 +150,22 @@
         }
 
         .current-orientation {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 8px 20px;
+            padding: 10px 25px;
             border-radius: 40px;
-            font-size: 0.9rem;
+            font-size: 1rem;
             backdrop-filter: blur(5px);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .orientation-indicator {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             display: inline-block;
             animation: pulse 1.5s infinite;
@@ -127,21 +173,21 @@
 
         .orientation-indicator.landscape {
             background: #27ae60;
-            box-shadow: 0 0 10px #27ae60;
+            box-shadow: 0 0 15px #27ae60;
         }
 
         .orientation-indicator.portrait {
             background: #e74c3c;
-            box-shadow: 0 0 10px #e74c3c;
+            box-shadow: 0 0 15px #e74c3c;
         }
 
         @keyframes pulse {
             0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
             100% { opacity: 1; transform: scale(1); }
         }
 
-        /* الهيدر - أصغر حجماً */
+        /* باقي التنسيقات كما هي */
         .header {
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(15px);
@@ -169,13 +215,11 @@
             color: #e74c3c;
             margin: 0 10px;
             animation: pulse 2s infinite;
-            font-size: clamp(1.2rem, 2.5vw, 2rem);
         }
 
         .school-name .subtitle {
             color: #7f8c8d;
             font-size: clamp(0.8rem, 1.5vw, 1.2rem);
-            font-weight: 400;
             border-bottom: 2px solid var(--primary-color);
             display: inline-block;
             padding-bottom: 4px;
@@ -189,31 +233,10 @@
             padding: 10px 20px;
             border-radius: 15px;
             color: white;
-            flex-wrap: wrap;
             gap: 10px;
             font-size: clamp(0.8rem, 1.5vw, 1.1rem);
         }
 
-        .date-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .date-info i {
-            font-size: clamp(1.1rem, 2vw, 1.5rem);
-        }
-
-        .update-info {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 6px 15px;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* بطاقات الإحصائيات - أصغر */
         .stats-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -223,7 +246,6 @@
 
         .stat-card {
             background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 12px 15px;
             display: flex;
@@ -250,17 +272,14 @@
             color: #7f8c8d;
             font-size: clamp(0.7rem, 1.2vw, 0.9rem);
             margin-bottom: 3px;
-            font-weight: 500;
         }
 
         .stat-details .stat-number {
             color: #2c3e50;
             font-size: clamp(1.3rem, 2.5vw, 2rem);
             font-weight: 800;
-            line-height: 1;
         }
 
-        /* حاوية الجدول - بدون تمرير */
         .table-container {
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(15px);
@@ -268,25 +287,23 @@
             padding: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.8);
-            flex: 1; /* أخذ المساحة المتبقية */
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 0; /* مهم لمنع تجاوز المحتوى */
+            min-height: 0;
         }
 
-        /* الجدول مع تحجيم تلقائي */
         .schedule-table {
             width: 100%;
             height: 100%;
             border-collapse: separate;
             border-spacing: 0 6px;
-            table-layout: fixed; /* توزيع متساو للأعمدة */
+            table-layout: fixed;
         }
 
-        /* تحجيم ديناميكي للصفوف */
         .schedule-table tr {
-            height: calc((100% - 60px) / 8); /* توزيع متساوي للـ 8 صفوف */
+            height: calc((100% - 60px) / 8);
         }
 
         .schedule-table th {
@@ -294,7 +311,6 @@
             color: white;
             font-weight: 700;
             padding: 8px 5px;
-            font-size: clamp(0.8rem, 1.5vw, 1.1rem);
             text-align: center;
             border: none;
             white-space: nowrap;
@@ -302,36 +318,35 @@
 
         .schedule-table th:first-child {
             border-radius: 12px 0 0 12px;
-            width: 8%; /* عرض عمود رقم الحصة */
+            width: 8%;
         }
 
         .schedule-table th:nth-child(2) {
-            width: 12%; /* عرض عمود الحصة */
+            width: 12%;
         }
 
         .schedule-table th:nth-child(3) {
-            width: 20%; /* عرض عمود المعلمة */
+            width: 20%;
         }
 
         .schedule-table th:nth-child(4) {
-            width: 20%; /* عرض عمود الصف */
+            width: 20%;
         }
 
         .schedule-table th:last-child {
             border-radius: 0 12px 12px 0;
-            width: 40%; /* عرض عمود التجربة */
+            width: 40%;
         }
 
         .schedule-table td {
             background: white;
             padding: 6px 8px;
             text-align: center;
-            font-size: clamp(0.75rem, 1.3vw, 1rem);
             border: none;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis; /* إضافة ... للنص الطويل */
+            text-overflow: ellipsis;
         }
 
         .schedule-table td:first-child {
@@ -394,7 +409,6 @@
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
         }
 
-        /* الفوتر - أصغر */
         .footer {
             text-align: center;
             color: white;
@@ -407,21 +421,21 @@
             flex-shrink: 0;
         }
 
-        /* رسالة منبثقة */
         .toast-message {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 40px;
-            font-size: 0.9rem;
+            font-size: 1rem;
             backdrop-filter: blur(10px);
             transform: translateY(100px);
             opacity: 0;
             transition: all 0.3s ease;
             z-index: 2000;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .toast-message.show {
@@ -429,7 +443,6 @@
             opacity: 1;
         }
 
-        /* مؤشر التحميل */
         .tv-spinner {
             width: 40px;
             height: 40px;
@@ -446,53 +459,19 @@
             50% { transform: rotate(180deg) scale(1.1); }
             100% { transform: rotate(360deg) scale(1); }
         }
-
-        /* تحسينات للشاشات الصغيرة جداً */
-        @media (max-width: 768px) {
-            .control-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .schedule-table th,
-            .schedule-table td {
-                padding: 4px;
-                font-size: 0.7rem;
-            }
-            
-            .period-number {
-                width: 22px;
-                height: 22px;
-                line-height: 22px;
-                font-size: 0.7rem;
-            }
-        }
-
-        /* تحسينات للشاشات الكبيرة */
-        @media (min-width: 1920px) {
-            .schedule-table th {
-                font-size: 1.2rem;
-                padding: 12px;
-            }
-            
-            .schedule-table td {
-                font-size: 1.1rem;
-                padding: 10px;
-            }
-        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="landscape-mode">
     <div class="tv-background"></div>
     
     <div class="container">
         <!-- شريط التحكم مع زر التبديل -->
         <div class="control-bar">
-            <div class="orientation-toggle-btn" id="orientationToggle">
+            <div class="orientation-toggle-btn landscape" id="orientationToggle">
                 <i class="fas fa-rotate" id="toggleIcon"></i>
-                <span class="btn-text">تبديل الاتجاه</span>
+                <span class="btn-text">تبديل اتجاه الشاشة</span>
             </div>
             
             <div class="current-orientation" id="orientationDisplay">
@@ -508,7 +487,7 @@
                     مدرسة الحوراء
                     <i class="fas fa-microscope"></i>
                 </h1>
-                <div class="subtitle">نظام حجوزات المختبر</div>
+                <div class="subtitle">نظام حجوزات المختبر - شاشة التلفاز</div>
             </div>
             
             <div class="info-bar">
@@ -518,7 +497,7 @@
                 </div>
                 <div class="update-info">
                     <i class="fas fa-sync-alt fa-fw"></i>
-                    <span>تحديث | 5 دقائق</span>
+                    <span>تحديث تلقائي | 5 دقائق</span>
                 </div>
             </div>
         </div>
@@ -534,38 +513,36 @@
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
                 <div class="stat-details">
-                    <h3>المحجوزة</h3>
+                    <h3>الحصص المحجوزة</h3>
                     <div class="stat-number" id="bookedCount">0</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-clock"></i></div>
                 <div class="stat-details">
-                    <h3>الشاغرة</h3>
+                    <h3>الحصص الشاغرة</h3>
                     <div class="stat-number" id="emptyCount">8</div>
                 </div>
             </div>
         </div>
 
-        <!-- حاوية الجدول - بدون تمرير -->
         <div class="table-container">
             <div id="tableContainer" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                 <div class="loading-state" style="text-align: center;">
                     <div class="tv-spinner"></div>
-                    <p style="font-size: 1rem; color: #666;">جاري التحميل...</p>
+                    <p style="font-size: 1rem; color: #666;">جاري تحميل جدول الحصص...</p>
                 </div>
             </div>
         </div>
 
         <div class="footer">
-            <p><i class="fas fa-tv"></i> شاشة التلفاز - مدرسة الحوراء</p>
+            <p><i class="fas fa-tv"></i> شاشة التلفاز - مدرسة الحوراء | جميع الحقوق محفوظة © 2024</p>
         </div>
     </div>
 
-    <!-- رسالة منبثقة -->
     <div class="toast-message" id="toastMessage">
         <i class="fas fa-check-circle"></i>
-        <span id="toastText">تم التبديل</span>
+        <span id="toastText">تم التبديل إلى الوضع الأفقي</span>
     </div>
 
     <script>
@@ -575,6 +552,7 @@
         const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
 
         // عناصر الصفحة
+        const body = document.body;
         const toggleBtn = document.getElementById('orientationToggle');
         const toggleIcon = document.getElementById('toggleIcon');
         const orientationStatus = document.getElementById('orientationStatus');
@@ -583,77 +561,101 @@
         const toastText = document.getElementById('toastText');
 
         // دالة عرض رسالة منبثقة
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             toastText.textContent = message;
             toastMessage.classList.add('show');
+            
+            const icon = toastMessage.querySelector('i');
+            if (type === 'success') {
+                icon.style.color = '#27ae60';
+            } else {
+                icon.style.color = '#e74c3c';
+            }
+            
             setTimeout(() => {
                 toastMessage.classList.remove('show');
-            }, 1500);
+            }, 2000);
         }
 
         // دالة تحديث واجهة المستخدم حسب الاتجاه
         function updateOrientationUI(orientation) {
+            // إزالة الكلاسات القديمة
+            body.classList.remove('landscape-mode', 'portrait-mode');
+            
             if (orientation === 'landscape') {
+                body.classList.add('landscape-mode');
                 orientationStatus.textContent = 'الوضع الأفقي';
                 orientationIndicator.className = 'orientation-indicator landscape';
                 toggleBtn.className = 'orientation-toggle-btn landscape';
                 toggleIcon.style.transform = 'rotate(90deg)';
+                showToast('تم التبديل إلى الوضع الأفقي', 'success');
             } else {
+                body.classList.add('portrait-mode');
                 orientationStatus.textContent = 'الوضع العمودي';
                 orientationIndicator.className = 'orientation-indicator portrait';
                 toggleBtn.className = 'orientation-toggle-btn portrait';
                 toggleIcon.style.transform = 'rotate(0deg)';
+                showToast('تم التبديل إلى الوضع العمودي', 'success');
             }
-        }
-
-        // دالة حساب حجم الجدول المناسب
-        function calculateTableFontSize() {
-            const container = document.querySelector('.table-container');
-            const rows = 8; // عدد الصفوف
-            const containerHeight = container.clientHeight;
-            const containerWidth = container.clientWidth;
             
-            // حساب الحجم المناسب بناءً على المساحة المتاحة
-            let baseSize = Math.min(
-                containerHeight / (rows * 4), // 4 هو عامل التحجيم
-                containerWidth / 50 // للعرض
-            );
-            
-            // تحديد حد أدنى وأقصى للحجم
-            baseSize = Math.max(10, Math.min(24, baseSize));
-            
-            // تطبيق الحجم على الجدول
-            document.documentElement.style.setProperty('--dynamic-font-size', baseSize + 'px');
+            // إعادة حساب حجم الجدول
+            setTimeout(calculateTableFontSize, 100);
         }
 
         // دالة تبديل الاتجاه
         function toggleOrientation() {
             if (currentOrientation === 'landscape') {
                 currentOrientation = 'portrait';
-                showToast('الوضع العمودي');
             } else {
                 currentOrientation = 'landscape';
-                showToast('الوضع الأفقي');
             }
             
             updateOrientationUI(currentOrientation);
-            localStorage.setItem('preferredOrientation', currentOrientation);
             
-            // إعادة حساب حجم الجدول بعد تغيير الاتجاه
-            setTimeout(calculateTableFontSize, 100);
+            // حفظ التفضيل
+            try {
+                localStorage.setItem('preferredOrientation', currentOrientation);
+            } catch (e) {
+                console.log('LocalStorage غير متاح');
+            }
+            
+            // محاولة قفل الشاشة إذا كان ممكناً
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    if (currentOrientation === 'landscape') {
+                        screen.orientation.lock('landscape').catch(() => {});
+                    } else {
+                        screen.orientation.lock('portrait').catch(() => {});
+                    }
+                }
+            } catch (e) {
+                console.log('قفل الشاشة غير مدعوم');
+            }
+        }
+
+        // دالة حساب حجم الجدول
+        function calculateTableFontSize() {
+            const container = document.querySelector('.table-container');
+            if (!container) return;
+            
+            const rows = 8;
+            const containerHeight = container.clientHeight;
+            const containerWidth = container.clientWidth;
+            
+            let baseSize = Math.min(
+                containerHeight / (rows * 3.5),
+                containerWidth / 45
+            );
+            
+            baseSize = Math.max(10, Math.min(24, baseSize));
+            document.documentElement.style.setProperty('--dynamic-font-size', baseSize + 'px');
         }
 
         // دالة تحميل البيانات
         async function fetchSchedule() {
             try {
                 const tableContainer = document.getElementById('tableContainer');
-                tableContainer.innerHTML = `
-                    <div style="text-align: center;">
-                        <div class="tv-spinner"></div>
-                        <p style="font-size: 1rem; color: #666;">جاري تحميل الجدول...</p>
-                    </div>
-                `;
-
+                
                 const response = await fetch(csvUrl);
                 const data = await response.text();
                 const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
@@ -701,7 +703,7 @@
                             <td><span class="period-number">${index + 1}</span></td>
                             <td>${period}</td>
                             <td colspan="3" class="empty-cell">
-                                <i class="fas fa-ban"></i> شاغر
+                                <i class="fas fa-ban"></i> شاغر - متاح للحجز
                             </td>
                         </tr>`;
                     }
@@ -711,10 +713,9 @@
                 
                 document.getElementById('bookedCount').textContent = bookedCount;
                 document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
+                document.getElementById('totalPeriods').textContent = schoolPeriods.length;
                 
                 tableContainer.innerHTML = html;
-                
-                // حساب حجم الخط المناسب بعد تحميل الجدول
                 calculateTableFontSize();
 
             } catch (error) {
@@ -722,7 +723,8 @@
                     <div style="text-align: center; padding: 20px;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 10px;"></i>
                         <h3 style="color: #e74c3c; font-size: 1.2rem;">خطأ في الاتصال</h3>
-                        <button onclick="fetchSchedule()" style="margin-top: 10px; padding: 8px 20px; background: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer;">
+                        <p style="color: #666; margin: 10px 0;">${error.message}</p>
+                        <button onclick="fetchSchedule()" style="margin-top: 10px; padding: 8px 25px; background: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer;">
                             <i class="fas fa-sync-alt"></i> إعادة المحاولة
                         </button>
                     </div>
@@ -732,18 +734,28 @@
 
         // استرجاع التفضيل المحفوظ
         function loadSavedOrientation() {
-            const saved = localStorage.getItem('preferredOrientation');
-            if (saved) {
-                currentOrientation = saved;
-                updateOrientationUI(saved);
-            } else {
+            try {
+                const saved = localStorage.getItem('preferredOrientation');
+                if (saved && (saved === 'landscape' || saved === 'portrait')) {
+                    currentOrientation = saved;
+                } else {
+                    // الكشف التلقائي عن الاتجاه
+                    if (window.matchMedia("(orientation: portrait)").matches) {
+                        currentOrientation = 'portrait';
+                    } else {
+                        currentOrientation = 'landscape';
+                    }
+                }
+            } catch (e) {
+                // إذا فشل الوصول لـ localStorage، نستخدم الكشف التلقائي
                 if (window.matchMedia("(orientation: portrait)").matches) {
                     currentOrientation = 'portrait';
                 } else {
                     currentOrientation = 'landscape';
                 }
-                updateOrientationUI(currentOrientation);
             }
+            
+            updateOrientationUI(currentOrientation);
         }
 
         // مراقبة تغيير حجم النافذة
@@ -751,16 +763,33 @@
             calculateTableFontSize();
         });
 
+        // مراقبة تغيير الاتجاه الفعلي للجهاز
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                if (window.matchMedia("(orientation: portrait)").matches) {
+                    currentOrientation = 'portrait';
+                } else {
+                    currentOrientation = 'landscape';
+                }
+                updateOrientationUI(currentOrientation);
+            }, 100);
+        });
+
         // تهيئة الصفحة
         document.addEventListener('DOMContentLoaded', function() {
+            // تحميل الاتجاه المحفوظ
             loadSavedOrientation();
             
+            // إضافة مستمع الحدث للزر
             toggleBtn.addEventListener('click', toggleOrientation);
             
+            // تحميل البيانات
             fetchSchedule();
-            setInterval(fetchSchedule, 300000); // تحديث كل 5 دقائق
             
-            // حساب الحجم بعد التحميل الكامل
+            // تحديث دوري كل 5 دقائق
+            setInterval(fetchSchedule, 300000);
+            
+            // حساب الحجم بعد التحميل
             window.addEventListener('load', calculateTableFontSize);
         });
     </script>
