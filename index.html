@@ -1,735 +1,540 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
     <meta http-equiv="refresh" content="300">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --bg-deep:    #050d1a;
-            --bg-mid:     #0a1628;
-            --accent-1:   #00d4ff;
-            --accent-2:   #0077ff;
-            --accent-3:   #7b2fff;
-            --green:      #00e676;
-            --green-dim:  #00c853;
-            --amber:      #ffc400;
-            --text-main:  #e8f4fd;
-            --text-soft:  #7fa8cc;
-            --card-bg:    rgba(10, 30, 60, 0.75);
-            --border:     rgba(0, 212, 255, 0.18);
-            --glow:       0 0 30px rgba(0, 212, 255, 0.15);
-            --row-empty:  rgba(10, 22, 45, 0.6);
-            --row-booked: rgba(0, 200, 100, 0.12);
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
         }
 
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
+        /* الإعدادات الافتراضية للجميع (تسمح بالتمرير في الجوالات) */
         html, body {
-            width: 100vw; height: 100vh;
-            overflow: hidden;
-            background: var(--bg-deep);
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
             font-family: 'Tajawal', sans-serif;
-            color: var(--text-main);
-        }
-
-        /* ===== BACKGROUND ===== */
-        .bg-layer {
-            position: fixed; inset: 0; z-index: 0;
-            background:
-                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,119,255,0.18) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 40% at 10% 90%, rgba(123,47,255,0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 50% 50% at 90% 80%, rgba(0,212,255,0.10) 0%, transparent 60%),
-                linear-gradient(175deg, #050d1a 0%, #081422 50%, #060e1c 100%);
-        }
-
-        /* animated grid */
-        .grid-overlay {
-            position: fixed; inset: 0; z-index: 0;
-            background-image:
-                linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: gridPan 30s linear infinite;
-        }
-        @keyframes gridPan {
-            0%   { background-position: 0 0; }
-            100% { background-position: 60px 60px; }
-        }
-
-        /* ===== LAYOUT ===== */
-        .wrapper {
-            position: relative; z-index: 1;
-            width: 100vw; height: 100vh;
-            display: grid;
-            grid-template-rows: auto auto 1fr auto;
-            gap: clamp(6px, 1.2vh, 16px);
-            padding: clamp(8px, 1.5vh, 20px) clamp(10px, 2vw, 28px);
-        }
-
-        /* ===== HEADER ===== */
-        .header {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: clamp(12px, 2vw, 22px);
-            padding: clamp(8px, 1.2vh, 16px) clamp(14px, 2.5vw, 32px);
-            backdrop-filter: blur(20px);
-            box-shadow: var(--glow), inset 0 1px 0 rgba(255,255,255,0.06);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* تغيير التوسيط ليعمل مع الشاشات الصغيرة */
+            padding: 15px;
             position: relative;
-            overflow: hidden;
         }
 
-        .header::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-1), var(--accent-2), var(--accent-3), transparent);
-            animation: shimmer 4s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-            0%,100% { opacity: 0.6; }
-            50% { opacity: 1; }
+        /* شاشات العرض الكبيرة (تلفاز أو كمبيوتر مكتبي) */
+        @media (min-width: 1024px) {
+            html, body {
+                height: 100vh;
+                overflow: hidden; /* إخفاء شريط التمرير في الشاشات الكبيرة */
+                align-items: center;
+            }
         }
 
-        .header-brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .school-title {
-            font-size: clamp(1.4rem, 3.5vw, 3.2rem);
-            font-weight: 900;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #fff 20%, var(--accent-1) 60%, var(--accent-2) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.1;
-        }
-
-        .school-subtitle {
-            font-size: clamp(0.7rem, 1.5vw, 1.2rem);
-            color: var(--text-soft);
-            font-weight: 400;
-            letter-spacing: 0.05em;
-        }
-
-        .header-icons {
-            display: flex;
-            gap: clamp(10px, 2vw, 24px);
-        }
-
-        .icon-orb {
-            width: clamp(38px, 5vw, 64px);
-            height: clamp(38px, 5vw, 64px);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: clamp(1rem, 2vw, 1.8rem);
-            border: 2px solid var(--border);
-            animation: orbPulse 3s ease-in-out infinite;
-        }
-        .icon-orb:nth-child(1) {
-            background: radial-gradient(circle, rgba(0,212,255,0.2), rgba(0,212,255,0.05));
-            color: var(--accent-1);
-            animation-delay: 0s;
-        }
-        .icon-orb:nth-child(2) {
-            background: radial-gradient(circle, rgba(0,119,255,0.2), rgba(0,119,255,0.05));
-            color: var(--accent-2);
-            animation-delay: 1s;
-        }
-        .icon-orb:nth-child(3) {
-            background: radial-gradient(circle, rgba(123,47,255,0.2), rgba(123,47,255,0.05));
-            color: var(--accent-3);
-            animation-delay: 2s;
-        }
-        @keyframes orbPulse {
-            0%,100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
-            50% { transform: scale(1.07); box-shadow: 0 0 12px 2px rgba(0,212,255,0.25); }
-        }
-
-        .header-date {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 4px;
-        }
-
-        .date-label {
-            font-size: clamp(0.6rem, 1.1vw, 0.9rem);
-            color: var(--text-soft);
-            font-weight: 400;
-        }
-
-        .date-value {
-            font-size: clamp(0.8rem, 1.6vw, 1.3rem);
-            font-weight: 700;
-            color: var(--accent-1);
-        }
-
-        .live-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0, 230, 118, 0.12);
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            color: var(--green);
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: clamp(0.55rem, 1vw, 0.85rem);
-            font-weight: 600;
-            margin-top: 6px;
-        }
-        .live-dot {
-            width: 7px; height: 7px;
-            background: var(--green);
-            border-radius: 50%;
-            animation: livePulse 1.4s ease-in-out infinite;
-        }
-        @keyframes livePulse {
-            0%,100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.7); }
-        }
-
-        /* ===== STATS ===== */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: clamp(8px, 1.5vw, 18px);
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: clamp(10px, 1.5vw, 18px);
-            padding: clamp(8px, 1.2vh, 16px) clamp(12px, 2vw, 24px);
-            display: flex;
-            align-items: center;
-            gap: clamp(10px, 1.5vw, 20px);
-            backdrop-filter: blur(16px);
-            box-shadow: var(--glow);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-        .stat-card::after {
-            content: '';
-            position: absolute; bottom: 0; left: 0; right: 0;
-            height: 2px;
-        }
-        .stat-card:nth-child(1)::after { background: linear-gradient(90deg, var(--accent-2), var(--accent-1)); }
-        .stat-card:nth-child(2)::after { background: linear-gradient(90deg, var(--green-dim), var(--green)); }
-        .stat-card:nth-child(3)::after { background: linear-gradient(90deg, var(--amber), #ff8f00); }
-
-        .stat-icon-wrap {
-            width: clamp(36px, 4.5vw, 58px);
-            height: clamp(36px, 4.5vw, 58px);
-            border-radius: clamp(8px, 1vw, 14px);
-            display: flex; align-items: center; justify-content: center;
-            font-size: clamp(1rem, 1.8vw, 1.6rem);
-            flex-shrink: 0;
-        }
-        .stat-card:nth-child(1) .stat-icon-wrap { background: rgba(0,119,255,0.18); color: var(--accent-1); }
-        .stat-card:nth-child(2) .stat-icon-wrap { background: rgba(0,230,118,0.15); color: var(--green); }
-        .stat-card:nth-child(3) .stat-icon-wrap { background: rgba(255,196,0,0.15); color: var(--amber); }
-
-        .stat-text h3 {
-            font-size: clamp(0.6rem, 1.1vw, 0.9rem);
-            color: var(--text-soft);
-            font-weight: 400;
-            margin-bottom: 3px;
-        }
-        .stat-num {
-            font-size: clamp(1.4rem, 3vw, 2.6rem);
-            font-weight: 900;
-            line-height: 1;
-        }
-        .stat-card:nth-child(1) .stat-num { color: var(--accent-1); }
-        .stat-card:nth-child(2) .stat-num { color: var(--green); }
-        .stat-card:nth-child(3) .stat-num { color: var(--amber); }
-
-        /* ===== TABLE AREA ===== */
-        .table-area {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: clamp(12px, 2vw, 22px);
-            backdrop-filter: blur(20px);
-            box-shadow: var(--glow);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .table-scroll {
-            flex: 1;
-            overflow: hidden;
-            padding: clamp(8px, 1.2vh, 16px) clamp(10px, 1.5vw, 20px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        table {
+        /* الخلفية المتحركة */
+        .tv-background {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 clamp(3px, 0.6vh, 8px);
-            flex: 1;
-            table-layout: fixed;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
+            opacity: 0.15;
+            pointer-events: none;
         }
 
-        thead tr {
-            height: auto;
-        }
-
-        th {
-            background: linear-gradient(135deg, rgba(0,119,255,0.3), rgba(0,212,255,0.15));
-            color: var(--accent-1);
-            font-size: clamp(0.7rem, 1.4vw, 1.05rem);
-            font-weight: 700;
-            padding: clamp(6px, 1vh, 12px) clamp(8px, 1.2vw, 16px);
-            letter-spacing: 0.03em;
-            text-align: center;
-            border-top: 1px solid rgba(0,212,255,0.25);
-            border-bottom: 1px solid rgba(0,212,255,0.25);
-        }
-        th:first-child  { border-radius: 10px 0 0 10px; width: 5%; }
-        th:nth-child(2) { width: 12%; }
-        th:nth-child(3) { width: 22%; }
-        th:nth-child(4) { width: 20%; }
-        th:last-child   { border-radius: 0 10px 10px 0; }
-
-        tbody tr {
-            transition: all 0.25s ease;
-        }
-
-        td {
-            padding: clamp(5px, 0.9vh, 12px) clamp(8px, 1.2vw, 16px);
-            font-size: clamp(0.72rem, 1.35vw, 1rem);
-            text-align: center;
-            background: var(--row-empty);
-            border-top: 1px solid rgba(255,255,255,0.03);
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text-soft);
-        }
-        td:first-child { border-radius: 10px 0 0 10px; border-right: 2px solid rgba(0,212,255,0.15); }
-        td:last-child  { border-radius: 0 10px 10px 0; }
-
-        tr.booked td {
-            background: var(--row-booked);
-            color: #d4fce9;
-            border-top: 1px solid rgba(0,230,118,0.1);
-            border-bottom: 1px solid rgba(0,230,118,0.1);
-        }
-        tr.booked td:first-child {
-            border-right: 2px solid rgba(0,230,118,0.5);
-        }
-
-        tbody tr:hover td {
-            background: rgba(0,119,255,0.12);
-        }
-
-        .period-badge {
-            display: inline-flex;
-            width: clamp(24px, 2.8vw, 36px);
-            height: clamp(24px, 2.8vw, 36px);
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
-            color: white;
-            font-weight: 800;
-            font-size: clamp(0.65rem, 1.2vw, 0.9rem);
-            box-shadow: 0 4px 12px rgba(0,119,255,0.35);
-        }
-
-        .period-name {
-            font-weight: 700;
-            color: var(--text-main);
-            font-size: clamp(0.72rem, 1.3vw, 1rem);
-        }
-
-        tr.booked .period-name { color: var(--green); }
-
-        .teacher-cell {
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .teacher-cell i { color: var(--accent-1); font-size: clamp(0.6rem, 1vw, 0.85rem); }
-        tr.booked .teacher-cell i { color: var(--green); }
-
-        .grade-cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .grade-cell i { color: var(--accent-3); font-size: clamp(0.6rem, 1vw, 0.85rem); }
-        tr.booked .grade-cell i { color: rgba(0,230,118,0.7); }
-
-        .exp-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0,119,255,0.15);
-            border: 1px solid rgba(0,212,255,0.3);
-            color: var(--accent-1);
-            padding: clamp(3px,0.5vh,7px) clamp(8px,1.2vw,16px);
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: clamp(0.65rem, 1.2vw, 0.95rem);
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        tr.booked .exp-chip {
-            background: rgba(0,230,118,0.15);
-            border-color: rgba(0,230,118,0.35);
-            color: var(--green);
+            flex-direction: column;
+            gap: 15px;
+            max-width: 1920px;
         }
 
-        .empty-row td { color: #3a5570 !important; }
-        .empty-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.03);
-            border: 1px dashed rgba(255,255,255,0.08);
-            color: #3a5570;
-            padding: clamp(3px,0.5vh,7px) clamp(10px,1.4vw,18px);
-            border-radius: 40px;
-            font-size: clamp(0.65rem, 1.2vw, 0.95rem);
-        }
-
-        /* ===== FOOTER ===== */
-        .footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(10,22,45,0.7);
-            border: 1px solid var(--border);
-            border-radius: clamp(10px, 1.5vw, 16px);
-            padding: clamp(5px, 0.8vh, 10px) clamp(14px, 2vw, 24px);
-            backdrop-filter: blur(10px);
+        /* الهيدر */
+        .header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 15px 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             flex-shrink: 0;
         }
 
-        .footer-left {
+        .school-name {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .school-name h1 {
+            color: #2c3e50;
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .school-name h1 i {
+            color: #e74c3c;
+            margin: 0 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .school-name .subtitle {
+            color: #7f8c8d;
+            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+            font-weight: 400;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 12px 25px;
+            border-radius: 18px;
+            color: white;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+        }
+
+        .date-info, .update-info {
             display: flex;
             align-items: center;
             gap: 10px;
-            color: var(--text-soft);
-            font-size: clamp(0.6rem, 1.1vw, 0.85rem);
-        }
-        .footer-left i { color: var(--accent-1); }
-
-        .footer-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-soft);
-            font-size: clamp(0.6rem, 1vw, 0.8rem);
         }
 
-        .progress-ring-wrap {
-            position: relative;
-            width: clamp(24px, 2.5vw, 36px);
-            height: clamp(24px, 2.5vw, 36px);
+        .update-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 18px;
+            border-radius: 35px;
+        }
+
+        /* بطاقات الإحصائيات - تم جعلها مرنة */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
             flex-shrink: 0;
         }
-        .progress-ring-wrap svg {
-            width: 100%; height: 100%;
-            transform: rotate(-90deg);
-        }
-        .progress-ring-wrap circle {
-            fill: none;
-            stroke-width: 3;
-        }
-        .ring-bg { stroke: rgba(255,255,255,0.08); }
-        .ring-fill { stroke: var(--accent-1); stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
 
-        /* ===== LOADING ===== */
-        .loading-state {
+        .stat-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 15px 20px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
-            height: 100%;
-            color: var(--text-soft);
+            gap: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            transition: transform 0.3s ease;
         }
-        .spinner {
-            width: 48px; height: 48px;
-            border: 3px solid rgba(0,212,255,0.15);
-            border-top-color: var(--accent-1);
-            border-right-color: var(--accent-2);
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-icon {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ===== ERROR ===== */
-        .error-state {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 14px;
-            height: 100%;
-            text-align: center;
-        }
-        .error-state i { font-size: 3rem; color: #ff5252; }
-        .error-state h3 { color: #ff5252; font-size: 1.3rem; }
-        .error-state p { color: var(--text-soft); }
-        .retry-btn {
-            padding: 10px 28px;
-            background: linear-gradient(135deg, var(--accent-2), var(--accent-1));
+            font-size: 1.8rem;
             color: white;
-            border: none;
-            border-radius: 40px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
         }
-        .retry-btn:hover { transform: scale(1.04); box-shadow: 0 8px 20px rgba(0,119,255,0.4); }
 
-        /* Row entrance animations */
-        @keyframes rowIn {
-            from { opacity: 0; transform: translateX(16px); }
-            to   { opacity: 1; transform: translateX(0); }
+        .stat-details h3 {
+            color: #7f8c8d;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            margin-bottom: 5px;
+            font-weight: 500;
         }
-        tbody tr { animation: rowIn 0.4s ease both; }
-        tbody tr:nth-child(1) { animation-delay: 0.05s; }
-        tbody tr:nth-child(2) { animation-delay: 0.10s; }
-        tbody tr:nth-child(3) { animation-delay: 0.15s; }
-        tbody tr:nth-child(4) { animation-delay: 0.20s; }
-        tbody tr:nth-child(5) { animation-delay: 0.25s; }
-        tbody tr:nth-child(6) { animation-delay: 0.30s; }
-        tbody tr:nth-child(7) { animation-delay: 0.35s; }
-        tbody tr:nth-child(8) { animation-delay: 0.40s; }
+
+        .stat-details .stat-number {
+            color: #2c3e50;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        /* حاوية الجدول */
+        .table-container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px; /* ضمان ارتفاع مناسب في الشاشات الصغيرة */
+            overflow: hidden;
+        }
+
+        /* حاوية التمرير الأفقي للجدول */
+        .table-responsive {
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* الجدول */
+        .schedule-table {
+            width: 100%;
+            min-width: 800px; /* يمنع انكماش الجدول في الجوال ويجبره على التمرير الأفقي */
+            height: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            table-layout: fixed;
+        }
+
+        .schedule-table tr {
+            height: calc((100% - 70px) / 8);
+            min-height: 50px;
+        }
+
+        .schedule-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 700;
+            padding: 12px 8px;
+            font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+            text-align: center;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .schedule-table th:first-child { border-radius: 15px 0 0 15px; width: 8%; }
+        .schedule-table th:nth-child(2) { width: 12%; }
+        .schedule-table th:nth-child(3) { width: 20%; }
+        .schedule-table th:nth-child(4) { width: 20%; }
+        .schedule-table th:last-child { border-radius: 0 15px 15px 0; width: 40%; }
+
+        .schedule-table td {
+            background: white;
+            padding: 10px 12px;
+            text-align: center;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            border: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .schedule-table td:first-child {
+            border-radius: 15px 0 0 15px;
+            font-weight: 700;
+            color: var(--primary-color);
+            background: linear-gradient(to left, white, #f0f7ff);
+        }
+
+        .schedule-table td:last-child {
+            border-radius: 0 15px 15px 0;
+        }
+
+        .schedule-table tr:hover td {
+            background: #f8faff;
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.15);
+        }
+
+        .booked {
+            background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
+        }
+
+        .booked td {
+            background: transparent !important;
+            color: white !important;
+            font-weight: 500;
+        }
+
+        .empty-cell {
+            color: #95a5a6 !important;
+            font-style: italic;
+            background: #f8f9fa !important;
+        }
+
+        .experiment-badge {
+            display: inline-block;
+            background: rgba(52, 152, 219, 0.15);
+            padding: 6px 15px;
+            border-radius: 35px;
+            font-size: clamp(0.8rem, 1.4vw, 1rem);
+            font-weight: 600;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .booked .experiment-badge {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            border-color: white;
+        }
+
+        .period-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* الفوتر */
+        .footer {
+            text-align: center;
+            color: white;
+            font-size: clamp(0.8rem, 1.4vw, 1rem);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 40px;
+            backdrop-filter: blur(5px);
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* مؤشر التحميل */
+        .tv-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(52, 152, 219, 0.2);
+            border-top: 5px solid var(--primary-color);
+            border-right: 5px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: tvSpin 1.2s infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes tvSpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* تحسينات إضافية للشاشات الصغيرة جداً */
+        @media (max-width: 768px) {
+            .info-bar {
+                justify-content: center;
+                flex-direction: column;
+                text-align: center;
+            }
+            .stat-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.4rem;
+            }
+            .table-container {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="bg-layer"></div>
-    <div class="grid-overlay"></div>
-
-    <div class="wrapper">
-
-        <!-- HEADER -->
-        <header class="header">
-            <!-- Left icons -->
-            <div class="header-icons">
-                <div class="icon-orb"><i class="fas fa-flask"></i></div>
-                <div class="icon-orb"><i class="fas fa-microscope"></i></div>
-                <div class="icon-orb"><i class="fas fa-atom"></i></div>
+    <div class="tv-background"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="school-name">
+                <h1>
+                    <i class="fas fa-flask"></i>
+                    مدرسة الحوراء
+                    <i class="fas fa-microscope"></i>
+                </h1>
+                <div class="subtitle">نظام حجوزات المختبر المدرسي</div>
             </div>
-
-            <!-- Center brand -->
-            <div class="header-brand">
-                <div class="school-title">مدرسة الحوراء</div>
-                <div class="school-subtitle">نظام حجوزات المختبر المدرسي</div>
-            </div>
-
-            <!-- Right date -->
-            <div class="header-date">
-                <div class="date-label"><i class="fas fa-calendar-alt"></i> التاريخ</div>
-                <div class="date-value" id="currentDate">—</div>
-                <div class="live-badge">
-                    <span class="live-dot"></span>
-                    تحديث تلقائي كل 5 دقائق
+            
+            <div class="info-bar">
+                <div class="date-info">
+                    <i class="fas fa-calendar-alt fa-fw"></i>
+                    <span id="currentDate"></span>
+                </div>
+                <div class="update-info">
+                    <i class="fas fa-sync-alt fa-fw"></i>
+                    <span>تحديث تلقائي كل 5 دقائق</span>
                 </div>
             </div>
-        </header>
+        </div>
 
-        <!-- STATS -->
-        <div class="stats-row">
+        <div class="stats-cards">
             <div class="stat-card">
-                <div class="stat-icon-wrap"><i class="fas fa-calendar-check"></i></div>
-                <div class="stat-text">
+                <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="stat-details">
                     <h3>إجمالي الحصص</h3>
-                    <div class="stat-num" id="totalPeriods">8</div>
+                    <div class="stat-number" id="totalPeriods">8</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon-wrap"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-text">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-details">
                     <h3>الحصص المحجوزة</h3>
-                    <div class="stat-num" id="bookedCount">—</div>
+                    <div class="stat-number" id="bookedCount">0</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon-wrap"><i class="fas fa-hourglass-half"></i></div>
-                <div class="stat-text">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-details">
                     <h3>الحصص الشاغرة</h3>
-                    <div class="stat-num" id="emptyCount">—</div>
+                    <div class="stat-number" id="emptyCount">8</div>
                 </div>
             </div>
         </div>
 
-        <!-- TABLE AREA -->
-        <div class="table-area">
-            <div class="table-scroll" id="tableScroll">
-                <div class="loading-state">
-                    <div class="spinner"></div>
-                    <p>جاري تحميل جدول الحصص…</p>
+        <div class="table-container">
+            <div id="tableContainer" class="table-responsive" style="display: flex; align-items: center; justify-content: center;">
+                <div style="text-align: center;">
+                    <div class="tv-spinner"></div>
+                    <p style="font-size: 1.2rem; color: #666;">جاري تحميل جدول الحصص...</p>
                 </div>
             </div>
         </div>
 
-        <!-- FOOTER -->
-        <footer class="footer">
-            <div class="footer-left">
-                <i class="fas fa-tv"></i>
-                <span>شاشة العرض الرئيسية — مدرسة الحوراء &copy; 2025</span>
-            </div>
-            <div class="footer-right">
-                <div class="progress-ring-wrap">
-                    <svg viewBox="0 0 36 36">
-                        <circle class="ring-bg" cx="18" cy="18" r="16"/>
-                        <circle class="ring-fill" id="timerRing" cx="18" cy="18" r="16"
-                            stroke-dasharray="100.53"
-                            stroke-dashoffset="0"/>
-                    </svg>
-                </div>
-                <span id="countdownLabel">التالي: 5:00</span>
-            </div>
-        </footer>
-
+        <div class="footer">
+            <p><i class="fas fa-tv"></i> شاشة التلفاز - مدرسة الحوراء | جميع الحقوق محفوظة © 2024</p>
+        </div>
     </div>
 
     <script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-    const PERIODS = ["الأولى","الثانية","الثالثة","الرابعة","الخامسة","السادسة","السابعة","الثامنة"];
-    const REFRESH_MS = 300000; // 5 min
+        // المتغيرات العامة
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
+        const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
 
-    let nextRefresh = Date.now() + REFRESH_MS;
+        // دالة تحميل البيانات
+        async function fetchSchedule() {
+            try {
+                const tableContainer = document.getElementById('tableContainer');
+                
+                const response = await fetch(csvUrl);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+                
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const arabicDate = now.toLocaleDateString('ar-SA', options);
+                document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${arabicDate}`;
 
-    // ── countdown ring ──────────────────────────────────────────────
-    function updateCountdown() {
-        const remaining = Math.max(0, nextRefresh - Date.now());
-        const totalSec  = REFRESH_MS / 1000;
-        const remSec    = Math.ceil(remaining / 1000);
-        const fraction  = remaining / REFRESH_MS;
-        const circumference = 100.53; // 2π×16
-        const offset    = circumference * (1 - fraction);
+                let bookedCount = 0;
+                let html = '<table class="schedule-table"><tr><th>#</th><th>الحصة</th><th>المعلمة</th><th>الصف/الفصل</th><th>اسم التجربة</th></tr>';
 
-        document.getElementById('timerRing').style.strokeDashoffset = offset;
+                schoolPeriods.forEach((period, index) => {
+                    let booking = null;
+                    const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
 
-        const m = Math.floor(remSec / 60);
-        const s = String(remSec % 60).padStart(2, '0');
-        document.getElementById('countdownLabel').textContent = `التالي: ${m}:${s}`;
-    }
-    setInterval(updateCountdown, 1000);
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row.length < 5) continue;
 
-    // ── date ────────────────────────────────────────────────────────
-    function setDate() {
-        const now = new Date();
-        document.getElementById('currentDate').textContent =
-            now.toLocaleDateString('ar-SA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-    }
+                        const rowDate = row[2];
+                        const rowPeriod = row[4];
 
-    // ── fetch & render ───────────────────────────────────────────────
-    async function fetchSchedule() {
-        nextRefresh = Date.now() + REFRESH_MS;
-        setDate();
-
-        const scroll = document.getElementById('tableScroll');
-
-        try {
-            const res  = await fetch(CSV_URL + '&t=' + Date.now());
-            const text = await res.text();
-            const rows = text.split('\n').map(r => r.split(',').map(c => c.trim()));
-
-            const now   = new Date();
-            const today = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
-
-            let booked = 0;
-            let html = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>الحصة</th>
-                        <th>المعلمة</th>
-                        <th>الصف / الفصل</th>
-                        <th>اسم التجربة</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-            PERIODS.forEach((period, idx) => {
-                let booking = null;
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (row.length < 5) continue;
-                    if (row[2] === today && row[4] === period) {
-                        booking = {
-                            teacher:    row[3] || 'غير محدد',
-                            grade:      (row[5] && row[6]) ? `${row[5]} – ${row[6]}` : (row[5] || 'غير محدد'),
-                            experiment: row[7] || 'بدون تجربة'
-                        };
-                        booked++;
-                        break;
+                        if (rowDate === today && rowPeriod === period) {
+                            booking = {
+                                teacher: row[3] || "غير محدد",
+                                grade: (row[5] && row[6] ? `${row[5]} - ${row[6]}` : "غير محدد"),
+                                experiment: row[7] || "بدون تجربة"
+                            };
+                            bookedCount++;
+                            break;
+                        }
                     }
-                }
 
-                if (booking) {
-                    html += `
-                    <tr class="booked">
-                        <td><span class="period-badge">${idx+1}</span></td>
-                        <td><span class="period-name">${period}</span></td>
-                        <td><span class="teacher-cell"><i class="fas fa-chalkboard-teacher"></i>${booking.teacher}</span></td>
-                        <td><span class="grade-cell"><i class="fas fa-users"></i>${booking.grade}</span></td>
-                        <td><span class="exp-chip"><i class="fas fa-flask"></i>${booking.experiment}</span></td>
-                    </tr>`;
-                } else {
-                    html += `
-                    <tr class="empty-row">
-                        <td><span class="period-badge">${idx+1}</span></td>
-                        <td><span class="period-name" style="color:#3a5570">${period}</span></td>
-                        <td colspan="3"><span class="empty-chip"><i class="fas fa-circle-notch fa-spin" style="font-size:0.7em"></i> شاغر — متاح للحجز</span></td>
-                    </tr>`;
-                }
-            });
+                    if (booking) {
+                        html += `<tr class="booked">
+                            <td><span class="period-number">${index + 1}</span></td>
+                            <td><strong>${period}</strong></td>
+                            <td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>
+                            <td><i class="fas fa-users"></i> ${booking.grade}</td>
+                            <td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.experiment}</span></td>
+                        </tr>`;
+                    } else {
+                        html += `<tr>
+                            <td><span class="period-number">${index + 1}</span></td>
+                            <td><strong>${period}</strong></td>
+                            <td colspan="3" class="empty-cell">
+                                <i class="fas fa-ban"></i> شاغر - متاح للحجز
+                            </td>
+                        </tr>`;
+                    }
+                });
 
-            html += '</tbody></table>';
+                html += '</table>';
+                
+                document.getElementById('bookedCount').textContent = bookedCount;
+                document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
+                document.getElementById('totalPeriods').textContent = schoolPeriods.length;
+                
+                // إعادة الضبط لإظهار الجدول بشكل صحيح
+                tableContainer.style.display = 'block'; 
+                tableContainer.innerHTML = html;
 
-            document.getElementById('bookedCount').textContent = booked;
-            document.getElementById('emptyCount').textContent  = PERIODS.length - booked;
-            document.getElementById('totalPeriods').textContent = PERIODS.length;
-            scroll.innerHTML = html;
-
-        } catch (err) {
-            scroll.innerHTML = `
-            <div class="error-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>تعذّر الاتصال</h3>
-                <p>يرجى التحقق من اتصال الإنترنت</p>
-                <button class="retry-btn" onclick="fetchSchedule()">
-                    <i class="fas fa-sync-alt"></i> إعادة المحاولة
-                </button>
-            </div>`;
+            } catch (error) {
+                document.getElementById('tableContainer').style.display = 'flex';
+                document.getElementById('tableContainer').innerHTML = `
+                    <div style="text-align: center; padding: 30px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #e74c3c; margin-bottom: 15px;"></i>
+                        <h3 style="color: #e74c3c; font-size: 1.5rem; margin-bottom: 10px;">خطأ في الاتصال</h3>
+                        <p style="color: #666; margin: 15px 0;">يرجى التحقق من اتصال الإنترنت</p>
+                        <button onclick="fetchSchedule()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 40px; font-size: 1.1rem; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> إعادة المحاولة
+                        </button>
+                    </div>
+                `;
+            }
         }
-    }
 
-    // ── init ─────────────────────────────────────────────────────────
-    fetchSchedule();
-    setInterval(fetchSchedule, REFRESH_MS);
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchSchedule();
+            setInterval(fetchSchedule, 300000); // تحديث كل 5 دقائق
+        });
     </script>
 </body>
 </html>
