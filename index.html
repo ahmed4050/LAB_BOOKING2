@@ -1,1079 +1,506 @@
 <!DOCTYPE html>
-
 <html dir="rtl">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
-
     <meta http-equiv="refresh" content="300">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-
+        /* --- إعادة الضبط العامة --- */
         * {
-
             margin: 0;
-
             padding: 0;
-
             box-sizing: border-box;
-
         }
 
-
-
-        :root {
-
-            --primary-color: #3498db;
-
-            --secondary-color: #2980b9;
-
-            --success-color: #27ae60;
-
-            --warning-color: #f39c12;
-
-            --danger-color: #e74c3c;
-
+        /* --- إخفاء أشرطة التمرير في جميع المتصفحات --- */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+            display: none;
         }
-
-
-
-        /* الإعدادات الافتراضية للجميع (تسمح بالتمرير في الجوالات) */
-
-        html, body {
-
-            min-height: 100vh;
-
+        html {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE 10+ */
+        }
+        body {
+            overflow: hidden; /* منع التمرير العمودي والأفقي */
+            height: 100vh;
             width: 100vw;
+        }
 
-            overflow-x: hidden;
+        /* --- الألوان والمتغيرات --- */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #27ae60;
+            --bg-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
 
+        body {
             font-family: 'Tajawal', sans-serif;
-
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-
+            background: var(--bg-gradient);
             color: #2c3e50;
-
             display: flex;
-
             justify-content: center;
-
-            align-items: flex-start; /* تغيير التوسيط ليعمل مع الشاشات الصغيرة */
-
-            padding: 15px;
-
-            position: relative;
-
+            align-items: center;
+            padding: 1vh 2vw; /* هوامش صغيرة نسبية */
         }
 
-
-
-        /* شاشات العرض الكبيرة (تلفاز أو كمبيوتر مكتبي) */
-
-        @media (min-width: 1024px) {
-
-            html, body {
-
-                height: 100vh;
-
-                overflow: hidden; /* إخفاء شريط التمرير في الشاشات الكبيرة */
-
-                align-items: center;
-
-            }
-
-        }
-
-
-
-        /* الخلفية المتحركة */
-
-        .tv-background {
-
-            position: fixed;
-
-            top: 0;
-
-            left: 0;
-
-            width: 100%;
-
-            height: 100%;
-
-            z-index: 0;
-
-            background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
-
-            opacity: 0.15;
-
-            pointer-events: none;
-
-        }
-
-
-
+        /* --- الحاوية الرئيسية --- */
         .container {
-
-            position: relative;
-
-            z-index: 1;
-
             width: 100%;
-
             height: 100%;
-
+            max-width: 1920px; /* دعم دقة 1080p */
             display: flex;
-
             flex-direction: column;
-
-            gap: 15px;
-
-            max-width: 1920px;
-
+            gap: 1.5vh; /* مسافة بين العناصر نسبية لارتفاع الشاشة */
         }
 
-
-
-        /* الهيدر */
-
+        /* --- الهيدر (الشريط العلوي) --- */
         .header {
-
             background: rgba(255, 255, 255, 0.98);
-
-            backdrop-filter: blur(15px);
-
-            border-radius: 25px;
-
-            padding: 15px 25px;
-
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-
+            border-radius: 20px;
+            padding: 2vh 3vw;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.5);
-
-            flex-shrink: 0;
-
+            flex-shrink: 0; /* منع الانكماش */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-
-
 
         .school-name {
-
             text-align: center;
-
-            margin-bottom: 10px;
-
+            margin-bottom: 1.5vh;
         }
-
-
 
         .school-name h1 {
-
             color: #2c3e50;
-
-            font-size: clamp(1.8rem, 4vw, 3rem);
-
+            font-size: 4vh; /* حجم كبير نسبي */
             font-weight: 800;
-
-            margin-bottom: 8px;
-
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
-
+            margin-bottom: 0.5vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2vw;
         }
-
-
 
         .school-name h1 i {
-
             color: #e74c3c;
-
-            margin: 0 10px;
-
-            animation: pulse 2s infinite;
-
+            font-size: 3.5vh;
         }
-
-
 
         .school-name .subtitle {
-
             color: #7f8c8d;
-
-            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
-
-            font-weight: 400;
-
+            font-size: 2.5vh;
+            font-weight: 700;
             border-bottom: 3px solid var(--primary-color);
-
             display: inline-block;
-
-            padding-bottom: 5px;
-
+            padding-bottom: 0.5vh;
         }
-
-
 
         .info-bar {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-
-            padding: 12px 25px;
-
-            border-radius: 18px;
-
+            padding: 1.5vh 3vw;
+            border-radius: 15px;
             color: white;
-
-            flex-wrap: wrap;
-
-            gap: 15px;
-
-            font-size: clamp(0.9rem, 1.8vw, 1.2rem);
-
+            font-size: 2.2vh;
+            font-weight: 700;
         }
 
-
-
-        .date-info, .update-info {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-        }
-
-
-
-        .update-info {
-
-            background: rgba(255, 255, 255, 0.2);
-
-            padding: 8px 18px;
-
-            border-radius: 35px;
-
-        }
-
-
-
-        /* بطاقات الإحصائيات - تم جعلها مرنة */
-
+        /* --- بطاقات الإحصائيات --- */
         .stats-cards {
-
             display: grid;
-
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-
-            gap: 15px;
-
+            grid-template-columns: repeat(3, 1fr); /* ثلاث أعمدة ثابتة */
+            gap: 2vw;
             flex-shrink: 0;
-
+            height: 12vh; /* ارتفاع ثابت نسبي */
         }
-
-
 
         .stat-card {
-
             background: rgba(255, 255, 255, 0.98);
-
-            backdrop-filter: blur(10px);
-
-            border-radius: 18px;
-
-            padding: 15px 20px;
-
+            border-radius: 15px;
+            padding: 1vh 2vw;
             display: flex;
-
             align-items: center;
-
-            gap: 15px;
-
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-
+            gap: 1.5vw;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.8);
-
-            transition: transform 0.3s ease;
-
         }
-
-
-
-        .stat-card:hover {
-
-            transform: translateY(-3px);
-
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-
-        }
-
-
 
         .stat-icon {
-
-            width: 55px;
-
-            height: 55px;
-
+            width: 6vh;
+            height: 6vh;
             background: linear-gradient(135deg, #667eea, #764ba2);
-
             border-radius: 50%;
-
             display: flex;
-
             align-items: center;
-
             justify-content: center;
-
-            font-size: 1.8rem;
-
+            font-size: 3vh;
             color: white;
-
             flex-shrink: 0;
-
         }
-
-
 
         .stat-details h3 {
-
             color: #7f8c8d;
-
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-
-            margin-bottom: 5px;
-
-            font-weight: 500;
-
+            font-size: 2vh;
+            margin-bottom: 0.5vh;
         }
-
-
 
         .stat-details .stat-number {
-
             color: #2c3e50;
-
-            font-size: clamp(1.5rem, 3vw, 2.2rem);
-
+            font-size: 3.5vh;
             font-weight: 800;
-
-            line-height: 1;
-
         }
 
-
-
-        /* حاوية الجدول */
-
+        /* --- حاوية الجدول الرئيسية --- */
         .table-container {
-
             background: rgba(255, 255, 255, 0.98);
-
-            backdrop-filter: blur(15px);
-
-            border-radius: 25px;
-
-            padding: 20px;
-
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-
+            border-radius: 20px;
+            padding: 2vh 2vw;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.8);
-
-            flex: 1;
-
+            flex: 1; /* يأخذ كل المساحة المتبقية */
             display: flex;
-
             flex-direction: column;
-
-            min-height: 400px; /* ضمان ارتفاع مناسب في الشاشات الصغيرة */
-
-            overflow: hidden;
-
+            overflow: hidden; /* منع التمرير داخل الحاوية */
+            position: relative;
         }
 
-
-
-        /* حاوية التمرير الأفقي للجدول */
-
-        .table-responsive {
-
-            width: 100%;
-
-            height: 100%;
-
-            overflow-x: auto;
-
-            -webkit-overflow-scrolling: touch;
-
-        }
-
-
-
-        /* الجدول */
-
+        /* --- الجدول نفسه --- */
         .schedule-table {
-
             width: 100%;
-
-            min-width: 800px; /* يمنع انكماش الجدول في الجوال ويجبره على التمرير الأفقي */
-
             height: 100%;
-
             border-collapse: separate;
-
-            border-spacing: 0 8px;
-
-            table-layout: fixed;
-
+            border-spacing: 0 1vh; /* مسافة بين الصفوف */
+            table-layout: fixed; /* توزيع ثابت للأعمدة */
         }
 
-
-
-        .schedule-table tr {
-
-            height: calc((100% - 70px) / 8);
-
-            min-height: 50px;
-
-        }
-
-
+        /* توزيع عرض الأعمدة */
+        .schedule-table th:nth-child(1) { width: 8%; }  /* # */
+        .schedule-table th:nth-child(2) { width: 12%; } /* الحصة */
+        .schedule-table th:nth-child(3) { width: 20%; } /* المعلمة */
+        .schedule-table th:nth-child(4) { width: 20%; } /* الصف */
+        .schedule-table th:nth-child(5) { width: 40%; } /* التجربة */
 
         .schedule-table th {
-
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-
             color: white;
-
-            font-weight: 700;
-
-            padding: 12px 8px;
-
-            font-size: clamp(0.9rem, 1.6vw, 1.2rem);
-
+            font-weight: 800;
+            padding: 1.5vh 1vw;
+            font-size: 2.5vh;
             text-align: center;
-
             border: none;
-
-            white-space: nowrap;
-
+            height: 6vh; /* ارتفاع رأس الجدول */
         }
-
-
-
-        .schedule-table th:first-child { border-radius: 15px 0 0 15px; width: 8%; }
-
-        .schedule-table th:nth-child(2) { width: 12%; }
-
-        .schedule-table th:nth-child(3) { width: 20%; }
-
-        .schedule-table th:nth-child(4) { width: 20%; }
-
-        .schedule-table th:last-child { border-radius: 0 15px 15px 0; width: 40%; }
-
-
+        
+        /* زوايا دائرية لرأس الجدول */
+        .schedule-table th:first-child { border-radius: 15px 0 0 15px; }
+        .schedule-table th:last-child { border-radius: 0 15px 15px 0; }
 
         .schedule-table td {
-
             background: white;
-
-            padding: 10px 12px;
-
+            padding: 1vh 1vw;
             text-align: center;
-
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-
+            font-size: 2.8vh; /* خط كبير جداً للقراءة من بعيد */
+            font-weight: 700;
             border: none;
-
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            height: calc((100% - 6vh) / 8); /* توزيع الصفوف بالتساوي على ارتفاع الجدول المتبقي */
+            vertical-align: middle;
             white-space: nowrap;
-
             overflow: hidden;
-
             text-overflow: ellipsis;
-
         }
-
-
 
         .schedule-table td:first-child {
-
             border-radius: 15px 0 0 15px;
-
-            font-weight: 700;
-
             color: var(--primary-color);
-
-            background: linear-gradient(to left, white, #f0f7ff);
-
+            background: #f0f7ff;
         }
-
-
 
         .schedule-table td:last-child {
-
             border-radius: 0 15px 15px 0;
-
         }
 
-
-
-        .schedule-table tr:hover td {
-
-            background: #f8faff;
-
-            transform: scale(1.01);
-
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.15);
-
-        }
-
-
-
-        .booked {
-
-            background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
-
-        }
-
-
-
+        /* --- أنماط الصفوف المختلفة --- */
+        
+        /* الصف المحجوز */
         .booked td {
-
-            background: transparent !important;
-
+            background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
             color: white !important;
-
-            font-weight: 500;
-
         }
 
-
-
+        /* الصف الشاغر */
         .empty-cell {
-
             color: #95a5a6 !important;
-
             font-style: italic;
-
             background: #f8f9fa !important;
-
+            font-size: 2.5vh;
         }
 
-
+        /* العناصر الداخلية للجدول */
+        .period-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 4vh;
+            height: 4vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 2vh;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
 
         .experiment-badge {
-
             display: inline-block;
-
-            background: rgba(52, 152, 219, 0.15);
-
-            padding: 6px 15px;
-
-            border-radius: 35px;
-
-            font-size: clamp(0.8rem, 1.4vw, 1rem);
-
-            font-weight: 600;
-
-            border: 2px solid var(--primary-color);
-
-            color: var(--primary-color);
-
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5vh 2vw;
+            border-radius: 30px;
+            font-size: 2.5vh;
+            border: 2px solid rgba(255,255,255,0.5);
             max-width: 100%;
-
             overflow: hidden;
-
             text-overflow: ellipsis;
-
-            white-space: nowrap;
-
         }
-
-
-
-        .booked .experiment-badge {
-
-            background: rgba(255, 255, 255, 0.25);
-
-            color: white;
-
-            border-color: white;
-
-        }
-
-
-
-        .period-number {
-
-            display: inline-block;
-
-            width: 32px;
-
-            height: 32px;
-
-            line-height: 32px;
-
-            text-align: center;
-
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-
-            color: white;
-
-            border-radius: 50%;
-
-            font-weight: 700;
-
-            font-size: 0.95rem;
-
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-
-        }
-
-
-
+        
         /* الفوتر */
-
         .footer {
-
             text-align: center;
-
             color: white;
-
-            font-size: clamp(0.8rem, 1.4vw, 1rem);
-
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-
-            padding: 12px;
-
-            background: rgba(0, 0, 0, 0.3);
-
-            border-radius: 40px;
-
-            backdrop-filter: blur(5px);
-
+            font-size: 2vh;
+            font-weight: 600;
+            padding: 1vh;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 30px;
             flex-shrink: 0;
-
-            border: 1px solid rgba(255, 255, 255, 0.1);
-
         }
-
-
 
         /* مؤشر التحميل */
-
         .tv-spinner {
-
-            width: 50px;
-
-            height: 50px;
-
-            border: 5px solid rgba(52, 152, 219, 0.2);
-
-            border-top: 5px solid var(--primary-color);
-
-            border-right: 5px solid var(--secondary-color);
-
+            width: 8vh;
+            height: 8vh;
+            border: 1vh solid rgba(52, 152, 219, 0.2);
+            border-top: 1vh solid var(--primary-color);
             border-radius: 50%;
-
-            animation: tvSpin 1.2s infinite;
-
-            margin: 0 auto 15px;
-
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2vh;
         }
 
-
-
-        @keyframes tvSpin {
-
-            0% { transform: rotate(0deg) scale(1); }
-
-            50% { transform: rotate(180deg) scale(1.1); }
-
-            100% { transform: rotate(360deg) scale(1); }
-
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
-
-
-        @keyframes pulse {
-
-            0% { transform: scale(1); }
-
-            50% { transform: scale(1.1); }
-
-            100% { transform: scale(1); }
-
+        
+        /* رسالة الخطأ */
+        .error-msg {
+            text-align: center;
+            padding: 5vh;
         }
-
-
-
-        /* تحسينات إضافية للشاشات الصغيرة جداً */
-
-        @media (max-width: 768px) {
-
-            .info-bar {
-
-                justify-content: center;
-
-                flex-direction: column;
-
-                text-align: center;
-
-            }
-
-            .stat-icon {
-
-                width: 45px;
-
-                height: 45px;
-
-                font-size: 1.4rem;
-
-            }
-
-            .table-container {
-
-                padding: 10px;
-
-            }
-
+        .error-msg i {
+            font-size: 10vh;
+            color: #e74c3c;
+            margin-bottom: 2vh;
         }
-
+        .error-msg h3 {
+            color: #e74c3c;
+            font-size: 4vh;
+            margin-bottom: 1vh;
+        }
+        .error-msg p {
+            color: #666;
+            font-size: 2.5vh;
+            margin-bottom: 2vh;
+        }
+        .retry-btn {
+            padding: 1.5vh 4vw;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 2.5vh;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+        }
     </style>
-
 </head>
-
 <body>
 
-    <div class="tv-background"></div>
-
-    
-
     <div class="container">
-
+        <!-- الهيدر -->
         <div class="header">
-
             <div class="school-name">
-
                 <h1>
-
                     <i class="fas fa-flask"></i>
-
                     مدرسة الحوراء
-
                     <i class="fas fa-microscope"></i>
-
                 </h1>
-
                 <div class="subtitle">نظام حجوزات المختبر المدرسي</div>
-
             </div>
-
             
-
             <div class="info-bar">
-
                 <div class="date-info">
-
-                    <i class="fas fa-calendar-alt fa-fw"></i>
-
-                    <span id="currentDate"></span>
-
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">جاري التحميل...</span>
                 </div>
-
                 <div class="update-info">
-
-                    <i class="fas fa-sync-alt fa-fw"></i>
-
+                    <i class="fas fa-sync-alt"></i>
                     <span>تحديث تلقائي كل 5 دقائق</span>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
+        <!-- الإحصائيات -->
         <div class="stats-cards">
-
             <div class="stat-card">
-
-                <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-
-                <div class="stat-details">
-
-                    <h3>إجمالي الحصص</h3>
-
-                    <div class="stat-number" id="totalPeriods">8</div>
-
-                </div>
-
-            </div>
-
-            <div class="stat-card">
-
-                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-
-                <div class="stat-details">
-
-                    <h3>الحصص المحجوزة</h3>
-
-                    <div class="stat-number" id="bookedCount">0</div>
-
-                </div>
-
-            </div>
-
-            <div class="stat-card">
-
                 <div class="stat-icon"><i class="fas fa-clock"></i></div>
-
                 <div class="stat-details">
-
+                    <h3>إجمالي الحصص</h3>
+                    <div class="stat-number" id="totalPeriods">8</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-details">
+                    <h3>الحصص المحجوزة</h3>
+                    <div class="stat-number" id="bookedCount">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
+                <div class="stat-details">
                     <h3>الحصص الشاغرة</h3>
-
                     <div class="stat-number" id="emptyCount">8</div>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
+        <!-- الجدول -->
         <div class="table-container">
-
-            <div id="tableContainer" class="table-responsive" style="display: flex; align-items: center; justify-content: center;">
-
-                <div style="text-align: center;">
-
+            <div id="tableContent">
+                <!-- يتم ملؤه بواسطة JavaScript -->
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
                     <div class="tv-spinner"></div>
-
-                    <p style="font-size: 1.2rem; color: #666;">جاري تحميل جدول الحصص...</p>
-
+                    <p style="font-size: 3vh; color: #666; font-weight: 700;">جاري تحميل البيانات...</p>
                 </div>
-
             </div>
-
         </div>
 
-
-
+        <!-- الفوتر -->
         <div class="footer">
-
-            <p><i class="fas fa-tv"></i> شاشة التلفاز - مدرسة الحوراء | جميع الحقوق محفوظة © 2024</p>
-
+            <p><i class="fas fa-tv"></i> شاشة عرض المختبر - مدرسة الحوراء | جميع الحقوق محفوظة © 2024</p>
         </div>
-
     </div>
 
-
-
     <script>
-
-        // المتغيرات العامة
-
+        // --- الإعدادات ---
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-
         const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
 
-
-
-        // دالة تحميل البيانات
-
+        // --- الدالة الرئيسية لجلب البيانات ---
         async function fetchSchedule() {
-
+            const tableContent = document.getElementById('tableContent');
+            
             try {
-
-                const tableContainer = document.getElementById('tableContainer');
-
-                
-
                 const response = await fetch(csvUrl);
-
                 const data = await response.text();
-
                 const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
 
-                
-
+                // تحديث التاريخ
                 const now = new Date();
-
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('currentDate').innerHTML = now.toLocaleDateString('ar-SA', options);
 
-                const arabicDate = now.toLocaleDateString('ar-SA', options);
-
-                document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${arabicDate}`;
-
-
-
+                // بناء الجدول
                 let bookedCount = 0;
+                let html = '<table class="schedule-table">';
+                html += '<thead><tr><th>#</th><th>الحصة</th><th>المعلمة</th><th>الصف / الفصل</th><th>اسم التجربة</th></tr></thead>';
+                html += '<tbody>';
 
-                let html = '<table class="schedule-table"><tr><th>#</th><th>الحصة</th><th>المعلمة</th><th>الصف/الفصل</th><th>اسم التجربة</th></tr>';
-
-
+                // تنسيق التاريخ للمقارنة (YYYY/MM/DD)
+                const todayFormatted = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
 
                 schoolPeriods.forEach((period, index) => {
-
                     let booking = null;
 
-                    const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-
-
-
+                    // البحث في بيانات CSV
                     for (let i = 1; i < rows.length; i++) {
-
                         const row = rows[i];
+                        if (row.length < 8) continue; // التأكد من وجود أعمدة كافية
 
-                        if (row.length < 5) continue;
+                        const rowDate = row[2]; // عمود التاريخ
+                        const rowPeriod = row[4]; // عمود الحصة
 
-
-
-                        const rowDate = row[2];
-
-                        const rowPeriod = row[4];
-
-
-
-                        if (rowDate === today && rowPeriod === period) {
-
+                        if (rowDate === todayFormatted && rowPeriod === period) {
                             booking = {
-
                                 teacher: row[3] || "غير محدد",
-
-                                grade: (row[5] && row[6] ? `${row[5]} - ${row[6]}` : "غير محدد"),
-
+                                grade: (row[5] && row[6]) ? `${row[5]} / ${row[6]}` : "غير محدد",
                                 experiment: row[7] || "بدون تجربة"
-
                             };
-
                             bookedCount++;
-
                             break;
-
                         }
-
                     }
 
-
-
+                    // إنشاء صف الجدول
                     if (booking) {
-
                         html += `<tr class="booked">
-
                             <td><span class="period-number">${index + 1}</span></td>
-
-                            <td><strong>${period}</strong></td>
-
+                            <td>${period}</td>
                             <td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>
-
                             <td><i class="fas fa-users"></i> ${booking.grade}</td>
-
                             <td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.experiment}</span></td>
-
                         </tr>`;
-
                     } else {
-
                         html += `<tr>
-
                             <td><span class="period-number">${index + 1}</span></td>
-
-                            <td><strong>${period}</strong></td>
-
+                            <td>${period}</td>
                             <td colspan="3" class="empty-cell">
-
                                 <i class="fas fa-ban"></i> شاغر - متاح للحجز
-
                             </td>
-
                         </tr>`;
-
                     }
-
                 });
 
+                html += '</tbody></table>';
 
-
-                html += '</table>';
-
-                
-
+                // تحديث الإحصائيات
                 document.getElementById('bookedCount').textContent = bookedCount;
-
                 document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
-
-                document.getElementById('totalPeriods').textContent = schoolPeriods.length;
-
                 
-
-                // إعادة الضبط لإظهار الجدول بشكل صحيح
-
-                tableContainer.style.display = 'block'; 
-
-                tableContainer.innerHTML = html;
-
-
+                // عرض الجدول
+                tableContent.innerHTML = html;
 
             } catch (error) {
-
-                document.getElementById('tableContainer').style.display = 'flex';
-
-                document.getElementById('tableContainer').innerHTML = `
-
-                    <div style="text-align: center; padding: 30px;">
-
-                        <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #e74c3c; margin-bottom: 15px;"></i>
-
-                        <h3 style="color: #e74c3c; font-size: 1.5rem; margin-bottom: 10px;">خطأ في الاتصال</h3>
-
-                        <p style="color: #666; margin: 15px 0;">يرجى التحقق من اتصال الإنترنت</p>
-
-                        <button onclick="fetchSchedule()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 40px; font-size: 1.1rem; cursor: pointer;">
-
+                console.error("Error fetching data:", error);
+                tableContent.innerHTML = `
+                    <div class="error-msg">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>خطأ في الاتصال</h3>
+                        <p>تعذر تحميل البيانات. يرجى التحقق من الإنترنت.</p>
+                        <button class="retry-btn" onclick="fetchSchedule()">
                             <i class="fas fa-sync-alt"></i> إعادة المحاولة
-
                         </button>
-
                     </div>
-
                 `;
-
             }
-
         }
 
-
-
-        // تهيئة الصفحة
-
+        // --- التشغيل الأولي ---
         document.addEventListener('DOMContentLoaded', function() {
-
             fetchSchedule();
-
-            setInterval(fetchSchedule, 300000); // تحديث كل 5 دقائق
-
+            // تحديث كل 5 دقائق (300000 مللي ثانية)
+            setInterval(fetchSchedule, 300000);
         });
-
     </script>
-
 </body>
-
 </html>
