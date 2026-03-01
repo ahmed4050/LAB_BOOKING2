@@ -2,7 +2,7 @@
 <html dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
     <meta http-equiv="refresh" content="300">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -20,6 +20,7 @@
             --success-color: #27ae60;
             --warning-color: #f39c12;
             --danger-color: #e74c3c;
+            --zoom-level: 1; /* متغير التكبير الافتراضي */
         }
 
         /* الإعدادات الافتراضية للجميع (تسمح بالتمرير في الجوالات) */
@@ -32,16 +33,17 @@
             color: #2c3e50;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* تغيير التوسيط ليعمل مع الشاشات الصغيرة */
+            align-items: flex-start;
             padding: 15px;
             position: relative;
+            transition: all 0.3s ease;
         }
 
         /* شاشات العرض الكبيرة (تلفاز أو كمبيوتر مكتبي) */
         @media (min-width: 1024px) {
             html, body {
                 height: 100vh;
-                overflow: hidden; /* إخفاء شريط التمرير في الشاشات الكبيرة */
+                overflow: hidden;
                 align-items: center;
             }
         }
@@ -68,6 +70,70 @@
             flex-direction: column;
             gap: 15px;
             max-width: 1920px;
+            transform: scale(var(--zoom-level));
+            transform-origin: center top;
+            transition: transform 0.3s ease;
+        }
+
+        /* شريط أدوات التحكم */
+        .control-toolbar {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .zoom-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .zoom-btn:active {
+            transform: scale(0.95);
+        }
+
+        .zoom-btn.reset {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            width: auto;
+            padding: 0 20px;
+            border-radius: 30px;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .zoom-level-display {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #2c3e50;
+            min-width: 80px;
+            text-align: center;
+            border: 2px solid var(--primary-color);
         }
 
         /* الهيدر */
@@ -134,7 +200,7 @@
             border-radius: 35px;
         }
 
-        /* بطاقات الإحصائيات - تم جعلها مرنة */
+        /* بطاقات الإحصائيات */
         .stats-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -198,11 +264,10 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 400px; /* ضمان ارتفاع مناسب في الشاشات الصغيرة */
+            min-height: 400px;
             overflow: hidden;
         }
 
-        /* حاوية التمرير الأفقي للجدول */
         .table-responsive {
             width: 100%;
             height: 100%;
@@ -210,10 +275,9 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* الجدول */
         .schedule-table {
             width: 100%;
-            min-width: 800px; /* يمنع انكماش الجدول في الجوال ويجبره على التمرير الأفقي */
+            min-width: 800px;
             height: 100%;
             border-collapse: separate;
             border-spacing: 0 8px;
@@ -322,7 +386,6 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* الفوتر */
         .footer {
             text-align: center;
             color: white;
@@ -336,7 +399,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* مؤشر التحميل */
         .tv-spinner {
             width: 50px;
             height: 50px;
@@ -360,7 +422,6 @@
             100% { transform: scale(1); }
         }
 
-        /* تحسينات إضافية للشاشات الصغيرة جداً */
         @media (max-width: 768px) {
             .info-bar {
                 justify-content: center;
@@ -375,13 +436,42 @@
             .table-container {
                 padding: 10px;
             }
+            .control-toolbar {
+                bottom: 15px;
+                left: 15px;
+                padding: 8px 15px;
+            }
+            .zoom-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+            .zoom-btn.reset {
+                padding: 0 15px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="tv-background"></div>
     
-    <div class="container">
+    <!-- شريط أدوات التكبير والتصغير -->
+    <div class="control-toolbar">
+        <button class="zoom-btn" id="zoomOutBtn" title="تصغير">
+            <i class="fas fa-minus"></i>
+        </button>
+        <div class="zoom-level-display" id="zoomLevel">100%</div>
+        <button class="zoom-btn" id="zoomInBtn" title="تكبير">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="zoom-btn reset" id="zoomResetBtn" title="إعادة تعيين">
+            <i class="fas fa-undo-alt"></i>
+            <span>إعادة</span>
+        </button>
+    </div>
+    
+    <div class="container" id="mainContainer">
         <div class="header">
             <div class="school-name">
                 <h1>
@@ -446,6 +536,65 @@
         // المتغيرات العامة
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
+        
+        // متغيرات التكبير والتصغير
+        let currentZoom = 1;
+        const minZoom = 0.5;
+        const maxZoom = 2;
+        const zoomStep = 0.1;
+        
+        const mainContainer = document.getElementById('mainContainer');
+        const zoomLevelDisplay = document.getElementById('zoomLevel');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const zoomResetBtn = document.getElementById('zoomResetBtn');
+
+        // دوال التكبير والتصغير
+        function updateZoom() {
+            mainContainer.style.transform = `scale(${currentZoom})`;
+            zoomLevelDisplay.textContent = `${Math.round(currentZoom * 100)}%`;
+            
+            // تحديث متغير CSS للتأثير على بعض العناصر إذا لزم الأمر
+            document.documentElement.style.setProperty('--zoom-level', currentZoom);
+        }
+
+        function zoomIn() {
+            if (currentZoom < maxZoom) {
+                currentZoom = Math.min(currentZoom + zoomStep, maxZoom);
+                updateZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > minZoom) {
+                currentZoom = Math.max(currentZoom - zoomStep, minZoom);
+                updateZoom();
+            }
+        }
+
+        function zoomReset() {
+            currentZoom = 1;
+            updateZoom();
+        }
+
+        // إضافة مستمعات الأحداث لأزرار التكبير
+        zoomInBtn.addEventListener('click', zoomIn);
+        zoomOutBtn.addEventListener('click', zoomOut);
+        zoomResetBtn.addEventListener('click', zoomReset);
+
+        // دعم اختصارات لوحة المفاتيح (اختياري)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                if (e.key === '+' || e.key === '=') {
+                    zoomIn();
+                } else if (e.key === '-' || e.key === '_') {
+                    zoomOut();
+                } else if (e.key === '0') {
+                    zoomReset();
+                }
+            }
+        });
 
         // دالة تحميل البيانات
         async function fetchSchedule() {
@@ -511,7 +660,6 @@
                 document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
                 document.getElementById('totalPeriods').textContent = schoolPeriods.length;
                 
-                // إعادة الضبط لإظهار الجدول بشكل صحيح
                 tableContainer.style.display = 'block'; 
                 tableContainer.innerHTML = html;
 
