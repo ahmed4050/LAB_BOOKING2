@@ -124,12 +124,6 @@
             gap: 10px;
         }
 
-        .update-info {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 18px;
-            border-radius: 35px;
-        }
-
         .stats-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -147,12 +141,6 @@
             gap: 15px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             border: 2px solid rgba(255, 255, 255, 0.8);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
         }
 
         .stat-icon {
@@ -179,7 +167,6 @@
             color: #2c3e50;
             font-size: clamp(1.5rem, 3vw, 2.2rem);
             font-weight: 800;
-            line-height: 1;
         }
 
         .table-container {
@@ -192,289 +179,176 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 400px;
             overflow: hidden;
+            position: relative;
         }
 
         .table-responsive {
             width: 100%;
             height: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; /* إخفاء شريط التمرير لمتصفحات فايرفوكس */
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            display: none; /* إخفاء شريط التمرير لمتصفحات كروم */
         }
 
         .schedule-table {
             width: 100%;
-            min-width: 900px; /* لضمان عدم تداخل الأعمدة في الجوالات */
-            height: 100%;
             border-collapse: separate;
             border-spacing: 0 8px;
             table-layout: fixed;
         }
 
-        .schedule-table tr {
-            height: calc((100% - 70px) / 8);
-            min-height: 50px;
-        }
-
         .schedule-table th {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            font-weight: 700;
-            padding: 12px 8px;
-            font-size: clamp(0.9rem, 1.6vw, 1.2rem);
-            text-align: center;
-            border: none;
-            white-space: nowrap;
+            padding: 15px 10px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        /* توزيع المساحات للأعمدة الجديدة */
-        .schedule-table th:first-child { border-radius: 15px 0 0 15px; width: 5%; }
-        .schedule-table th:nth-child(2) { width: 10%; } /* الحصة */
-        .schedule-table th:nth-child(3) { width: 12%; } /* الصف */
-        .schedule-table th:nth-child(4) { width: 15%; } /* المادة */
-        .schedule-table th:nth-child(5) { width: 25%; } /* المعلمة */
-        .schedule-table th:last-child { border-radius: 0 15px 15px 0; width: 33%; } /* عنوان الدرس */
+        .schedule-table th:first-child { border-radius: 15px 0 0 15px; width: 60px; }
+        .schedule-table th:last-child { border-radius: 0 15px 15px 0; }
 
         .schedule-table td {
             background: white;
-            padding: 10px 12px;
+            padding: 15px 12px;
             text-align: center;
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-            border: none;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: clamp(1rem, 1.6vw, 1.3rem);
         }
 
-        .schedule-table td:first-child {
-            border-radius: 15px 0 0 15px;
-            font-weight: 700;
-            color: var(--primary-color);
-            background: linear-gradient(to left, white, #f0f7ff);
-        }
+        .schedule-table td:first-child { border-radius: 15px 0 0 15px; font-weight: bold; }
+        .schedule-table td:last-child { border-radius: 0 15px 15px 0; }
 
-        .schedule-table td:last-child {
-            border-radius: 0 15px 15px 0;
-        }
-
-        .schedule-table tr:hover td {
-            background: #f8faff;
-            transform: scale(1.01);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.15);
-        }
-
-        .booked {
-            background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
-        }
-
-        .booked td {
-            background: transparent !important;
-            color: white !important;
-            font-weight: 500;
-        }
-
-        .empty-cell {
-            color: #95a5a6 !important;
-            font-style: italic;
-            background: #f8f9fa !important;
-        }
+        .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; color: white !important; }
+        .booked td { background: transparent !important; color: white !important; }
 
         .experiment-badge {
             display: inline-block;
-            background: rgba(52, 152, 219, 0.15);
-            padding: 6px 15px;
-            border-radius: 35px;
-            font-size: clamp(0.8rem, 1.4vw, 1rem);
-            font-weight: 600;
-            border: 2px solid var(--primary-color);
+            background: rgba(52, 152, 219, 0.1);
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 1px solid var(--primary-color);
             color: var(--primary-color);
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         .booked .experiment-badge {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             border-color: white;
         }
 
-        .period-number {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            line-height: 32px;
-            text-align: center;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 0.95rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+        .empty-cell { color: #bdc3c7; font-style: italic; }
 
         .footer {
             text-align: center;
             color: white;
-            font-size: clamp(0.8rem, 1.4vw, 1rem);
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 40px;
-            backdrop-filter: blur(5px);
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 30px;
             flex-shrink: 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .tv-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(52, 152, 219, 0.2);
-            border-top: 5px solid var(--primary-color);
-            border-right: 5px solid var(--secondary-color);
-            border-radius: 50%;
-            animation: tvSpin 1.2s infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes tvSpin {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            100% { transform: rotate(360deg) scale(1); }
         }
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
-        }
-
-        @media (max-width: 768px) {
-            .info-bar {
-                justify-content: center;
-                flex-direction: column;
-                text-align: center;
-            }
-            .stat-icon {
-                width: 45px;
-                height: 45px;
-                font-size: 1.4rem;
-            }
-            .table-container {
-                padding: 10px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="tv-background"></div>
-    
     <div class="container">
         <div class="header">
             <div class="school-name">
-                <h1>
-                    <i class="fas fa-flask"></i>
-                    مدرسة الحوراء
-                    <i class="fas fa-microscope"></i>
-                </h1>
+                <h1><i class="fas fa-flask"></i> مدرسة الحوراء <i class="fas fa-microscope"></i></h1>
                 <div class="subtitle">نظام حجوزات المختبر المدرسي</div>
             </div>
-            
             <div class="info-bar">
-                <div class="date-info">
-                    <i class="fas fa-calendar-alt fa-fw"></i>
-                    <span id="currentDate"></span>
-                </div>
-                <div class="update-info">
-                    <i class="fas fa-sync-alt fa-fw"></i>
-                    <span>تحديث تلقائي كل 5 دقائق</span>
-                </div>
+                <div class="date-info" id="currentDate"></div>
+                <div class="update-info"><i class="fas fa-sync-alt"></i> تحديث تلقائي كل 5 دقائق</div>
             </div>
         </div>
 
         <div class="stats-cards">
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                <div class="stat-details">
-                    <h3>إجمالي الحصص</h3>
-                    <div class="stat-number" id="totalPeriods">8</div>
-                </div>
+                <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
+                <div class="stat-details"><h3>إجمالي الحصص</h3><div class="stat-number" id="totalPeriods">8</div></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-details">
-                    <h3>الحصص المحجوزة</h3>
-                    <div class="stat-number" id="bookedCount">0</div>
-                </div>
+                <div class="stat-details"><h3>المحجوزة</h3><div class="stat-number" id="bookedCount">0</div></div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="stat-details">
-                    <h3>الحصص الشاغرة</h3>
-                    <div class="stat-number" id="emptyCount">8</div>
-                </div>
+                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
+                <div class="stat-details"><h3>الشاغرة</h3><div class="stat-number" id="emptyCount">8</div></div>
             </div>
         </div>
 
         <div class="table-container">
-            <div id="tableContainer" class="table-responsive" style="display: flex; align-items: center; justify-content: center;">
-                <div style="text-align: center;">
-                    <div class="tv-spinner"></div>
-                    <p style="font-size: 1.2rem; color: #666;">جاري تحميل جدول الحصص...</p>
-                </div>
+            <div id="tableWrapper" class="table-responsive">
+                <div id="tableContent">
+                    </div>
             </div>
         </div>
 
         <div class="footer">
-            <p><i class="fas fa-tv"></i> شاشة التلفاز - مدرسة الحوراء | جميع الحقوق محفوظة © 2026</p>
+            <p>جميع الحقوق محفوظة لمدرسة الحوراء © 2026</p>
         </div>
     </div>
 
     <script>
-        // المتغيرات العامة
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
+        let scrollInterval;
 
-        // دالة تحميل البيانات
+        function startAutoScroll() {
+            const wrapper = document.getElementById('tableWrapper');
+            if (!wrapper) return;
+            if (scrollInterval) clearInterval(scrollInterval);
+
+            let scrollAmount = 0;
+            let direction = 1;
+
+            scrollInterval = setInterval(() => {
+                const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
+                if (maxScroll <= 0) return;
+
+                scrollAmount += direction * 0.8; // سرعة التمرير
+                wrapper.scrollTop = scrollAmount;
+
+                if (scrollAmount >= maxScroll) {
+                    direction = 0;
+                    setTimeout(() => { direction = -1; }, 3000); // انتظار 3 ثواني عند النهاية
+                } else if (scrollAmount <= 0) {
+                    direction = 0;
+                    setTimeout(() => { direction = 1; }, 3000); // انتظار 3 ثواني عند البداية
+                }
+            }, 30);
+        }
+
         async function fetchSchedule() {
             try {
-                const tableContainer = document.getElementById('tableContainer');
-                
                 const response = await fetch(csvUrl);
                 const data = await response.text();
                 const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
                 
                 const now = new Date();
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const arabicDate = now.toLocaleDateString('ar-SA', options);
-                document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${arabicDate}`;
+                const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+                document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${now.toLocaleDateString('ar-SA', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}`;
 
                 let bookedCount = 0;
-                // ترتيب الأعمدة الجديد حسب طلبك
-                let html = '<table class="schedule-table"><tr><th>#</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr>';
+                let html = '<table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
 
                 schoolPeriods.forEach((period, index) => {
                     let booking = null;
-                    const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-
                     for (let i = 1; i < rows.length; i++) {
-                        const row = rows[i];
-                        if (row.length < 8) continue; // لضمان وجود جميع الأعمدة
-
-                        // سحب البيانات بناءً على ترتيب الأعمدة في الصورة
-                        const rowDate = row[2]; // العمود C
-                        const rowPeriod = row[3]; // العمود D
-
-                        if (rowDate === today && rowPeriod === period) {
-                            booking = {
-                                teacher: row[4] || "غير محدد", // العمود E
-                                subject: row[5] || "غير محدد", // العمود F
-                                grade: row[6] || "غير محدد", // العمود G
-                                experiment: row[7] || "بدون عنوان" // العمود H
-                            };
+                        if (rows[i][2] === today && rows[i][3] === period) {
+                            booking = { teacher: rows[i][4], subject: rows[i][5], grade: rows[i][6], lesson: rows[i][7] };
                             bookedCount++;
                             break;
                         }
@@ -482,51 +356,36 @@
 
                     if (booking) {
                         html += `<tr class="booked">
-                            <td><span class="period-number">${index + 1}</span></td>
-                            <td><strong>${period}</strong></td>
-                            <td><i class="fas fa-users"></i> ${booking.grade}</td>
-                            <td><i class="fas fa-book"></i> ${booking.subject}</td>
-                            <td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>
-                            <td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.experiment}</span></td>
+                            <td>${index + 1}</td>
+                            <td>${period}</td>
+                            <td>${booking.grade}</td>
+                            <td>${booking.subject}</td>
+                            <td>${booking.teacher}</td>
+                            <td><span class="experiment-badge">${booking.lesson}</span></td>
                         </tr>`;
                     } else {
                         html += `<tr>
-                            <td><span class="period-number">${index + 1}</span></td>
-                            <td><strong>${period}</strong></td>
-                            <td colspan="4" class="empty-cell">
-                                <i class="fas fa-ban"></i> شاغر - متاح للحجز
-                            </td>
+                            <td>${index + 1}</td>
+                            <td>${period}</td>
+                            <td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>
                         </tr>`;
                     }
                 });
 
-                html += '</table>';
-                
+                html += '</tbody></table>';
+                document.getElementById('tableContent').innerHTML = html;
                 document.getElementById('bookedCount').textContent = bookedCount;
                 document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
-                document.getElementById('totalPeriods').textContent = schoolPeriods.length;
-                
-                tableContainer.style.display = 'block'; 
-                tableContainer.innerHTML = html;
 
-            } catch (error) {
-                document.getElementById('tableContainer').style.display = 'flex';
-                document.getElementById('tableContainer').innerHTML = `
-                    <div style="text-align: center; padding: 30px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #e74c3c; margin-bottom: 15px;"></i>
-                        <h3 style="color: #e74c3c; font-size: 1.5rem; margin-bottom: 10px;">خطأ في الاتصال</h3>
-                        <p style="color: #666; margin: 15px 0;">يرجى التحقق من اتصال الإنترنت أو من رابط ملف الإكسل</p>
-                        <button onclick="fetchSchedule()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 40px; font-size: 1.1rem; cursor: pointer;">
-                            <i class="fas fa-sync-alt"></i> إعادة المحاولة
-                        </button>
-                    </div>
-                `;
+                setTimeout(startAutoScroll, 2000);
+            } catch (e) {
+                document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px;">خطأ في تحميل البيانات...</p>';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             fetchSchedule();
-            setInterval(fetchSchedule, 300000); // تحديث كل 5 دقائق
+            setInterval(fetchSchedule, 300000);
         });
     </script>
 </body>
