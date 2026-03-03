@@ -1,392 +1,343 @@
-<!DOCTYPE html>
-<html dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
-    <meta http-equiv="refresh" content="300">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+<!--
+التغييرات المقترحة (ضعها داخل نفس الملف):
+1) احذف: <meta http-equiv="refresh" content="300">
+2) أضف داخل .info-bar عنصر لآخر تحديث + اختيار التوقيت
+3) استبدل JS الحالي تقريباً بالنسخة أدناه (أو ادمجها)
+-->
+
+<!-- داخل info-bar (اقتراح إضافة عناصر) -->
+<!--
+<div class="update-info" id="lastUpdateInfo"><i class="fas fa-clock"></i> آخر تحديث: ...</div>
+
+<div class="update-info">
+  <i class="fas fa-route"></i>
+  <select id="timingMode" style="padding:6px 10px;border-radius:10px;border:none;">
+    <option value="first">التوقيت الأول</option>
+    <option value="second">التوقيت الثاني</option>
+  </select>
+</div>
+-->
+
+<script>
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
+
+  const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
+
+  // أوقات الحصص (حوّلناها إلى دقائق منذ منتصف الليل)
+  // ملاحظة: “الطابور” و “الفسحة” ليست ضمن جدول الحجوزات الحالي (الذي يعرض 1..8)
+  const scheduleTimes = {
+    first: {
+      "الطابور": ["07:00", "07:10"],
+      "الأولى":  ["07:10", "07:50"],
+      "الثانية": ["07:55", "08:35"],
+      "الثالثة": ["08:40", "09:20"],
+      "الرابعة": ["09:25", "10:05"],
+      "الفسحة":  ["10:05", "10:25"],
+      "الخامسة": ["10:25", "11:05"],
+      "السادسة": ["11:10", "11:50"],
+      "السابعة": ["11:55", "12:35"],
+      "الثامنة": ["12:40", "13:20"],
+    },
+    second: {
+      "الطابور": ["07:10", "07:20"],
+      "الأولى":  ["07:20", "08:00"],
+      "الثانية": ["08:05", "08:45"],
+      "الثالثة": ["08:50", "09:30"],
+      "الرابعة": ["09:35", "10:15"],
+      "الفسحة":  ["10:15", "10:35"],
+      "الخامسة": ["10:35", "11:15"],
+      "السادسة": ["11:20", "12:00"],
+      "السابعة": ["12:05", "12:45"],
+      "الثامنة": ["12:50", "13:30"],
+    }
+  };
+
+  let scrollInterval;
+  let lastGoodRows = null;
+
+  function isMobile() {
+    return window.matchMedia("(max-width: 768px)").matches;
+  }
+
+  function startAutoScroll() {
+    // لا تشغل auto-scroll على الجوال
+    if (isMobile()) return;
+
+    const wrapper = document.getElementById('tableWrapper');
+    if (!wrapper) return;
+
+    if (scrollInterval) clearInterval(scrollInterval);
+
+    // ابدأ من الأعلى بعد كل تحديث
+    wrapper.scrollTop = 0;
+    let direction = 1;
+
+    scrollInterval = setInterval(() => {
+      const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
+      if (maxScroll <= 0) return;
+
+      const next = wrapper.scrollTop + direction * 0.8;
+      wrapper.scrollTop = next;
+
+      if (wrapper.scrollTop >= maxScroll) {
+        direction = 0;
+        setTimeout(() => { direction = -1; }, 3000);
+      } else if (wrapper.scrollTop <= 0) {
+        direction = 0;
+        setTimeout(() => { direction = 1; }, 3000);
+      }
+    }, 30);
+  }
+
+  function toMinutes(hhmm) {
+    const [h, m] = hhmm.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function nowMinutes() {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  }
+
+  function getCurrentAndNextPeriod(mode) {
+    const times = scheduleTimes[mode];
+    const current = nowMinutes();
+
+    // ترتيب الفترات حسب الوقت
+    const ordered = Object.entries(times)
+      .map(([name, [from, to]]) => ({ name, fromM: toMinutes(from), toM: toMinutes(to), from, to }))
+      .sort((a,b) => a.fromM - b.fromM);
+
+    let currentSlot = null;
+    let nextSlot = null;
+
+    for (let i = 0; i < ordered.length; i++) {
+      const slot = ordered[i];
+      if (current >= slot.fromM && current < slot.toM) {
+        currentSlot = slot;
+        nextSlot = ordered[i + 1] || null;
+        break;
+      }
+      if (current < slot.fromM) {
+        nextSlot = slot;
+        break;
+      }
+    }
+    return { currentSlot, nextSlot };
+  }
+
+  // CSV parser يدعم الاقتباسات
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let cur = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const next = text[i + 1];
+
+      if (ch === '"' && inQuotes && next === '"') { // escaped quote
+        cur += '"';
+        i++;
+        continue;
+      }
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (ch === ',' && !inQuotes) {
+        row.push(cur.trim());
+        cur = '';
+        continue;
+      }
+      if ((ch === '\n' || ch === '\r') && !inQuotes) {
+        if (ch === '\r' && next === '\n') i++;
+        // commit line
+        if (cur.length > 0 || row.length > 0) {
+          row.push(cur.trim());
+          rows.push(row);
         }
+        row = [];
+        cur = '';
+        continue;
+      }
+      cur += ch;
+    }
 
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-        }
+    if (cur.length > 0 || row.length > 0) {
+      row.push(cur.trim());
+      rows.push(row);
+    }
 
-        html, body {
-            min-height: 100vh;
-            width: 100vw;
-            overflow-x: hidden;
-            font-family: 'Tajawal', sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #2c3e50;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 15px;
-            position: relative;
-        }
+    return rows;
+  }
 
-        @media (min-width: 1024px) {
-            html, body {
-                height: 100vh;
-                overflow: hidden;
-                align-items: center;
-            }
-        }
+  function formatTodayYYYYMMDDslashes() {
+    const now = new Date();
+    return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+  }
 
-        .tv-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
-            opacity: 0.15;
-            pointer-events: none;
-        }
+  function setHeaderDate() {
+    const now = new Date();
+    const el = document.getElementById('currentDate');
+    if (!el) return;
+    el.innerHTML = `<i class="fas fa-calendar-day"></i> ${now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+  }
 
-        .container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            max-width: 1920px;
-        }
+  function setLastUpdate(ok, extraText = '') {
+    const el = document.getElementById('lastUpdateInfo');
+    if (!el) return;
+    const now = new Date();
+    if (ok) {
+      el.innerHTML = `<i class="fas fa-clock"></i> آخر تحديث: ${now.toLocaleTimeString('ar-SA')} ${extraText ? ' - ' + extraText : ''}`;
+    } else {
+      el.innerHTML = `<i class="fas fa-triangle-exclamation"></i> تعذر التحديث: ${now.toLocaleTimeString('ar-SA')} ${extraText ? ' - ' + extraText : ''}`;
+    }
+  }
 
-        .header {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(15px);
-            border-radius: 25px;
-            padding: 15px 25px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            flex-shrink: 0;
-        }
+  function buildBookingMap(rows) {
+    // حسب عينتك:
+    // عمود التاريخ = 2
+    // عمود الحصة = 3
+    // المعلمة=4 المادة=5 الصف=6 عنوان الدرس=7
+    // (قد تختلف إذا تغيّر الشيت، لكن هذا مطابق للبيانات التي أرسلتها)
+    const map = new Map();
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const date = (r[2] || '').trim();
+      const period = (r[3] || '').trim();
+      if (!date || !period) continue;
 
-        .school-name {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .school-name h1 {
-            color: #2c3e50;
-            font-size: clamp(1.8rem, 4vw, 3rem);
-            font-weight: 800;
-            margin-bottom: 8px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .school-name h1 i {
-            color: #e74c3c;
-            margin: 0 10px;
-            animation: pulse 2s infinite;
-        }
-
-        .school-name .subtitle {
-            color: #7f8c8d;
-            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
-            font-weight: 400;
-            border-bottom: 3px solid var(--primary-color);
-            display: inline-block;
-            padding-bottom: 5px;
-        }
-
-        .info-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            padding: 12px 25px;
-            border-radius: 18px;
-            color: white;
-            flex-wrap: wrap;
-            gap: 15px;
-            font-size: clamp(0.9rem, 1.8vw, 1.2rem);
-        }
-
-        .date-info, .update-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            flex-shrink: 0;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-radius: 18px;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-        }
-
-        .stat-icon {
-            width: 55px;
-            height: 55px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .stat-details h3 {
-            color: #7f8c8d;
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .stat-details .stat-number {
-            color: #2c3e50;
-            font-size: clamp(1.5rem, 3vw, 2.2rem);
-            font-weight: 800;
-        }
-
-        .table-container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(15px);
-            border-radius: 25px;
-            padding: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .table-responsive {
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            scrollbar-width: none; /* إخفاء شريط التمرير لمتصفحات فايرفوكس */
-        }
-
-        .table-responsive::-webkit-scrollbar {
-            display: none; /* إخفاء شريط التمرير لمتصفحات كروم */
-        }
-
-        .schedule-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 8px;
-            table-layout: fixed;
-        }
-
-        .schedule-table th {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 15px 10px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .schedule-table th:first-child { border-radius: 15px 0 0 15px; width: 60px; }
-        .schedule-table th:last-child { border-radius: 0 15px 15px 0; }
-
-        .schedule-table td {
-            background: white;
-            padding: 15px 12px;
-            text-align: center;
-            font-size: clamp(1rem, 1.6vw, 1.3rem);
-        }
-
-        .schedule-table td:first-child { border-radius: 15px 0 0 15px; font-weight: bold; }
-        .schedule-table td:last-child { border-radius: 0 15px 15px 0; }
-
-        .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; color: white !important; }
-        .booked td { background: transparent !important; color: white !important; }
-
-        .experiment-badge {
-            display: inline-block;
-            background: rgba(52, 152, 219, 0.1);
-            padding: 6px 12px;
-            border-radius: 30px;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .booked .experiment-badge {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-color: white;
-        }
-
-        .empty-cell { color: #bdc3c7; font-style: italic; }
-
-        .footer {
-            text-align: center;
-            color: white;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 30px;
-            flex-shrink: 0;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-    </style>
-</head>
-<body>
-    <div class="tv-background"></div>
-    <div class="container">
-        <div class="header">
-            <div class="school-name">
-                <h1><i class="fas fa-flask"></i> مدرسة الحوراء <i class="fas fa-microscope"></i></h1>
-                <div class="subtitle">نظام حجوزات المختبر المدرسي</div>
-            </div>
-            <div class="info-bar">
-                <div class="date-info" id="currentDate"></div>
-                <div class="update-info"><i class="fas fa-sync-alt"></i> تحديث تلقائي كل 5 دقائق</div>
-            </div>
-        </div>
-
-        <div class="stats-cards">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
-                <div class="stat-details"><h3>إجمالي الحصص</h3><div class="stat-number" id="totalPeriods">8</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-details"><h3>المحجوزة</h3><div class="stat-number" id="bookedCount">0</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                <div class="stat-details"><h3>الشاغرة</h3><div class="stat-number" id="emptyCount">8</div></div>
-            </div>
-        </div>
-
-        <div class="table-container">
-            <div id="tableWrapper" class="table-responsive">
-                <div id="tableContent">
-                    </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>جميع الحقوق محفوظة لمدرسة الحوراء © 2026</p>
-        </div>
-    </div>
-
-    <script>
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
-        let scrollInterval;
-
-        function startAutoScroll() {
-            const wrapper = document.getElementById('tableWrapper');
-            if (!wrapper) return;
-            if (scrollInterval) clearInterval(scrollInterval);
-
-            let scrollAmount = 0;
-            let direction = 1;
-
-            scrollInterval = setInterval(() => {
-                const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
-                if (maxScroll <= 0) return;
-
-                scrollAmount += direction * 0.8; // سرعة التمرير
-                wrapper.scrollTop = scrollAmount;
-
-                if (scrollAmount >= maxScroll) {
-                    direction = 0;
-                    setTimeout(() => { direction = -1; }, 3000); // انتظار 3 ثواني عند النهاية
-                } else if (scrollAmount <= 0) {
-                    direction = 0;
-                    setTimeout(() => { direction = 1; }, 3000); // انتظار 3 ثواني عند البداية
-                }
-            }, 30);
-        }
-
-        async function fetchSchedule() {
-            try {
-                const response = await fetch(csvUrl);
-                const data = await response.text();
-                const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
-                
-                const now = new Date();
-                const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-                document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${now.toLocaleDateString('ar-SA', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}`;
-
-                let bookedCount = 0;
-                let html = '<table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
-
-                schoolPeriods.forEach((period, index) => {
-                    let booking = null;
-                    for (let i = 1; i < rows.length; i++) {
-                        if (rows[i][2] === today && rows[i][3] === period) {
-                            booking = { teacher: rows[i][4], subject: rows[i][5], grade: rows[i][6], lesson: rows[i][7] };
-                            bookedCount++;
-                            break;
-                        }
-                    }
-
-                    if (booking) {
-                        html += `<tr class="booked">
-                            <td>${index + 1}</td>
-                            <td>${period}</td>
-                            <td>${booking.grade}</td>
-                            <td>${booking.subject}</td>
-                            <td>${booking.teacher}</td>
-                            <td><span class="experiment-badge">${booking.lesson}</span></td>
-                        </tr>`;
-                    } else {
-                        html += `<tr>
-                            <td>${index + 1}</td>
-                            <td>${period}</td>
-                            <td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>
-                        </tr>`;
-                    }
-                });
-
-                html += '</tbody></table>';
-                document.getElementById('tableContent').innerHTML = html;
-                document.getElementById('bookedCount').textContent = bookedCount;
-                document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
-
-                setTimeout(startAutoScroll, 2000);
-            } catch (e) {
-                document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px;">خطأ في تحميل البيانات...</p>';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchSchedule();
-            setInterval(fetchSchedule, 300000);
+      const key = `${date}__${period}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          teacher: (r[4] || '').trim(),
+          subject: (r[5] || '').trim(),
+          grade: (r[6] || '').trim(),
+          lesson: (r[7] || '').trim()
         });
-    </script>
-</body>
-</html>
+      }
+    }
+    return map;
+  }
+
+  function renderTable(bookingMap, today, mode) {
+    let bookedCount = 0;
+
+    const { currentSlot, nextSlot } = getCurrentAndNextPeriod(mode);
+
+    // شريط معلومات إضافي بسيط (اختياري)
+    // يمكنك وضعه داخل tableContent أعلى الجدول أو في header
+    let html = '';
+
+    // جدول
+    html += '<table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
+
+    schoolPeriods.forEach((period, index) => {
+      const key = `${today}__${period}`;
+      const booking = bookingMap.get(key) || null;
+
+      const isCurrent = currentSlot && currentSlot.name === period;
+      const isNext = nextSlot && nextSlot.name === period;
+
+      let rowClass = '';
+      if (booking) rowClass += ' booked';
+      if (isCurrent) rowClass += ' current-period';
+      else if (isNext) rowClass += ' next-period';
+
+      if (booking) {
+        bookedCount++;
+        html += `<tr class="${rowClass.trim()}">
+          <td>${index + 1}</td>
+          <td>${period}</td>
+          <td>${booking.grade || '-'}</td>
+          <td>${booking.subject || '-'}</td>
+          <td>${booking.teacher || '-'}</td>
+          <td><span class="experiment-badge">${booking.lesson || '-'}</span></td>
+        </tr>`;
+      } else {
+        html += `<tr class="${rowClass.trim()}">
+          <td>${index + 1}</td>
+          <td>${period}</td>
+          <td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>
+        </tr>`;
+      }
+    });
+
+    html += '</tbody></table>';
+
+    document.getElementById('tableContent').innerHTML = html;
+    document.getElementById('bookedCount').textContent = bookedCount;
+    document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
+  }
+
+  async function fetchSchedule() {
+    setHeaderDate();
+
+    const modeEl = document.getElementById('timingMode');
+    const mode = modeEl ? modeEl.value : 'first';
+
+    const today = formatTodayYYYYMMDDslashes();
+
+    try {
+      const response = await fetch(csvUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const text = await response.text();
+      const rows = parseCSV(text);
+      lastGoodRows = rows;
+
+      const bookingMap = buildBookingMap(rows);
+      renderTable(bookingMap, today, mode);
+
+      setLastUpdate(true);
+      setTimeout(startAutoScroll, 700);
+    } catch (e) {
+      // fallback: اعرض آخر بيانات ناجحة إن وجدت
+      if (lastGoodRows) {
+        const modeEl = document.getElementById('timingMode');
+        const mode = modeEl ? modeEl.value : 'first';
+
+        const today = formatTodayYYYYMMDDslashes();
+        const bookingMap = buildBookingMap(lastGoodRows);
+        renderTable(bookingMap, today, mode);
+        setLastUpdate(false, 'تم عرض آخر بيانات محفوظة');
+      } else {
+        document.getElementById('tableContent').innerHTML =
+          '<p style="text-align:center; padding:20px;">خطأ في تحميل البيانات... تأكد من الاتصال بالإنترنت</p>';
+        setLastUpdate(false, String(e?.message || e));
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchSchedule();
+    setInterval(fetchSchedule, 300000);
+
+    const modeEl = document.getElementById('timingMode');
+    if (modeEl) modeEl.addEventListener('change', fetchSchedule);
+  });
+</script>
+
+<!-- CSS إضافي لتوضيح الحصة الحالية والقادمة -->
+<style>
+  /* تظليل الحصة الحالية والقادمة */
+  .current-period td {
+    outline: 3px solid #f39c12;
+    position: relative;
+  }
+  .next-period td {
+    outline: 3px dashed rgba(52,152,219,0.7);
+    position: relative;
+  }
+
+  /* تحسين على الجوال: خلي الجدول أصغر ومسافات أقل */
+  @media (max-width: 768px) {
+    .schedule-table td, .schedule-table th {
+      padding: 10px 6px;
+      font-size: 0.95rem;
+    }
+  }
+</style>
+</script>
