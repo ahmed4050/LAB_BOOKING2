@@ -136,38 +136,38 @@
             border: 1px solid #ffd700;
         }
 
-        /* شريط الحصص المتحرك - من اليسار إلى اليمين */
-        .periods-marquee {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 40px;
-            padding: 8px 15px;
-            color: white;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            position: relative;
-            flex-shrink: 0;
-            font-size: 1rem;
-        }
+       /* شريط الحصص المتحرك - من اليسار إلى اليمين */
+.periods-marquee {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border-radius: 40px;
+    padding: 8px 15px;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
 
-        .marquee-container {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            animation: scrollLeftToRight 25s linear infinite;
-            white-space: nowrap;
-            direction: ltr;
-            width: fit-content;
-        }
+.marquee-container {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    animation: scrollLeftToRight 50s linear infinite; /* تم مضاعفة الوقت من 25s إلى 50s */
+    white-space: nowrap;
+    direction: ltr;
+    width: fit-content;
+}
 
-        .marquee-container:hover {
-            animation-play-state: paused;
-        }
+.marquee-container:hover {
+    animation-play-state: paused;
+}
 
-        @keyframes scrollLeftToRight {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
+@keyframes scrollLeftToRight {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
 
         .marquee-item {
             display: inline-flex;
