@@ -96,6 +96,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             border: 2px solid var(--primary-color);
             transition: transform 0.3s ease;
+            cursor: pointer;
         }
 
         .qr-code:hover {
@@ -477,9 +478,9 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <!-- كود QR على اليمين -->
-                <div class="qr-code">
-                    <img src="https://ahmed4050.github.io/LAB_BOOKING2/" 
+                <!-- كود QR على اليمين - الرابط المحدث -->
+                <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')" title="افتح صفحة الحجوزات">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" 
                          alt="QR Code"
                          title="مسح للوصول إلى صفحة الحجوزات">
                 </div>
@@ -495,7 +496,7 @@
                     </div>
                 </div>
                 
-                <!-- مسافة فارغة للتوازن (اختياري) -->
+                <!-- مسافة فارغة للتوازن -->
                 <div style="width: 100px;"></div>
             </div>
             
