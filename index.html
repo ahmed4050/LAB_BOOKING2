@@ -555,7 +555,7 @@
             return now.getHours() * 60 + now.getMinutes();
         }
 
-        // دالة تحديد الحصة الحالية والحصة القادمة بدقة
+        // دالة تحديد الحصة الحالية والتالية بدقة
         function getCurrentAndNextPeriod() {
             const currentTimeInMinutes = getCurrentTimeInMinutes();
             
@@ -590,9 +590,9 @@
                 }
             }
             
-            // إذا وجدنا حصة حالية، نبحث عن الحصة القادمة
+            // إذا وجدنا حصة حالية، نبحث عن التالية
             if (currentPeriod) {
-                // البحث عن الحصة القادمة (تخطي أوقات الاستراحة إذا لزم الأمر)
+                // البحث عن التالية (تخطي أوقات الاستراحة إذا لزم الأمر)
                 for (let i = currentPeriod.index + 1; i < timeTable.length; i++) {
                     const period = timeTable[i];
                     const timeSlot = period.times[isSecondShift ? 1 : 0];
@@ -628,7 +628,7 @@
                     </div>
                     <div class="marquee-item">
                         <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
-                        <span class="marquee-text">⏳ الحصة القادمة: ${nextPeriod ? nextPeriod.period : 'غير معروفة'}</span>
+                        <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? nextPeriod.period : 'غير معروفة'}</span>
                     </div>
                     <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
                 `;
@@ -650,7 +650,7 @@
                     </div>
                     <div class="marquee-item next">
                         <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
-                        <span class="marquee-text">⏳ الحصة القادمة: ${nextPeriod ? nextPeriod.period : 'لا توجد'} | عنوان الدرس: ${nextLesson}</span>
+                        <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? nextPeriod.period : 'لا توجد'} | عنوان الدرس: ${nextLesson}</span>
                     </div>
                     <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
                 `;
