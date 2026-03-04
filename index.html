@@ -823,15 +823,9 @@ async function fetchSchedule() {
             fetchSchedule();
         }, 60000);
 
-        // بدء حركة الشريط بعد 3 ثواني من تحميل الصفحة
-document.addEventListener('DOMContentLoaded', function() {
-    const marqueeContainer = document.querySelector('.marquee-container');
-    marqueeContainer.style.animationPlayState = 'paused';
-    
-    setTimeout(() => {
-        marqueeContainer.style.animationPlayState = 'running';
-    }, 2000); // 3000 = 3 ثواني
-});
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchSchedule();
+        });
     </script>
 </body>
 </html>
