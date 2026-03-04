@@ -693,115 +693,124 @@
             }, 30);
         }
 
-        async function fetchSchedule() {
-            try {
-                const response = await fetch(csvUrl);
-                const data = await response.text();
-                const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+        // تعديل دالة fetchSchedule لحساب الحصص الفعلية فقط (بدون الطابور والفسحة)
+async function fetchSchedule() {
+    try {
+        const response = await fetch(csvUrl);
+        const data = await response.text();
+        const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+        
+        const now = new Date();
+        const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+        
+        document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${now.toLocaleDateString('ar-SA', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}`;
+        updateCurrentTime();
+
+        let bookedCount = 0;
+        const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
+        
+        currentBookings = {};
+
+        let html = '<table class="schedule-table"><thead><tr>' +
+                  '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>' +
+                  '<th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>' +
+                  '</tr></thead><tbody>';
+
+        const isSecondShift = now.getHours() >= 12;
+        
+        // حساب إجمالي الحصص الفعلية (بدون الطابور والفسحة)
+        const actualPeriods = timeTable.filter(p => p.period !== 'الطابور' && p.period !== 'الفسحة');
+        const totalActualPeriods = actualPeriods.length;
+
+        timeTable.forEach((period, index) => {
+            const timeSlot = period.times[isSecondShift ? 1 : 0];
+            const timeDisplay = `${timeSlot.start} - ${timeSlot.end}`;
+            
+            let booking = null;
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i].length < 5) continue;
                 
-                const now = new Date();
-                const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+                const rowDate = rows[i][2];
+                const rowPeriod = rows[i][3];
                 
-                document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${now.toLocaleDateString('ar-SA', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}`;
-                updateCurrentTime();
-
-                let bookedCount = 0;
-                const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
-                
-                currentBookings = {};
-
-                let html = '<table class="schedule-table"><thead><tr>' +
-                          '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>' +
-                          '<th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>' +
-                          '</tr></thead><tbody>';
-
-                const isSecondShift = now.getHours() >= 12;
-
-                timeTable.forEach((period, index) => {
-                    const timeSlot = period.times[isSecondShift ? 1 : 0];
-                    const timeDisplay = `${timeSlot.start} - ${timeSlot.end}`;
+                if (rowDate === today && rowPeriod === period.period) {
+                    booking = {
+                        teacher: rows[i][4] || "غير محدد",
+                        subject: rows[i][5] || "غير محدد",
+                        grade: rows[i][6] || "غير محدد",
+                        lesson: rows[i][7] || "غير محدد"
+                    };
                     
-                    let booking = null;
-                    for (let i = 1; i < rows.length; i++) {
-                        if (rows[i].length < 5) continue;
-                        
-                        const rowDate = rows[i][2];
-                        const rowPeriod = rows[i][3];
-                        
-                        if (rowDate === today && rowPeriod === period.period) {
-                            booking = {
-                                teacher: rows[i][4] || "غير محدد",
-                                subject: rows[i][5] || "غير محدد",
-                                grade: rows[i][6] || "غير محدد",
-                                lesson: rows[i][7] || "غير محدد"
-                            };
-                            bookedCount++;
-                            
-                            currentBookings[period.period] = booking;
-                            break;
-                        }
+                    // زيادة عدد المحجوزة فقط إذا كانت الحصة فعلية (ليست طابور ولا فسحة)
+                    if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
+                        bookedCount++;
                     }
-
-                    let rowClass = '';
-                    if (currentPeriod && currentPeriod.index === index) {
-                        rowClass = 'current-period';
-                    } else if (nextPeriod && nextPeriod.index === index) {
-                        rowClass = 'next-period';
-                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                        rowClass = 'break-row';
-                    } else if (booking) {
-                        rowClass = 'booked';
-                    }
-
-                    html += `<tr class="${rowClass}">`;
-                    html += `<td>${index + 1}</td>`;
-                    html += `<td><strong>${period.period}</strong></td>`;
-                    html += `<td><span class="time-badge"><i class="fas fa-clock"></i> ${timeDisplay}</span></td>`;
-                    html += `<td>${period.duration} د</td>`;
-
-                    if (booking) {
-                        html += `<td>${booking.grade}</td>`;
-                        html += `<td>${booking.subject}</td>`;
-                        html += `<td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>`;
-                        html += `<td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.lesson}</span></td>`;
-                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                        html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
-                    } else {
-                        html += `<td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>`;
-                    }
-
-                    html += '</tr>';
-                });
-
-                html += '</tbody></table>';
-                
-                document.getElementById('tableContent').innerHTML = html;
-                document.getElementById('bookedCount').textContent = bookedCount;
-                document.getElementById('emptyCount').textContent = timeTable.length - bookedCount;
-                document.getElementById('totalPeriods').textContent = timeTable.length;
-
-                updateMarquee();
-
-                if (currentPeriod) {
-                    setTimeout(() => {
-                        const wrapper = document.getElementById('tableWrapper');
-                        const rows = wrapper.querySelectorAll('tr');
-                        for (let i = 0; i < rows.length; i++) {
-                            if (rows[i].classList.contains('current-period')) {
-                                rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                break;
-                            }
-                        }
-                    }, 500);
+                    
+                    currentBookings[period.period] = booking;
+                    break;
                 }
-
-                setTimeout(startAutoScroll, 2000);
-
-            } catch (e) {
-                console.error('خطأ في تحميل البيانات:', e);
-                document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px; color:#e74c3c;"><i class="fas fa-exclamation-triangle"></i> خطأ في تحميل البيانات...</p>';
             }
+
+            let rowClass = '';
+            if (currentPeriod && currentPeriod.index === index) {
+                rowClass = 'current-period';
+            } else if (nextPeriod && nextPeriod.index === index) {
+                rowClass = 'next-period';
+            } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                rowClass = 'break-row';
+            } else if (booking) {
+                rowClass = 'booked';
+            }
+
+            html += `<tr class="${rowClass}">`;
+            html += `<td>${index + 1}</td>`;
+            html += `<td><strong>${period.period}</strong></td>`;
+            html += `<td><span class="time-badge"><i class="fas fa-clock"></i> ${timeDisplay}</span></td>`;
+            html += `<td>${period.duration} د</td>`;
+
+            if (booking) {
+                html += `<td>${booking.grade}</td>`;
+                html += `<td>${booking.subject}</td>`;
+                html += `<td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>`;
+                html += `<td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.lesson}</span></td>`;
+            } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
+            } else {
+                html += `<td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>`;
+            }
+
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        
+        document.getElementById('tableContent').innerHTML = html;
+        document.getElementById('bookedCount').textContent = bookedCount;
+        document.getElementById('emptyCount').textContent = totalActualPeriods - bookedCount; // إجمالي الحصص الفعلية - المحجوزة
+        document.getElementById('totalPeriods').textContent = totalActualPeriods; // عرض إجمالي الحصص الفعلية فقط
+
+        updateMarquee();
+
+        if (currentPeriod) {
+            setTimeout(() => {
+                const wrapper = document.getElementById('tableWrapper');
+                const rows = wrapper.querySelectorAll('tr');
+                for (let i = 0; i < rows.length; i++) {
+                    if (rows[i].classList.contains('current-period')) {
+                        rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        break;
+                    }
+                }
+            }, 500);
         }
+
+        setTimeout(startAutoScroll, 2000);
+
+    } catch (e) {
+        console.error('خطأ في تحميل البيانات:', e);
+        document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px; color:#e74c3c;"><i class="fas fa-exclamation-triangle"></i> خطأ في تحميل البيانات...</p>';
+    }
+}
 
         // تحديث الوقت والماركي كل ثانية
         setInterval(() => {
