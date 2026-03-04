@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
-    <meta http-equiv="refresh" content="300">
+    <meta http-equiv="refresh" content="60"> <!-- تحديث كل دقيقة لفحص الوقت -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
@@ -20,6 +20,8 @@
             --success-color: #27ae60;
             --warning-color: #f39c12;
             --danger-color: #e74c3c;
+            --current-period-color: #ffd700;
+            --current-period-bg: rgba(255, 215, 0, 0.15);
         }
 
         html, body {
@@ -118,10 +120,17 @@
             font-size: clamp(0.9rem, 1.8vw, 1.2rem);
         }
 
-        .date-info, .update-info {
+        .date-info, .update-info, .current-time-info {
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .current-time-info {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 8px 18px;
+            border-radius: 35px;
+            border: 1px solid #ffd700;
         }
 
         .stats-cards {
@@ -188,11 +197,11 @@
             height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
-            scrollbar-width: none; /* إخفاء شريط التمرير لمتصفحات فايرفوكس */
+            scrollbar-width: none;
         }
 
         .table-responsive::-webkit-scrollbar {
-            display: none; /* إخفاء شريط التمرير لمتصفحات كروم */
+            display: none;
         }
 
         .schedule-table {
@@ -209,23 +218,75 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            font-size: clamp(0.9rem, 1.4vw, 1.1rem);
         }
 
-        .schedule-table th:first-child { border-radius: 15px 0 0 15px; width: 60px; }
-        .schedule-table th:last-child { border-radius: 0 15px 15px 0; }
+        .schedule-table th:first-child { border-radius: 15px 0 0 15px; width: 50px; }
+        .schedule-table th:nth-child(2) { width: 100px; }
+        .schedule-table th:nth-child(3) { width: 120px; }
+        .schedule-table th:nth-child(4) { width: 100px; }
+        .schedule-table th:nth-child(5) { width: 140px; }
+        .schedule-table th:nth-child(6) { width: 120px; }
+        .schedule-table th:nth-child(7) { width: 150px; }
+        .schedule-table th:last-child { border-radius: 0 15px 15px 0; width: auto; }
 
         .schedule-table td {
             background: white;
-            padding: 15px 12px;
+            padding: 12px 8px;
             text-align: center;
-            font-size: clamp(1rem, 1.6vw, 1.3rem);
+            font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
-        .schedule-table td:first-child { border-radius: 15px 0 0 15px; font-weight: bold; }
+        .schedule-table td:first-child { 
+            border-radius: 15px 0 0 15px; 
+            font-weight: bold;
+            background: linear-gradient(to left, white, #f0f7ff);
+        }
         .schedule-table td:last-child { border-radius: 0 15px 15px 0; }
 
-        .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; color: white !important; }
-        .booked td { background: transparent !important; color: white !important; }
+        /* تنسيق الحصة الحالية */
+        .current-period {
+            background: var(--current-period-bg) !important;
+            border-right: 5px solid var(--current-period-color) !important;
+        }
+
+        .current-period td {
+            background: var(--current-period-bg) !important;
+            font-weight: 700;
+        }
+
+        .current-period td:first-child {
+            background: linear-gradient(to left, var(--current-period-bg), #fff3cd) !important;
+        }
+
+        .current-period .time-badge {
+            background: var(--current-period-color);
+            color: #2c3e50;
+            font-weight: 800;
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: rgba(52, 152, 219, 0.1);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            white-space: nowrap;
+        }
+
+        .booked { 
+            background: linear-gradient(135deg, #27ae60, #2ecc71) !important; 
+        }
+        .booked td { 
+            background: transparent !important; 
+            color: white !important; 
+        }
+        .booked .time-badge {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
 
         .experiment-badge {
             display: inline-block;
@@ -234,6 +295,11 @@
             border-radius: 30px;
             border: 1px solid var(--primary-color);
             color: var(--primary-color);
+            font-size: 0.9rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .booked .experiment-badge {
@@ -242,21 +308,56 @@
             border-color: white;
         }
 
-        .empty-cell { color: #bdc3c7; font-style: italic; }
+        .empty-cell { 
+            color: #95a5a6; 
+            font-style: italic; 
+            background: #f8f9fa !important;
+        }
 
         .footer {
             text-align: center;
             color: white;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 30px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 40px;
+            backdrop-filter: blur(5px);
             flex-shrink: 0;
+        }
+
+        .footer p {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
         }
 
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+
+        .break-row {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important;
+        }
+        
+        .break-row td {
+            background: transparent !important;
+            color: white !important;
+            font-weight: 700;
+        }
+
+        .time-indicator {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 1rem;
+            z-index: 20;
         }
     </style>
 </head>
@@ -270,14 +371,18 @@
             </div>
             <div class="info-bar">
                 <div class="date-info" id="currentDate"></div>
-                <div class="update-info"><i class="fas fa-sync-alt"></i> تحديث تلقائي كل 5 دقائق</div>
+                <div class="current-time-info" id="currentTimeDisplay">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime">--:-- --</span>
+                </div>
+                <div class="update-info"><i class="fas fa-sync-alt"></i> تحديث كل دقيقة</div>
             </div>
         </div>
 
         <div class="stats-cards">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
-                <div class="stat-details"><h3>إجمالي الحصص</h3><div class="stat-number" id="totalPeriods">8</div></div>
+                <div class="stat-details"><h3>إجمالي الحصص</h3><div class="stat-number" id="totalPeriods">10</div></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
@@ -285,29 +390,122 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                <div class="stat-details"><h3>الشاغرة</h3><div class="stat-number" id="emptyCount">8</div></div>
+                <div class="stat-details"><h3>الشاغرة</h3><div class="stat-number" id="emptyCount">10</div></div>
             </div>
         </div>
 
         <div class="table-container">
             <div id="tableWrapper" class="table-responsive">
-                <div id="tableContent">
-                    </div>
+                <div id="tableContent"></div>
             </div>
         </div>
 
         <div class="footer">
-    <p style="display: flex; justify-content: space-between; width: 100%;">
-        <span>إشراف فنية المختبر أ.نادية السيابي</span>
-        <span>جميع الحقوق محفوظة لمدرسة الحوراء © 2026</span>
-    </p>
-</div>
+            <p>
+                <span><i class="fas fa-chalkboard-teacher"></i> إشراف فنية المختبر أ.نادية السيابي</span>
+                <span><i class="fas fa-copyright"></i> جميع الحقوق محفوظة لمدرسة الحوراء 2026</span>
+            </p>
+        </div>
+    </div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        const schoolPeriods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
+        
+        // جدول التوقيت الزمني للحصص
+        const timeTable = [
+            { period: "الطابور", duration: 10, times: [
+                { start: "7:00", end: "7:10" },
+                { start: "7:10", end: "7:20" }
+            ]},
+            { period: "الأولى", duration: 40, times: [
+                { start: "7:10", end: "7:50" },
+                { start: "7:20", end: "8:00" }
+            ]},
+            { period: "الثانية", duration: 40, times: [
+                { start: "7:55", end: "8:35" },
+                { start: "8:05", end: "8:45" }
+            ]},
+            { period: "الثالثة", duration: 40, times: [
+                { start: "8:40", end: "9:20" },
+                { start: "8:50", end: "9:30" }
+            ]},
+            { period: "الرابعة", duration: 40, times: [
+                { start: "9:25", end: "10:05" },
+                { start: "9:35", end: "10:15" }
+            ]},
+            { period: "الفسحة", duration: 20, times: [
+                { start: "10:05", end: "10:25" },
+                { start: "10:15", end: "10:35" }
+            ]},
+            { period: "الخامسة", duration: 40, times: [
+                { start: "10:25", end: "11:05" },
+                { start: "10:35", end: "11:15" }
+            ]},
+            { period: "السادسة", duration: 40, times: [
+                { start: "11:10", end: "11:50" },
+                { start: "11:20", end: "12:00" }
+            ]},
+            { period: "السابعة", duration: 40, times: [
+                { start: "11:55", end: "12:35" },
+                { start: "12:05", end: "12:45" }
+            ]},
+            { period: "الثامنة", duration: 40, times: [
+                { start: "12:40", end: "1:20" },
+                { start: "12:50", end: "1:30" }
+            ]}
+        ];
+
         let scrollInterval;
 
+        // دالة تحويل الوقت النصي إلى دقائق للمقارنة
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            let [hours, minutes] = timeStr.split(':').map(Number);
+            if (timeStr.includes('مساء') || (hours < 12 && timeStr.includes('م'))) {
+                hours += 12;
+            }
+            return hours * 60 + (minutes || 0);
+        }
+
+        // دالة تحديد الحصة الحالية بناءً على الوقت
+        function getCurrentPeriod() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+            // تحديد الفترة (الأولى أو الثانية) حسب الوقت
+            // نفترض أن الفترة الأولى تبدأ من 7 صباحاً والفترة الثانية من 1 ظهراً
+            const isSecondShift = currentTimeInMinutes >= 13 * 60; // بعد الساعة 1 ظهراً
+
+            for (let i = 0; i < timeTable.length; i++) {
+                const period = timeTable[i];
+                const timeSlot = period.times[isSecondShift ? 1 : 0];
+                
+                const startMinutes = timeToMinutes(timeSlot.start);
+                const endMinutes = timeToMinutes(timeSlot.end);
+                
+                if (currentTimeInMinutes >= startMinutes && currentTimeInMinutes < endMinutes) {
+                    return {
+                        index: i,
+                        period: period.period,
+                        start: timeSlot.start,
+                        end: timeSlot.end,
+                        shift: isSecondShift ? 2 : 1
+                    };
+                }
+            }
+            return null;
+        }
+
+        // دالة تحديث الوقت الحالي
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentTime').textContent = timeStr;
+        }
+
+        // دالة التمرير التلقائي
         function startAutoScroll() {
             const wrapper = document.getElementById('tableWrapper');
             if (!wrapper) return;
@@ -320,16 +518,20 @@
                 const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
                 if (maxScroll <= 0) return;
 
-                scrollAmount += direction * 0.8; // سرعة التمرير
-                wrapper.scrollTop = scrollAmount;
-
-                if (scrollAmount >= maxScroll) {
+                scrollAmount += direction * 0.8;
+                
+                // التأكد من أن scrollAmount ضمن الحدود المسموحة
+                if (scrollAmount > maxScroll) {
+                    scrollAmount = maxScroll;
                     direction = 0;
-                    setTimeout(() => { direction = -1; }, 3000); // انتظار 3 ثواني عند النهاية
-                } else if (scrollAmount <= 0) {
+                    setTimeout(() => { direction = -1; }, 3000);
+                } else if (scrollAmount < 0) {
+                    scrollAmount = 0;
                     direction = 0;
-                    setTimeout(() => { direction = 1; }, 3000); // انتظار 3 ثواني عند البداية
+                    setTimeout(() => { direction = 1; }, 3000);
                 }
+                
+                wrapper.scrollTop = scrollAmount;
             }, 30);
         }
 
@@ -341,53 +543,125 @@
                 
                 const now = new Date();
                 const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+                
+                // تحديث التاريخ والوقت
                 document.getElementById('currentDate').innerHTML = `<i class="fas fa-calendar-day"></i> ${now.toLocaleDateString('ar-SA', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}`;
+                updateCurrentTime();
 
                 let bookedCount = 0;
-                let html = '<table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
+                
+                // تحديد الفترة الحالية
+                const currentPeriodInfo = getCurrentPeriod();
+                
+                let html = '<table class="schedule-table"><thead><tr>' +
+                          '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>' +
+                          '<th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>' +
+                          '</tr></thead><tbody>';
 
-                schoolPeriods.forEach((period, index) => {
+                // تحديد الفترة (أولى أو ثانية) بناءً على الوقت الحالي
+                const isSecondShift = now.getHours() >= 13; // بعد الساعة 1 ظهراً
+
+                timeTable.forEach((period, index) => {
+                    const timeSlot = period.times[isSecondShift ? 1 : 0];
+                    const timeDisplay = `${timeSlot.start} - ${timeSlot.end}`;
+                    
+                    // البحث عن حجز في هذا الوقت
                     let booking = null;
                     for (let i = 1; i < rows.length; i++) {
-                        if (rows[i][2] === today && rows[i][3] === period) {
-                            booking = { teacher: rows[i][4], subject: rows[i][5], grade: rows[i][6], lesson: rows[i][7] };
+                        if (rows[i].length < 5) continue;
+                        
+                        const rowDate = rows[i][2];
+                        const rowPeriod = rows[i][3];
+                        
+                        if (rowDate === today && rowPeriod === period.period) {
+                            booking = {
+                                teacher: rows[i][4] || "غير محدد",
+                                subject: rows[i][5] || "غير محدد",
+                                grade: rows[i][6] || "غير محدد",
+                                lesson: rows[i][7] || "غير محدد"
+                            };
                             bookedCount++;
                             break;
                         }
                     }
 
-                    if (booking) {
-                        html += `<tr class="booked">
-                            <td>${index + 1}</td>
-                            <td>${period}</td>
-                            <td>${booking.grade}</td>
-                            <td>${booking.subject}</td>
-                            <td>${booking.teacher}</td>
-                            <td><span class="experiment-badge">${booking.lesson}</span></td>
-                        </tr>`;
-                    } else {
-                        html += `<tr>
-                            <td>${index + 1}</td>
-                            <td>${period}</td>
-                            <td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>
-                        </tr>`;
+                    // التحقق مما إذا كانت هذه الحصة هي الحصة الحالية
+                    const isCurrentPeriod = currentPeriodInfo && currentPeriodInfo.period === period.period;
+                    
+                    // تنسيق الصف مع تمييز الحصة الحالية
+                    let rowClass = '';
+                    if (isCurrentPeriod) {
+                        rowClass = 'current-period';
+                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                        rowClass = 'break-row';
+                    } else if (booking) {
+                        rowClass = 'booked';
                     }
+
+                    html += `<tr class="${rowClass}">`;
+                    html += `<td>${index + 1}</td>`;
+                    html += `<td><strong>${period.period}</strong></td>`;
+                    html += `<td><span class="time-badge"><i class="fas fa-clock"></i> ${timeDisplay}</span></td>`;
+                    html += `<td>${period.duration} د</td>`;
+
+                    if (booking) {
+                        html += `<td>${booking.grade}</td>`;
+                        html += `<td>${booking.subject}</td>`;
+                        html += `<td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>`;
+                        html += `<td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.lesson}</span></td>`;
+                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                        html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
+                    } else {
+                        html += `<td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>`;
+                    }
+
+                    html += '</tr>';
                 });
 
                 html += '</tbody></table>';
+                
+                // إضافة مؤشر الفترة الحالية إذا وجدت
+                if (currentPeriodInfo) {
+                    html += `<div class="time-indicator">
+                        <i class="fas fa-bell"></i> الحصة الحالية: ${currentPeriodInfo.period} (${currentPeriodInfo.start} - ${currentPeriodInfo.end}) الفترة ${currentPeriodInfo.shift}
+                    </div>`;
+                }
+
                 document.getElementById('tableContent').innerHTML = html;
                 document.getElementById('bookedCount').textContent = bookedCount;
-                document.getElementById('emptyCount').textContent = schoolPeriods.length - bookedCount;
+                document.getElementById('emptyCount').textContent = timeTable.length - bookedCount;
+                document.getElementById('totalPeriods').textContent = timeTable.length;
+
+                // التمرير التلقائي إلى الحصة الحالية
+                if (currentPeriodInfo) {
+                    setTimeout(() => {
+                        const wrapper = document.getElementById('tableWrapper');
+                        const rows = wrapper.querySelectorAll('tr');
+                        for (let i = 0; i < rows.length; i++) {
+                            if (rows[i].classList.contains('current-period')) {
+                                rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                break;
+                            }
+                        }
+                    }, 500);
+                }
 
                 setTimeout(startAutoScroll, 2000);
+
             } catch (e) {
-                document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px;">خطأ في تحميل البيانات...</p>';
+                document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px; color:#e74c3c;"><i class="fas fa-exclamation-triangle"></i> خطأ في تحميل البيانات...</p>';
             }
         }
 
+        // تحديث الوقت كل ثانية
+        setInterval(() => {
+            updateCurrentTime();
+            // إعادة تحميل الجدول كل دقيقة لتحديث الحصة الحالية
+            fetchSchedule();
+        }, 60000);
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchSchedule();
-            setInterval(fetchSchedule, 300000);
         });
     </script>
 </body>
