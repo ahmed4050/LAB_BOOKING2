@@ -291,7 +291,7 @@
     flex-shrink: 0;
 }
 
-/* ✅ التعديل هنا - عرض الرقم بجانب النص */
+/* عرض الرقم بجانب النص */
 .stat-details {
     display: flex;
     align-items: baseline;
@@ -447,6 +447,71 @@
             background: #f8f9fa !important;
         }
 
+        /* شريط الأمن والسلامة المتحرك */
+        .safety-marquee {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-radius: 40px;
+            padding: 10px 15px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+            margin: 5px 0;
+        }
+
+        .safety-marquee-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            animation: scrollSafety 30s linear infinite;
+            white-space: nowrap;
+            direction: ltr;
+            width: fit-content;
+        }
+
+        .safety-marquee-container:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scrollSafety {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .safety-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+        }
+
+        .safety-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+
+        /* تحسين للشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .safety-text {
+                font-size: 1rem;
+            }
+            
+            .safety-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
+        }
+
         .footer {
             text-align: center;
             color: white;
@@ -544,6 +609,18 @@
         <div class="table-container">
             <div id="tableWrapper" class="table-responsive">
                 <div id="tableContent"></div>
+            </div>
+        </div>
+
+        <!-- شريط الأمن والسلامة المتحرك (أعلى الفوتر) -->
+        <div class="safety-marquee">
+            <div class="safety-marquee-container">
+                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
+                <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
+                <span class="safety-icon"><i class="fas fa-flask"></i></span>
             </div>
         </div>
 
@@ -864,6 +941,34 @@
             }
         }
 
+        // دالة لطلب ملء الشاشة تلقائياً
+        function requestFullScreen() {
+            const docElm = document.documentElement;
+            if (docElm.requestFullscreen) {
+                docElm.requestFullscreen();
+            } else if (docElm.mozRequestFullScreen) { /* Firefox */
+                docElm.mozRequestFullScreen();
+            } else if (docElm.webkitRequestFullScreen) { /* Chrome, Safari and Opera */
+                docElm.webkitRequestFullScreen();
+            } else if (docElm.msRequestFullscreen) { /* IE/Edge */
+                docElm.msRequestFullscreen();
+            }
+        }
+
+        // محاولة تفعيل ملء الشاشة عند أول ضغطة أو تفاعل مع الصفحة
+        document.addEventListener("click", function() {
+            if (!window.fullScreenRequested) {
+                requestFullScreen();
+                window.fullScreenRequested = true;
+            }
+        });
+        document.addEventListener("keydown", function() {
+            if (!window.fullScreenRequested) {
+                requestFullScreen();
+                window.fullScreenRequested = true;
+            }
+        });
+
         setInterval(() => {
             updateCurrentTime();
             updateMarquee();
@@ -875,6 +980,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchSchedule();
+            // محاولة إطلاق ملء الشاشة بعد ثانية من التحميل
+            setTimeout(() => {
+                requestFullScreen();
+                window.fullScreenRequested = true;
+            }, 1000);
         });
     </script>
 </body>
