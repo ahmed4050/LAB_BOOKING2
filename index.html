@@ -447,7 +447,7 @@
             background: #f8f9fa !important;
         }
 
-        /* شريط الأمن والسلامة المتحرك */
+        /* شريط الأمن والسلامة المتحرك - محدث */
         .safety-marquee {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             border-radius: 40px;
@@ -459,6 +459,7 @@
             position: relative;
             flex-shrink: 0;
             margin: 5px 0;
+            min-height: 60px;
         }
 
         .safety-marquee-container {
@@ -480,6 +481,16 @@
             100% { transform: translateX(100%); }
         }
 
+        .safety-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
         .safety-icon {
             width: 40px;
             height: 40px;
@@ -490,13 +501,20 @@
             justify-content: center;
             font-size: 1.3rem;
             color: white;
+            flex-shrink: 0;
         }
 
         .safety-text {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             letter-spacing: 1px;
+        }
+
+        .safety-empty {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0 20px;
         }
 
         /* تحسين للشاشات الصغيرة */
@@ -509,6 +527,10 @@
                 width: 30px;
                 height: 30px;
                 font-size: 1rem;
+            }
+            
+            .safety-item {
+                padding: 3px 10px;
             }
         }
 
@@ -612,15 +634,14 @@
             </div>
         </div>
 
-        <!-- شريط الأمن والسلامة المتحرك (أعلى الفوتر) -->
+        <!-- شريط الأمن والسلامة المتحرك - يعرض ملاحظات من شيت Excel -->
         <div class="safety-marquee">
-            <div class="safety-marquee-container">
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
+            <div class="safety-marquee-container" id="safetyMarqueeContainer">
+                <!-- سيتم ملؤها بالملاحظات من شيت Excel -->
+                <div class="safety-item">
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ جاري تحميل الملاحظات...</span>
+                </div>
             </div>
         </div>
 
@@ -680,6 +701,7 @@
 
         let scrollInterval;
         let currentBookings = {};
+        let safetyNotes = []; // مصفوفة لتخزين الملاحظات
 
         function timeToMinutes(timeStr) {
             if (!timeStr) return 0;
@@ -791,6 +813,56 @@
             marqueeContainer.innerHTML = marqueeHTML;
         }
 
+        // دالة جديدة لتحديث شريط الأمن والسلامة بالملاحظات
+        function updateSafetyMarquee() {
+            const safetyContainer = document.getElementById('safetyMarqueeContainer');
+            
+            if (!safetyContainer) return;
+            
+            if (safetyNotes.length === 0) {
+                // إذا لم توجد ملاحظات، نعرض رسالة افتراضية
+                safetyContainer.innerHTML = `
+                    <div class="safety-item">
+                        <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                        <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
+                    </div>
+                    <div class="safety-item">
+                        <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                        <span class="safety-text">🧪 التزم بإرشادات الأمن والسلامة</span>
+                    </div>
+                `;
+                return;
+            }
+
+            // تكرار الملاحظات 3 مرات لضمان استمرارية الحركة
+            let safetyHTML = '';
+            for (let repeat = 0; repeat < 3; repeat++) {
+                safetyNotes.forEach((note, index) => {
+                    if (note && note.trim() !== '') {
+                        // اختيار أيقونة مختلفة حسب محتوى الملاحظة
+                        let icon = 'fas fa-shield-alt';
+                        if (note.includes('تحذير') || note.includes('⚠️')) icon = 'fas fa-exclamation-triangle';
+                        else if (note.includes('نظافة') || note.includes('تنظيف')) icon = 'fas fa-broom';
+                        else if (note.includes('تجربة') || note.includes('مختبر')) icon = 'fas fa-flask';
+                        else if (note.includes('سلامة') || note.includes('أمن')) icon = 'fas fa-shield-alt';
+                        
+                        safetyHTML += `
+                            <div class="safety-item">
+                                <span class="safety-icon"><i class="${icon}"></i></span>
+                                <span class="safety-text">${note}</span>
+                            </div>
+                        `;
+                    }
+                });
+                // إضافة فاصل بين التكرارات
+                if (repeat < 2) {
+                    safetyHTML += `<span style="color: #ffd700; font-size: 1.5rem; margin: 0 10px;">✦</span>`;
+                }
+            }
+            
+            safetyContainer.innerHTML = safetyHTML;
+        }
+
         function updateCurrentTime() {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
@@ -841,6 +913,7 @@
                 const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
                 
                 currentBookings = {};
+                safetyNotes = []; // إعادة تعيين الملاحظات
 
                 let html = '<table class="schedule-table"><thead><tr>' +
                           '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>' +
@@ -868,7 +941,8 @@
                                 teacher: rows[i][4] || "غير محدد",
                                 subject: rows[i][5] || "غير محدد",
                                 grade: rows[i][6] || "غير محدد",
-                                lesson: rows[i][7] || "غير محدد"
+                                lesson: rows[i][7] || "غير محدد",
+                                notes: rows[i][8] || "" // إضافة الملاحظات من العمود التاسع
                             };
                             
                             if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
@@ -876,6 +950,11 @@
                             }
                             
                             currentBookings[period.period] = booking;
+                            
+                            // جمع الملاحظات إذا كانت موجودة
+                            if (booking.notes && booking.notes.trim() !== '') {
+                                safetyNotes.push(booking.notes);
+                            }
                             break;
                         }
                     }
@@ -918,6 +997,11 @@
                 document.getElementById('emptyCount').textContent = totalActualPeriods - bookedCount;
                 document.getElementById('totalPeriods').textContent = totalActualPeriods;
 
+                // إزالة التكرار من الملاحظات
+                safetyNotes = [...new Set(safetyNotes)];
+                
+                // تحديث شريط الأمن والسلامة بالملاحظات
+                updateSafetyMarquee();
                 updateMarquee();
 
                 if (currentPeriod) {
@@ -938,6 +1022,9 @@
             } catch (e) {
                 console.error('خطأ في تحميل البيانات:', e);
                 document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px; color:#e74c3c;"><i class="fas fa-exclamation-triangle"></i> خطأ في تحميل البيانات...</p>';
+                // في حالة الخطأ، نظهر رسالة افتراضية في شريط السلامة
+                safetyNotes = [];
+                updateSafetyMarquee();
             }
         }
 
