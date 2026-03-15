@@ -504,7 +504,7 @@
             display: flex;
             align-items: center;
             gap: 30px;
-            animation: scrollNotes 50s linear infinite;
+            animation: scrollNotes 80s linear infinite;
             white-space: nowrap;
             direction: ltr;
             width: fit-content;
@@ -695,7 +695,7 @@
             </div>
         </div>
 
-        <!-- شريط الملاحظات المتحرك - سيتم ملؤه بالملاحظات من CSV -->
+        <!-- شريط الملاحظات المتحرك - سيتم ملؤه بالملاحظات من CSV (العمود التاسع) -->
         <div class="notes-marquee" id="notesMarquee">
             <div class="notes-marquee-container" id="notesContainer">
                 <!-- سيتم ملؤها بالملاحظات من الجافاسكريبت -->
@@ -712,6 +712,7 @@
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
+        const DEFAULT_NOTE = "⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️"; // النص الافتراضي
         
         const timeTable = [
             { period: "الطابور", duration: 10, times: [
@@ -876,32 +877,22 @@
             
             if (!notesContainer) return;
             
-            // تصفية الملاحظات لإزالة القيم الفارغة أو التكرار
-            const validNotes = allNotes.filter(note => 
+            // تصفية الملاحظات لإزالة القيم الفارغة
+            let validNotes = allNotes.filter(note => 
                 note && note.trim() !== '' && note !== 'غير محدد' && note !== 'undefined'
             );
             
+            // إذا لم توجد ملاحظات صالحة، نضيف النص الافتراضي
             if (validNotes.length === 0) {
-                // إذا لم توجد ملاحظات، عرض رسالة افتراضية
-                notesContainer.innerHTML = `
-                    <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
-                    <span class="notes-text">📝 لا توجد ملاحظات حالياً</span>
-                    <span class="notes-separator">✦</span>
-                    <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
-                    <span class="notes-text">📝 لا توجد ملاحظات حالياً</span>
-                    <span class="notes-separator">✦</span>
-                    <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
-                    <span class="notes-text">📝 لا توجد ملاحظات حالياً</span>
-                `;
-                return;
+                validNotes = [DEFAULT_NOTE];
             }
 
             // تكرار الملاحظات لملء الشريط
             let notesHTML = '';
-            const repeatCount = 5; // عدد مرات التكرار لملء الشريط
+            const repeatCount = 4; // عدد مرات التكرار لملء الشريط
             
             for (let r = 0; r < repeatCount; r++) {
-                validNotes.forEach((note, index) => {
+                validNotes.forEach((note) => {
                     notesHTML += `
                         <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
                         <span class="notes-text">📝 ${note}</span>
@@ -983,25 +974,28 @@
                     
                     let booking = null;
                     for (let i = 1; i < rows.length; i++) {
-                        if (rows[i].length < 5) continue;
+                        if (rows[i].length < 9) continue; // التأكد من وجود 9 أعمدة على الأقل
                         
                         const rowDate = rows[i][2];
                         const rowPeriod = rows[i][3];
                         
                         if (rowDate === today && rowPeriod === period.period) {
-                            // تعديل هنا: نأخذ العمود الثامن كملاحظات
-                            const notes = rows[i][7] || "لا توجد ملاحظات";
+                            // أخذ الملاحظات من العمود التاسع (index 8)
+                            const notes = rows[i][8] || "";
+                            
+                            // عنوان الدرس من العمود الثامن (index 7)
+                            const lesson = rows[i][7] || "غير محدد";
                             
                             booking = {
                                 teacher: rows[i][4] || "غير محدد",
                                 subject: rows[i][5] || "غير محدد",
                                 grade: rows[i][6] || "غير محدد",
-                                lesson: rows[i][7] || "غير محدد",
-                                notes: notes // إضافة الملاحظات
+                                lesson: lesson,
+                                notes: notes
                             };
                             
-                            // إضافة الملاحظة إلى المصفوفة إذا كانت ذات قيمة
-                            if (notes && notes !== "لا توجد ملاحظات" && notes.trim() !== "") {
+                            // إضافة الملاحظة إلى المصفوفة إذا كانت ذات قيمة وليست فارغة
+                            if (notes && notes.trim() !== "") {
                                 allNotes.push(notes);
                             }
                             
@@ -1035,8 +1029,10 @@
                         html += `<td>${booking.grade}</td>`;
                         html += `<td>${booking.subject}</td>`;
                         html += `<td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>`;
-                        // عرض الملاحظات في الخانة الأخيرة
-                        html += `<td><span class="notes-badge"><i class="fas fa-sticky-note"></i> ${booking.notes}</span></td>`;
+                        
+                        // عرض الملاحظات في الخانة الأخيرة، وإذا كانت فارغة نعرض النص الافتراضي
+                        const displayNotes = booking.notes && booking.notes.trim() !== "" ? booking.notes : DEFAULT_NOTE;
+                        html += `<td><span class="notes-badge"><i class="fas fa-sticky-note"></i> ${displayNotes}</span></td>`;
                     } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
                         html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
                     } else {
@@ -1110,8 +1106,6 @@
         setInterval(() => {
             updateCurrentTime();
             updateMarquee();
-            // تحديث شريط الملاحظات كل ثانية (للتأكد من استمرار الحركة)
-            // لكن المحتوى يبقى كما هو
         }, 1000);
 
         setInterval(() => {
