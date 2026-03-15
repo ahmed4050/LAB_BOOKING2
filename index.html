@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
-    <meta http-equiv="refresh" content="300"> <!-- تم التغيير إلى 300 ثانية = 5 دقائق -->
+    <meta http-equiv="refresh" content="300">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
@@ -117,7 +117,6 @@
             }
         }
 
-        /* حاوية معلومات الوقت والتاريخ بشكل عمودي */
         .time-info-container {
             flex-shrink: 0;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -209,7 +208,6 @@
             padding-bottom: 4px;
         }
 
-        /* شريط الحصص المتحرك - من اليسار إلى اليمين */
         .periods-marquee {
             background: linear-gradient(135deg, #2c3e50, #34495e);
             border-radius: 40px;
@@ -380,11 +378,11 @@
         .schedule-table th:first-child { border-radius: 12px 0 0 12px; width: 45px; }
         .schedule-table th:nth-child(2) { width: 90px; }
         .schedule-table th:nth-child(3) { width: 110px; }
-        .schedule-table th:nth-child(4) { width: 80px; }
-        .schedule-table th:nth-child(5) { width: 120px; }
-        .schedule-table th:nth-child(6) { width: 100px; }
-        .schedule-table th:nth-child(7) { width: 130px; }
-        .schedule-table th:last-child { border-radius: 0 12px 12px 0; width: auto; }
+        .schedule-table th:nth-child(4) { width: 70px; }
+        .schedule-table th:nth-child(5) { width: 100px; }
+        .schedule-table th:nth-child(6) { width: 90px; }
+        .schedule-table th:nth-child(7) { width: 120px; }
+        .schedule-table th:nth-child(8) { width: auto; }
 
         .schedule-table td {
             background: white;
@@ -462,61 +460,95 @@
             border-color: white;
         }
 
+        .notes-badge {
+            display: inline-block;
+            background: rgba(255, 193, 7, 0.15);
+            padding: 4px 10px;
+            border-radius: 25px;
+            border: 1px solid #ffc107;
+            color: #856404;
+            font-size: 0.8rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .booked .notes-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: white;
+        }
+
         .empty-cell { 
             color: #95a5a6; 
             font-style: italic; 
             background: #f8f9fa !important;
         }
 
-        .safety-marquee {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        /* شريط الملاحظات المتحرك الجديد */
+        .notes-marquee {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
             border-radius: 40px;
-            padding: 10px 15px;
+            padding: 12px 20px;
             color: white;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             overflow: hidden;
             position: relative;
             flex-shrink: 0;
             margin: 5px 0;
         }
 
-        .safety-marquee-container {
+        .notes-marquee-container {
             display: flex;
             align-items: center;
-            gap: 20px;
-            animation: scrollSafety 30s linear infinite;
+            gap: 30px;
+            animation: scrollNotes 50s linear infinite;
             white-space: nowrap;
             direction: ltr;
             width: fit-content;
         }
 
-        .safety-marquee-container:hover {
+        .notes-marquee-container:hover {
             animation-play-state: paused;
         }
 
-        @keyframes scrollSafety {
+        @keyframes scrollNotes {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
         }
 
-        .safety-icon {
-            width: 40px;
-            height: 40px;
+        .notes-icon {
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
         }
 
-        .safety-text {
+        .notes-text {
             font-size: 1.3rem;
             font-weight: 600;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 20px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .notes-separator {
+            color: #ffd700;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
 
         @media (max-width: 1024px) {
@@ -540,13 +572,13 @@
                 width: auto;
             }
             
-            .safety-text {
+            .notes-text {
                 font-size: 1rem;
             }
             
-            .safety-icon {
-                width: 30px;
-                height: 30px;
+            .notes-icon {
+                width: 35px;
+                height: 35px;
                 font-size: 1rem;
             }
         }
@@ -584,6 +616,14 @@
             color: white !important;
             font-weight: 700;
         }
+
+        .no-notes {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 20px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -609,7 +649,7 @@
                     </div>
                 </div>
                 
-                <!-- حاوية معلومات الوقت والتاريخ بشكل عمودي -->
+                <!-- حاوية معلومات الوقت والتاريخ -->
                 <div class="time-info-container">
                     <div class="info-item">
                         <i class="fas fa-calendar-day"></i>
@@ -621,13 +661,13 @@
                     </div>
                     <div class="update-badge">
                         <i class="fas fa-sync-alt"></i>
-                        <span>تحديث كل 5 دقائق</span> <!-- تم التغيير إلى 5 دقائق -->
+                        <span>تحديث كل 5 دقائق</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- الشريط المتحرك -->
+        <!-- الشريط المتحرك للحصص -->
         <div class="periods-marquee" id="periodsMarquee">
             <div class="marquee-container" id="marqueeContainer">
                 <!-- سيتم ملؤها بالجافاسكريبت -->
@@ -655,15 +695,10 @@
             </div>
         </div>
 
-        <!-- شريط الأمن والسلامة المتحرك -->
-        <div class="safety-marquee">
-            <div class="safety-marquee-container">
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
+        <!-- شريط الملاحظات المتحرك - سيتم ملؤه بالملاحظات من CSV -->
+        <div class="notes-marquee" id="notesMarquee">
+            <div class="notes-marquee-container" id="notesContainer">
+                <!-- سيتم ملؤها بالملاحظات من الجافاسكريبت -->
             </div>
         </div>
 
@@ -723,6 +758,7 @@
 
         let scrollInterval;
         let currentBookings = {};
+        let allNotes = []; // مصفوفة لتخزين جميع الملاحظات
 
         function timeToMinutes(timeStr) {
             if (!timeStr) return 0;
@@ -834,6 +870,49 @@
             marqueeContainer.innerHTML = marqueeHTML;
         }
 
+        // دالة جديدة لتحديث شريط الملاحظات
+        function updateNotesMarquee() {
+            const notesContainer = document.getElementById('notesContainer');
+            
+            if (!notesContainer) return;
+            
+            // تصفية الملاحظات لإزالة القيم الفارغة أو التكرار
+            const validNotes = allNotes.filter(note => 
+                note && note.trim() !== '' && note !== 'غير محدد' && note !== 'undefined'
+            );
+            
+            if (validNotes.length === 0) {
+                // إذا لم توجد ملاحظات، عرض رسالة افتراضية
+                notesContainer.innerHTML = `
+                    <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
+                    <span class="notes-text">📝 لا توجد ملاحظات حالياً</span>
+                    <span class="notes-separator">✦</span>
+                    <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
+                    <span class="notes-text">📝 لا توجد ملاحظات حالياً</span>
+                    <span class="notes-separator">✦</span>
+                    <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
+                    <span class="notes-text">📝 لا توجد ملاحظات حالياً</span>
+                `;
+                return;
+            }
+
+            // تكرار الملاحظات لملء الشريط
+            let notesHTML = '';
+            const repeatCount = 5; // عدد مرات التكرار لملء الشريط
+            
+            for (let r = 0; r < repeatCount; r++) {
+                validNotes.forEach((note, index) => {
+                    notesHTML += `
+                        <span class="notes-icon"><i class="fas fa-sticky-note"></i></span>
+                        <span class="notes-text">📝 ${note}</span>
+                        <span class="notes-separator">✦</span>
+                    `;
+                });
+            }
+            
+            notesContainer.innerHTML = notesHTML;
+        }
+
         function updateCurrentTime() {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
@@ -886,10 +965,11 @@
                 const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
                 
                 currentBookings = {};
+                allNotes = []; // تصفير الملاحظات
 
                 let html = '<table class="schedule-table"><thead><tr>' +
                           '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>' +
-                          '<th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>' +
+                          '<th>الصف</th><th>المادة</th><th>المعلمة</th><th>الملاحظات</th>' +
                           '</tr></thead><tbody>';
 
                 const isSecondShift = now.getHours() >= 12;
@@ -909,12 +989,21 @@
                         const rowPeriod = rows[i][3];
                         
                         if (rowDate === today && rowPeriod === period.period) {
+                            // تعديل هنا: نأخذ العمود الثامن كملاحظات
+                            const notes = rows[i][7] || "لا توجد ملاحظات";
+                            
                             booking = {
                                 teacher: rows[i][4] || "غير محدد",
                                 subject: rows[i][5] || "غير محدد",
                                 grade: rows[i][6] || "غير محدد",
-                                lesson: rows[i][7] || "غير محدد"
+                                lesson: rows[i][7] || "غير محدد",
+                                notes: notes // إضافة الملاحظات
                             };
+                            
+                            // إضافة الملاحظة إلى المصفوفة إذا كانت ذات قيمة
+                            if (notes && notes !== "لا توجد ملاحظات" && notes.trim() !== "") {
+                                allNotes.push(notes);
+                            }
                             
                             if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
                                 bookedCount++;
@@ -946,7 +1035,8 @@
                         html += `<td>${booking.grade}</td>`;
                         html += `<td>${booking.subject}</td>`;
                         html += `<td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>`;
-                        html += `<td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.lesson}</span></td>`;
+                        // عرض الملاحظات في الخانة الأخيرة
+                        html += `<td><span class="notes-badge"><i class="fas fa-sticky-note"></i> ${booking.notes}</span></td>`;
                     } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
                         html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
                     } else {
@@ -963,6 +1053,10 @@
                 document.getElementById('emptyCount').textContent = totalActualPeriods - bookedCount;
                 document.getElementById('totalPeriods').textContent = totalActualPeriods;
 
+                // تحديث شريط الملاحظات بالملاحظات التي تم جمعها
+                updateNotesMarquee();
+                
+                // تحديث الشريط العلوي
                 updateMarquee();
 
                 if (currentPeriod) {
@@ -1016,11 +1110,13 @@
         setInterval(() => {
             updateCurrentTime();
             updateMarquee();
+            // تحديث شريط الملاحظات كل ثانية (للتأكد من استمرار الحركة)
+            // لكن المحتوى يبقى كما هو
         }, 1000);
 
         setInterval(() => {
             fetchSchedule();
-        }, 300000); // تم التغيير إلى 300000 ملي ثانية = 5 دقائق
+        }, 300000); // تحديث كل 5 دقائق
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchSchedule();
