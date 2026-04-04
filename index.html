@@ -1,2062 +1,739 @@
 <!DOCTYPE html>
-
-<html dir="rtl">
-
+<html dir="rtl" lang="ar">
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
+    <meta http-equiv="refresh" content="300" />
 
-    <meta http-equiv="refresh" content="300">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-
     <style>
-
-        * {
-
-            margin: 0;
-
-            padding: 0;
-
-            box-sizing: border-box;
-
-        }
-
-
-
         :root {
-
             --primary-color: #3498db;
-
             --secondary-color: #2980b9;
-
             --success-color: #27ae60;
-
             --warning-color: #f39c12;
-
             --danger-color: #e74c3c;
-
             --current-period-color: #ffd700;
-
             --current-period-bg: rgba(255, 215, 0, 0.15);
-
             --next-period-color: #87CEEB;
-
             --next-period-bg: rgba(135, 206, 235, 0.1);
-
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
         }
 
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
-
             min-height: 100vh;
-
             width: 100vw;
-
             overflow-x: hidden;
-
             font-family: 'Tajawal', sans-serif;
-
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-
             color: #2c3e50;
-
             display: flex;
-
             justify-content: center;
-
             align-items: flex-start;
-
             padding: 15px;
-
             position: relative;
-
         }
-
-
 
         @media (min-width: 1024px) {
-
-            html, body {
-
-                height: 100vh;
-
-                overflow: hidden;
-
-                align-items: center;
-
-            }
-
+            html, body { height: 100vh; overflow: hidden; align-items: center; }
         }
-
-
 
         .tv-background {
-
-            position: fixed;
-
-            top: 0;
-
-            left: 0;
-
-            width: 100%;
-
-            height: 100%;
-
-            z-index: 0;
-
+            position: fixed; inset: 0; z-index: 0;
             background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
-
-            opacity: 0.15;
-
-            pointer-events: none;
-
+            opacity: 0.15; pointer-events: none;
         }
-
-
 
         .container {
-
-            position: relative;
-
-            z-index: 1;
-
-            width: 100%;
-
-            height: 100%;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 12px;
-
+            position: relative; z-index: 1;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; gap: 12px;
             max-width: 1920px;
-
         }
 
-
+        .header, .table-container, .stat-card, .footer {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            box-shadow: var(--shadow);
+        }
 
         .header {
-
-            background: rgba(255, 255, 255, 0.98);
-
-            backdrop-filter: blur(15px);
-
             border-radius: 20px;
-
             padding: 15px 25px;
-
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-
             border: 2px solid rgba(255, 255, 255, 0.5);
-
             flex-shrink: 0;
-
         }
-
-
 
         .header-content {
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 20px;
-
+            display: flex; align-items: center; justify-content: space-between; gap: 20px;
         }
-
-
 
         .qr-code {
-
-            flex-shrink: 0;
-
-            background: white;
-
-            padding: 8px;
-
-            border-radius: 12px;
-
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-
-            border: 2px solid var(--primary-color);
-
-            transition: transform 0.3s ease;
-
-            cursor: pointer;
-
+            flex-shrink: 0; background: white; padding: 8px; border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid var(--primary-color);
+            cursor: pointer; transition: transform 0.3s ease;
         }
-
-
-
-        .qr-code:hover {
-
-            transform: scale(1.05);
-
-        }
-
-
-
-        .qr-code img {
-
-            display: block;
-
-            width: 80px;
-
-            height: 80px;
-
-            object-fit: contain;
-
-        }
-
-
-
-        @media (min-width: 768px) {
-
-            .qr-code img {
-
-                width: 100px;
-
-                height: 100px;
-
-            }
-
-        }
-
-
+        .qr-code:hover { transform: scale(1.05); }
+        .qr-code img { display: block; width: 80px; height: 80px; object-fit: contain; }
+        @media (min-width: 768px) { .qr-code img { width: 100px; height: 100px; } }
 
         .time-info-container {
-
             flex-shrink: 0;
-
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-
-            border-radius: 20px;
-
-            padding: 12px 20px;
-
-            color: white;
-
-            display: flex;
-
-            flex-direction: column;
-
-            align-items: center;
-
-            justify-content: center;
-
-            gap: 8px;
-
+            border-radius: 20px; padding: 12px 20px; color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-
             border: 1px solid rgba(255, 255, 255, 0.2);
-
             min-width: 180px;
-
         }
-
-
 
         .info-item {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            font-size: 1rem;
-
-            width: 100%;
-
-            justify-content: center;
-
+            display: flex; align-items: center; gap: 8px; font-size: 1rem; width: 100%; justify-content: center;
         }
-
-
-
-        .info-item i {
-
-            font-size: 1.2rem;
-
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-
-            min-width: 25px;
-
-            text-align: center;
-
-        }
-
-
+        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; }
 
         .update-badge {
-
             background: rgba(255, 215, 0, 0.25);
-
-            padding: 5px 15px;
-
-            border-radius: 30px;
-
-            border: 1px solid #ffd700;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            font-size: 0.9rem;
-
-            width: 100%;
-
-            justify-content: center;
-
+            padding: 5px 15px; border-radius: 30px; border: 1px solid #ffd700;
+            display: flex; align-items: center; gap: 8px; font-size: 0.9rem; width: 100%; justify-content: center;
             margin-top: 5px;
-
         }
+        .update-badge i { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-
-
-        .update-badge i {
-
-            animation: spin 3s linear infinite;
-
-        }
-
-
-
-        @keyframes spin {
-
-            from { transform: rotate(0deg); }
-
-            to { transform: rotate(360deg); }
-
-        }
-
-
-
-        .school-name-container {
-
-            flex: 1;
-
-            text-align: center;
-
-        }
-
-
-
-        .school-name {
-
-            margin-bottom: 5px;
-
-        }
-
-
-
+        .school-name-container { flex: 1; text-align: center; }
         .school-name h1 {
-
             color: #2c3e50;
-
             font-size: clamp(1.8rem, 4vw, 2.8rem);
-
             font-weight: 800;
-
             margin-bottom: 5px;
-
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            gap: 15px;
-
+            display: flex; align-items: center; justify-content: center; gap: 15px;
         }
-
-
-
-        .school-name h1 i {
-
-            color: #e74c3c;
-
-            animation: pulse 2s infinite;
-
-            font-size: clamp(1.3rem, 2.8vw, 2rem);
-
-        }
-
-
-
+        .school-name h1 i { color: #e74c3c; animation: pulse 2s infinite; font-size: clamp(1.3rem, 2.8vw, 2rem); }
         .school-name .subtitle {
-
-            color: #7f8c8d;
-
-            font-size: clamp(0.9rem, 1.6vw, 1.2rem);
-
-            font-weight: 400;
-
-            border-bottom: 2px solid var(--primary-color);
-
-            display: inline-block;
-
-            padding-bottom: 4px;
-
+            color: #7f8c8d; font-size: clamp(0.9rem, 1.6vw, 1.2rem); font-weight: 400;
+            border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 4px;
         }
 
-
-
-        .periods-marquee {
-
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-
-            border-radius: 40px;
-
-            padding: 8px 15px;
-
-            color: white;
-
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-
-            border: 1px solid rgba(255, 255, 255, 0.1);
-
-            overflow: hidden;
-
-            position: relative;
-
-            flex-shrink: 0;
-
-            font-size: 1rem;
-
+        .periods-marquee, .safety-marquee {
+            border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
         }
+        .periods-marquee { background: linear-gradient(135deg, #2c3e50, #34495e); padding: 8px 15px; }
+        .safety-marquee { background: linear-gradient(135deg, #e74c3c, #c0392b); padding: 10px 15px; margin: 5px 0; }
 
-
-
-        .marquee-container {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 30px;
-
-            animation: scrollLeftToRight 70s linear infinite;
-
-            white-space: nowrap;
-
-            direction: ltr;
-
-            width: fit-content;
-
+        .marquee-container, .safety-marquee-container {
+            display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
         }
+        .marquee-container { animation: scrollLeftToRight 70s linear infinite; }
+        .safety-marquee-container { animation: scrollSafety 80s linear infinite; gap: 20px; }
+        .marquee-container:hover, .safety-marquee-container:hover { animation-play-state: paused; }
 
-
-
-        .marquee-container:hover {
-
-            animation-play-state: paused;
-
-        }
-
-
-
-        @keyframes scrollLeftToRight {
-
-            0% { transform: translateX(-100%); }
-
-            100% { transform: translateX(100%); }
-
-        }
-
-
+        @keyframes scrollLeftToRight { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
         .marquee-item {
-
-            display: inline-flex;
-
-            align-items: center;
-
-            gap: 12px;
-
-            padding: 5px 18px;
-
-            border-radius: 35px;
-
-            background: rgba(255, 255, 255, 0.1);
-
-            border: 1px solid rgba(255, 255, 255, 0.2);
-
-            font-size: 0.95rem;
-
+            display: inline-flex; align-items: center; gap: 12px; padding: 5px 18px; border-radius: 35px;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-size: 0.95rem;
+            color: white;
         }
-
-
-
-        .marquee-item.current {
-
-            background: linear-gradient(135deg, #ffd700, #f39c12);
-
-            color: #2c3e50;
-
-            font-weight: 700;
-
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-
+        .marquee-item.current { background: linear-gradient(135deg, #ffd700, #f39c12); color: #2c3e50; font-weight: 700; }
+        .marquee-item.next { background: linear-gradient(135deg, #87CEEB, #00BFFF); color: #2c3e50; font-weight: 600; }
+        .marquee-icon, .safety-icon {
+            width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
         }
-
-
-
-        .marquee-item.next {
-
-            background: linear-gradient(135deg, #87CEEB, #00BFFF);
-
-            color: #2c3e50;
-
-            font-weight: 600;
-
-        }
-
-
-
-        .marquee-icon {
-
-            width: 28px;
-
-            height: 28px;
-
-            border-radius: 50%;
-
-            background: rgba(255, 255, 255, 0.2);
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 0.9rem;
-
-        }
-
-
-
-        .marquee-text {
-
-            font-size: 1rem;
-
-        }
-
-
+        .marquee-icon { background: rgba(255,255,255,0.2); font-size: 0.9rem; }
+        .safety-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.2); font-size: 1.1rem; color: white; }
+        .marquee-text { font-size: 1rem; }
+        .safety-text { font-size: 1.15rem; font-weight: 600; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
 
         .stats-cards {
-
-            display: grid;
-
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-
-            gap: 12px;
-
-            flex-shrink: 0;
-
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; flex-shrink: 0;
         }
-
-
-
         .stat-card {
-
-            background: rgba(255, 255, 255, 0.98);
-
-            backdrop-filter: blur(10px);
-
-            border-radius: 15px;
-
-            padding: 12px 15px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 12px;
-
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-
-            border: 2px solid rgba(255, 255, 255, 0.8);
-
+            border-radius: 15px; padding: 12px 15px;
+            display: flex; align-items: center; gap: 12px;
+            border: 2px solid rgba(255,255,255,0.8);
         }
-
-
-
         .stat-icon {
-
-            width: 45px;
-
-            height: 45px;
-
-            background: linear-gradient(135deg, #667eea, #764ba2);
-
-            border-radius: 50%;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 1.5rem;
-
-            color: white;
-
-            flex-shrink: 0;
-
+            width: 45px; height: 45px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; flex-shrink: 0;
         }
-
-
-
-        .stat-details {
-
-            display: flex;
-
-            align-items: baseline;
-
-            gap: 8px;
-
-            flex-wrap: wrap;
-
-        }
-
-
-
-        .stat-details h3 {
-
-            color: #7f8c8d;
-
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-
-            font-weight: 500;
-
-            margin: 0;
-
-        }
-
-
-
-        .stat-details .stat-number {
-
-            color: #2c3e50;
-
-            font-size: clamp(1.3rem, 2.5vw, 1.8rem);
-
-            font-weight: 800;
-
-            line-height: 1;
-
-        }
-
-
+        .stat-details { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+        .stat-details h3 { color: #7f8c8d; font-size: clamp(0.9rem, 1.5vw, 1.1rem); font-weight: 500; }
+        .stat-details .stat-number { color: #2c3e50; font-size: clamp(1.3rem, 2.5vw, 1.8rem); font-weight: 800; line-height: 1; }
 
         .table-container {
-
-            background: rgba(255, 255, 255, 0.98);
-
-            backdrop-filter: blur(15px);
-
-            border-radius: 20px;
-
-            padding: 15px;
-
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-
-            border: 2px solid rgba(255, 255, 255, 0.8);
-
-            flex: 1;
-
-            display: flex;
-
-            flex-direction: column;
-
-            overflow: hidden;
-
-            position: relative;
-
+            border-radius: 20px; padding: 15px; border: 2px solid rgba(255,255,255,0.8);
+            flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
         }
-
-
-
-        .table-responsive {
-
-            width: 100%;
-
-            height: 100%;
-
-            overflow-y: auto;
-
-            overflow-x: hidden;
-
-            scrollbar-width: none;
-
-        }
-
-
-
-        .table-responsive::-webkit-scrollbar {
-
-            display: none;
-
-        }
-
-
+        .table-responsive { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+        .table-responsive::-webkit-scrollbar { display: none; }
 
         .schedule-table {
-
-            width: 100%;
-
-            border-collapse: separate;
-
-            border-spacing: 0 6px;
-
-            table-layout: fixed;
-
+            width: 100%; border-collapse: separate; border-spacing: 0 6px; table-layout: fixed;
         }
-
-
-
         .schedule-table th {
-
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-
-            color: white;
-
-            padding: 12px 8px;
-
-            position: sticky;
-
-            top: 0;
-
-            z-index: 10;
-
+            color: white; padding: 12px 8px; position: sticky; top: 0; z-index: 10;
             font-size: clamp(0.8rem, 1.3vw, 1rem);
-
         }
-
-
-
         .schedule-table th:first-child { border-radius: 12px 0 0 12px; width: 45px; }
-
         .schedule-table th:nth-child(2) { width: 90px; }
-
         .schedule-table th:nth-child(3) { width: 110px; }
-
         .schedule-table th:nth-child(4) { width: 80px; }
-
         .schedule-table th:nth-child(5) { width: 120px; }
-
         .schedule-table th:nth-child(6) { width: 100px; }
-
         .schedule-table th:nth-child(7) { width: 130px; }
-
         .schedule-table th:last-child { border-radius: 0 12px 12px 0; width: auto; }
 
-
-
         .schedule-table td {
-
-            background: white;
-
-            padding: 10px 6px;
-
-            text-align: center;
-
-            font-size: clamp(0.8rem, 1.3vw, 1rem);
-
-            border: 1px solid rgba(0,0,0,0.05);
-
+            background: white; padding: 10px 6px; text-align: center;
+            font-size: clamp(0.8rem, 1.3vw, 1rem); border: 1px solid rgba(0,0,0,0.05);
         }
-
-
-
-        .schedule-table td:first-child { 
-
-            border-radius: 12px 0 0 12px; 
-
-            font-weight: bold;
-
-            background: linear-gradient(to left, white, #f0f7ff);
-
-        }
-
+        .schedule-table td:first-child { border-radius: 12px 0 0 12px; font-weight: bold; background: linear-gradient(to left, white, #f0f7ff); }
         .schedule-table td:last-child { border-radius: 0 12px 12px 0; }
 
-
-
-        .current-period {
-
-            background: var(--current-period-bg) !important;
-
-            border-right: 4px solid var(--current-period-color) !important;
-
-        }
-
-
-
-        .current-period td {
-
-            background: var(--current-period-bg) !important;
-
-            font-weight: 700;
-
-        }
-
-
-
-        .next-period {
-
-            background: var(--next-period-bg) !important;
-
-            border-right: 4px solid var(--next-period-color) !important;
-
-        }
-
-
-
-        .next-period td {
-
-            background: var(--next-period-bg) !important;
-
-        }
-
-
+        .current-period { background: var(--current-period-bg) !important; border-right: 4px solid var(--current-period-color) !important; }
+        .current-period td, .next-period td { background: inherit !important; }
+        .next-period { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
 
         .time-badge {
-
-            display: inline-block;
-
-            background: rgba(52, 152, 219, 0.1);
-
-            padding: 3px 6px;
-
-            border-radius: 15px;
-
-            font-size: 0.75rem;
-
-            color: var(--primary-color);
-
-            white-space: nowrap;
-
+            display: inline-block; background: rgba(52, 152, 219, 0.1); padding: 3px 6px;
+            border-radius: 15px; font-size: 0.75rem; color: var(--primary-color); white-space: nowrap;
         }
 
-
-
-        .booked { 
-
-            background: linear-gradient(135deg, #27ae60, #2ecc71) !important; 
-
+        .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; }
+        .booked td { background: transparent !important; color: white !important; }
+        .booked .time-badge, .booked .experiment-badge {
+            background: rgba(255,255,255,0.2); color: white; border-color: white;
         }
-
-        .booked td { 
-
-            background: transparent !important; 
-
-            color: white !important; 
-
-        }
-
-        .booked .time-badge {
-
-            background: rgba(255, 255, 255, 0.25);
-
-            color: white;
-
-        }
-
-
 
         .experiment-badge {
-
-            display: inline-block;
-
-            background: rgba(52, 152, 219, 0.1);
-
-            padding: 4px 10px;
-
-            border-radius: 25px;
-
-            border: 1px solid var(--primary-color);
-
-            color: var(--primary-color);
-
-            font-size: 0.8rem;
-
-            max-width: 100%;
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-
-            white-space: nowrap;
-
+            display: inline-block; background: rgba(52, 152, 219, 0.1); padding: 4px 10px; border-radius: 25px;
+            border: 1px solid var(--primary-color); color: var(--primary-color); font-size: 0.8rem;
+            max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
-
-
-        .booked .experiment-badge {
-
-            background: rgba(255, 255, 255, 0.2);
-
-            color: white;
-
-            border-color: white;
-
-        }
-
-
-
-        .empty-cell { 
-
-            color: #95a5a6; 
-
-            font-style: italic; 
-
-            background: #f8f9fa !important;
-
-        }
-
-
-
-        .safety-marquee {
-
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-
-            border-radius: 40px;
-
-            padding: 10px 15px;
-
-            color: white;
-
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-
-            border: 1px solid rgba(255, 255, 255, 0.2);
-
-            overflow: hidden;
-
-            position: relative;
-
-            flex-shrink: 0;
-
-            margin: 5px 0;
-
-        }
-
-
-
-        .safety-marquee-container {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 20px;
-
-            animation: scrollSafety 80s linear infinite;
-
-            white-space: nowrap;
-
-            direction: ltr;
-
-            width: fit-content;
-
-        }
-
-
-
-        .safety-marquee-container:hover {
-
-            animation-play-state: paused;
-
-        }
-
-
-
-        @keyframes scrollSafety {
-
-            0% { transform: translateX(-100%); }
-
-            100% { transform: translateX(100%); }
-
-        }
-
-
-
-        .safety-icon {
-
-            width: 40px;
-
-            height: 40px;
-
-            border-radius: 50%;
-
-            background: rgba(255, 255, 255, 0.2);
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 1.3rem;
-
-            color: white;
-
-            flex-shrink: 0;
-
-        }
-
-
-
-        .safety-text {
-
-            font-size: 1.3rem;
-
-            font-weight: 600;
-
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-
-            letter-spacing: 1px;
-
-        }
-
-
-
-        @media (max-width: 1024px) {
-
-            .header-content {
-
-                flex-wrap: wrap;
-
-                justify-content: center;
-
-            }
-
-            
-
-            .time-info-container {
-
-                width: 100%;
-
-                flex-direction: row;
-
-                flex-wrap: wrap;
-
-                justify-content: center;
-
-            }
-
-            
-
-            .info-item {
-
-                width: auto;
-
-            }
-
-            
-
-            .update-badge {
-
-                width: auto;
-
-            }
-
-            
-
-            .safety-text {
-
-                font-size: 1rem;
-
-            }
-
-            
-
-            .safety-icon {
-
-                width: 30px;
-
-                height: 30px;
-
-                font-size: 1rem;
-
-            }
-
-        }
-
-
+        .empty-cell { color: #95a5a6; font-style: italic; background: #f8f9fa !important; }
+        .break-row { background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important; }
+        .break-row td { background: transparent !important; color: white !important; font-weight: 700; }
 
         .footer {
+            text-align: center; color: white; padding: 8px 15px; background: rgba(0, 0, 0, 0.3);
+            border-radius: 30px; backdrop-filter: blur(5px); flex-shrink: 0;
+        }
+        .footer p { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: clamp(0.7rem, 1.1vw, 0.9rem); gap: 10px; }
 
-            text-align: center;
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-            color: white;
-
-            padding: 8px 15px;
-
-            background: rgba(0, 0, 0, 0.3);
-
-            border-radius: 30px;
-
-            backdrop-filter: blur(5px);
-
-            flex-shrink: 0;
-
+        @media (max-width: 1024px) {
+            .header-content { flex-wrap: wrap; justify-content: center; }
+            .time-info-container { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+            .info-item { width: auto; }
+            .update-badge { width: auto; }
+            .safety-text { font-size: 1rem; }
+            .safety-icon { width: 30px; height: 30px; font-size: 1rem; }
+            .footer p { flex-direction: column; }
         }
 
-
-
-        .footer p {
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            width: 100%;
-
-            font-size: clamp(0.7rem, 1.1vw, 0.9rem);
-
+        .loading, .error {
+            text-align: center; padding: 20px; color: #2c3e50;
         }
-
-
-
-        @keyframes pulse {
-
-            0% { transform: scale(1); }
-
-            50% { transform: scale(1.05); }
-
-            100% { transform: scale(1); }
-
-        }
-
-
-
-        .break-row {
-
-            background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important;
-
-        }
-
-        
-
-        .break-row td {
-
-            background: transparent !important;
-
-            color: white !important;
-
-            font-weight: 700;
-
-        }
-
+        .error { color: #e74c3c; }
     </style>
-
 </head>
 
 <body>
-
     <div class="tv-background"></div>
 
     <div class="container">
-
         <div class="header">
-
             <div class="header-content">
-
                 <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')" title="افتح صفحة الحجوزات">
-
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" 
-
-                         alt="QR Code"
-
-                         title="مسح للوصول إلى صفحة الحجوزات">
-
+                    <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/"
+                        alt="QR Code"
+                        title="مسح للوصول إلى صفحة الحجوزات"
+                    />
                 </div>
-
-                
 
                 <div class="school-name-container">
-
                     <div class="school-name">
-
                         <h1>
-
                             <i class="fas fa-flask"></i>
-
                             مختبر مدرسة الحوراء
-
                             <i class="fas fa-microscope"></i>
-
                         </h1>
-
                         <div class="subtitle">عرض مرئي تفاعلي لحجز المختبر</div>
-
                     </div>
-
                 </div>
-
-                
 
                 <div class="time-info-container">
-
                     <div class="info-item">
-
                         <i class="fas fa-calendar-day"></i>
-
                         <span id="currentDate"></span>
-
                     </div>
-
                     <div class="info-item">
-
                         <i class="fas fa-clock"></i>
-
                         <span id="currentTime">--:-- --</span>
-
                     </div>
-
                     <div class="update-badge">
-
                         <i class="fas fa-sync-alt"></i>
-
                         <span>تحديث كل 5 دقائق</span>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
-
 
         <div class="periods-marquee" id="periodsMarquee">
-
             <div class="marquee-container" id="marqueeContainer"></div>
-
         </div>
-
-
 
         <div class="stats-cards">
-
             <div class="stat-card">
-
                 <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
-
                 <div class="stat-details"><h3>إجمالي الحصص</h3><div class="stat-number" id="totalPeriods">8</div></div>
-
             </div>
-
             <div class="stat-card">
-
                 <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-
                 <div class="stat-details"><h3>المحجوزة</h3><div class="stat-number" id="bookedCount">0</div></div>
-
             </div>
-
             <div class="stat-card">
-
                 <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-
                 <div class="stat-details"><h3>الشاغرة</h3><div class="stat-number" id="emptyCount">8</div></div>
-
             </div>
-
         </div>
-
-
 
         <div class="table-container">
-
             <div id="tableWrapper" class="table-responsive">
-
-                <div id="tableContent"></div>
-
+                <div id="tableContent">
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</div>
+                </div>
             </div>
-
         </div>
-
-
-
-        <!-- شريط الأمن والسلامة المتحرك - يتم ملؤه ديناميكياً من العمود 9 -->
 
         <div class="safety-marquee">
-
-            <div class="safety-marquee-container" id="safetyMarqueeContainer">
-
-                <!-- سيتم ملؤها بالجافاسكريبت -->
-
-            </div>
-
+            <div class="safety-marquee-container" id="safetyMarqueeContainer"></div>
         </div>
-
-
 
         <div class="footer">
-
             <p>
-
                 <span><i class="fas fa-chalkboard-teacher"></i> إشراف فنية المختبر أ.نادية السيابي</span>
-
-                <span><i class="fas fa-copyright"></i> جميع الحقوق محفوظة لمدرسة الحوراء 2026</span>
-
+                <span><i class="fas fa-copyright"></i> جميع الحقوق محفوظة لمدرسة ال��وراء 2026</span>
             </p>
-
         </div>
-
     </div>
 
-
-
     <script>
-
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-
-        
-
         const DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
-
-        
+        const REFRESH_INTERVAL = 300000;
+        const AUTO_SCROLL_DELAY = 2000;
 
         const timeTable = [
-
-            { period: "الطابور", duration: 10, times: [
-
-                { start: "7:00", end: "7:10" },
-
-                { start: "7:10", end: "7:20" }
-
-            ]},
-
-            { period: "الأولى", duration: 40, times: [
-
-                { start: "7:10", end: "7:50" },
-
-                { start: "7:20", end: "8:00" }
-
-            ]},
-
-            { period: "الثانية", duration: 40, times: [
-
-                { start: "7:55", end: "8:35" },
-
-                { start: "8:05", end: "8:45" }
-
-            ]},
-
-            { period: "الثالثة", duration: 40, times: [
-
-                { start: "8:40", end: "9:20" },
-
-                { start: "8:50", end: "9:30" }
-
-            ]},
-
-            { period: "الرابعة", duration: 40, times: [
-
-                { start: "9:25", end: "10:05" },
-
-                { start: "9:35", end: "10:15" }
-
-            ]},
-
-            { period: "الفسحة", duration: 20, times: [
-
-                { start: "10:05", end: "10:25" },
-
-                { start: "10:15", end: "10:35" }
-
-            ]},
-
-            { period: "الخامسة", duration: 40, times: [
-
-                { start: "10:25", end: "11:05" },
-
-                { start: "10:35", end: "11:15" }
-
-            ]},
-
-            { period: "السادسة", duration: 40, times: [
-
-                { start: "11:10", end: "11:50" },
-
-                { start: "11:20", end: "12:00" }
-
-            ]},
-
-            { period: "السابعة", duration: 40, times: [
-
-                { start: "11:55", end: "12:35" },
-
-                { start: "12:05", end: "12:45" }
-
-            ]},
-
-            { period: "الثامنة", duration: 40, times: [
-
-                { start: "12:40", end: "1:20" },
-
-                { start: "12:50", end: "1:30" }
-
-            ]}
-
+            { period: "الطابور", duration: 10, times: [{ start: "7:00", end: "7:10" }, { start: "7:10", end: "7:20" }] },
+            { period: "الأولى", duration: 40, times: [{ start: "7:10", end: "7:50" }, { start: "7:20", end: "8:00" }] },
+            { period: "الثانية", duration: 40, times: [{ start: "7:55", end: "8:35" }, { start: "8:05", end: "8:45" }] },
+            { period: "الثالثة", duration: 40, times: [{ start: "8:40", end: "9:20" }, { start: "8:50", end: "9:30" }] },
+            { period: "الرابعة", duration: 40, times: [{ start: "9:25", end: "10:05" }, { start: "9:35", end: "10:15" }] },
+            { period: "الفسحة", duration: 20, times: [{ start: "10:05", end: "10:25" }, { start: "10:15", end: "10:35" }] },
+            { period: "الخامسة", duration: 40, times: [{ start: "10:25", end: "11:05" }, { start: "10:35", end: "11:15" }] },
+            { period: "السادسة", duration: 40, times: [{ start: "11:10", end: "11:50" }, { start: "11:20", end: "12:00" }] },
+            { period: "السابعة", duration: 40, times: [{ start: "11:55", end: "12:35" }, { start: "12:05", end: "12:45" }] },
+            { period: "الثامنة", duration: 40, times: [{ start: "12:40", end: "1:20" }, { start: "12:50", end: "1:30" }] }
         ];
 
-
-
-        let scrollInterval;
-
         let currentBookings = {};
+        let scrollInterval = null;
+        let fullScreenRequested = false;
 
+        function escapeHTML(str = '') {
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
 
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const next = line[i + 1];
+
+                if (char === '"' && inQuotes && next === '"') {
+                    current += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        function parseCSV(text) {
+            return text
+                .split(/\r?\n/)
+                .map(line => line.trim())
+                .filter(Boolean)
+                .map(parseCSVLine);
+        }
 
         function timeToMinutes(timeStr) {
-
             if (!timeStr) return 0;
-
-            timeStr = timeStr.trim();
-
-            let [hours, minutes] = timeStr.split(':').map(Number);
-
-            if (isNaN(hours) || isNaN(minutes)) return 0;
-
+            const clean = String(timeStr).trim();
+            const parts = clean.split(':').map(Number);
+            if (parts.length !== 2 || parts.some(Number.isNaN)) return 0;
+            let [hours, minutes] = parts;
             if (hours < 7 && hours > 0) hours += 12;
-
             return hours * 60 + minutes;
-
         }
-
-
 
         function getCurrentTimeInMinutes() {
-
             const now = new Date();
-
             return now.getHours() * 60 + now.getMinutes();
-
         }
-
-
 
         function getCurrentAndNextPeriod() {
-
             const currentTimeInMinutes = getCurrentTimeInMinutes();
-
             const isSecondShift = currentTimeInMinutes >= 12 * 60;
 
-            
-
             let currentPeriod = null;
-
             let nextPeriod = null;
 
-
-
             for (let i = 0; i < timeTable.length; i++) {
-
                 const period = timeTable[i];
-
                 const timeSlot = period.times[isSecondShift ? 1 : 0];
-
                 const startMinutes = timeToMinutes(timeSlot.start);
-
                 const endMinutes = timeToMinutes(timeSlot.end);
 
-                
-
                 if (currentTimeInMinutes >= startMinutes && currentTimeInMinutes < endMinutes) {
-
                     currentPeriod = { index: i, period: period.period, start: timeSlot.start, end: timeSlot.end, shift: isSecondShift ? 2 : 1 };
-
                     break;
-
                 }
-
             }
-
-            
 
             if (currentPeriod) {
-
                 for (let i = currentPeriod.index + 1; i < timeTable.length; i++) {
-
                     const period = timeTable[i];
-
                     const timeSlot = period.times[isSecondShift ? 1 : 0];
-
                     const startMinutes = timeToMinutes(timeSlot.start);
-
                     if (startMinutes > currentTimeInMinutes) {
-
                         nextPeriod = { index: i, period: period.period, start: timeSlot.start, end: timeSlot.end, shift: isSecondShift ? 2 : 1 };
-
                         break;
-
                     }
-
                 }
-
             }
-
-            
 
             return { currentPeriod, nextPeriod };
-
         }
-
-
-
-        function updateMarquee() {
-
-            const marqueeContainer = document.getElementById('marqueeContainer');
-
-            const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
-
-            
-
-            if (!currentPeriod) {
-
-                marqueeContainer.innerHTML = `
-
-                    <div class="marquee-item">
-
-                        <span class="marquee-icon"><i class="fas fa-clock"></i></span>
-
-                        <span class="marquee-text">لا توجد حصة حالياً</span>
-
-                    </div>
-
-                    <div class="marquee-item">
-
-                        <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
-
-                        <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? nextPeriod.period : 'غير معروفة'}</span>
-
-                    </div>
-
-                    <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
-
-                `;
-
-                return;
-
-            }
-
-
-
-            const currentBooking = currentBookings[currentPeriod.period];
-
-            const nextBooking = nextPeriod ? currentBookings[nextPeriod.period] : null;
-
-            const currentLesson = currentBooking ? currentBooking.lesson : 'لا يوجد حجز';
-
-            const nextLesson = nextBooking ? nextBooking.lesson : 'لا يوجد حجز';
-
-
-
-            let marqueeHTML = '';
-
-            for (let i = 0; i < 3; i++) {
-
-                marqueeHTML += `
-
-                    <div class="marquee-item current">
-
-                        <span class="marquee-icon"><i class="fas fa-play-circle"></i></span>
-
-                        <span class="marquee-text">🔴 الحصة الحالية: ${currentPeriod.period} | عنوان الدرس: ${currentLesson}</span>
-
-                    </div>
-
-                    <div class="marquee-item next">
-
-                        <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
-
-                        <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? nextPeriod.period : 'لا توجد'} | عنوان الدرس: ${nextLesson}</span>
-
-                    </div>
-
-                    <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
-
-                `;
-
-            }
-
-            
-
-            marqueeContainer.innerHTML = marqueeHTML;
-
-        }
-
-
-
-        // ============================================================
-        // دالة تحديث شريط السلامة بناءً على العمود 9 (الملاحظات)
-        // ============================================================
-        function updateSafetyMarquee(notes) {
-
-            const safetyContainer = document.getElementById('safetyMarqueeContainer');
-
-            
-
-            // إذا لم تكن هناك ملاحظات، استخدم الرسالة الافتراضية
-
-            const messages = (notes && notes.length > 0) ? notes : [DEFAULT_SAFETY_MSG];
-
-            
-
-            // بناء محتوى الشريط مع تكرار للامتلاء
-
-            let safetyHTML = '';
-
-            messages.forEach(msg => {
-
-                safetyHTML += `
-
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-
-                    <span class="safety-text">⚠️ ${msg} ⚠️</span>
-
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-
-                `;
-
-            });
-
-            
-
-            // تكرار مرة ثانية لضمان استمرارية الشريط
-
-            safetyHTML = safetyHTML + safetyHTML;
-
-            
-
-            safetyContainer.innerHTML = safetyHTML;
-
-        }
-
-
 
         function updateCurrentTime() {
-
             const now = new Date();
-
-            const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-
-            document.getElementById('currentTime').textContent = timeStr;
-
-            const dateStr = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-            document.getElementById('currentDate').innerHTML = dateStr;
-
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
 
+        function updateSafetyMarquee(notes = []) {
+            const safetyContainer = document.getElementById('safetyMarqueeContainer');
+            const messages = notes.length ? notes : [DEFAULT_SAFETY_MSG];
 
+            const content = messages.map(msg => `
+                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                <span class="safety-text">⚠️ ${escapeHTML(msg)} ⚠️</span>
+                <span class="safety-icon"><i class="fas fa-flask"></i></span>
+            `).join('');
+
+            safetyContainer.innerHTML = content + content;
+        }
+
+        function updateMarquee() {
+            const marqueeContainer = document.getElementById('marqueeContainer');
+            const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
+
+            if (!currentPeriod) {
+                marqueeContainer.innerHTML = `
+                    <div class="marquee-item">
+                        <span class="marquee-icon"><i class="fas fa-clock"></i></span>
+                        <span class="marquee-text">لا توجد حصة حالياً</span>
+                    </div>
+                    <div class="marquee-item">
+                        <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
+                        <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? escapeHTML(nextPeriod.period) : 'غير معروفة'}</span>
+                    </div>
+                    <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
+                `;
+                return;
+            }
+
+            const currentBooking = currentBookings[currentPeriod.period];
+            const nextBooking = nextPeriod ? currentBookings[nextPeriod.period] : null;
+            const currentLesson = currentBooking ? currentBooking.lesson : 'لا يوجد حجز';
+            const nextLesson = nextBooking ? nextBooking.lesson : 'لا يوجد حجز';
+
+            const item = `
+                <div class="marquee-item current">
+                    <span class="marquee-icon"><i class="fas fa-play-circle"></i></span>
+                    <span class="marquee-text">🔴 الحصة الحالية: ${escapeHTML(currentPeriod.period)} | عنوان الدرس: ${escapeHTML(currentLesson)}</span>
+                </div>
+                <div class="marquee-item next">
+                    <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
+                    <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? escapeHTML(nextPeriod.period) : 'لا توجد'} | عنوان الدرس: ${escapeHTML(nextLesson)}</span>
+                </div>
+                <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
+            `;
+
+            marqueeContainer.innerHTML = item.repeat(3);
+        }
 
         function startAutoScroll() {
-
             const wrapper = document.getElementById('tableWrapper');
-
             if (!wrapper) return;
 
             if (scrollInterval) clearInterval(scrollInterval);
 
-
-
             let scrollAmount = 0;
-
             let direction = 1;
 
-
-
             scrollInterval = setInterval(() => {
-
                 const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
-
                 if (maxScroll <= 0) return;
 
                 scrollAmount += direction * 0.8;
 
-                
-
                 if (scrollAmount > maxScroll) {
-
                     scrollAmount = maxScroll;
-
                     direction = 0;
-
                     setTimeout(() => { direction = -1; }, 3000);
-
                 } else if (scrollAmount < 0) {
-
                     scrollAmount = 0;
-
                     direction = 0;
-
                     setTimeout(() => { direction = 1; }, 3000);
-
                 }
 
-                
-
                 wrapper.scrollTop = scrollAmount;
-
             }, 30);
-
         }
 
+        function buildBookingsMap(rows, today) {
+            const bookingsByPeriod = {};
+            const safetyNotes = new Set();
 
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length < 4) continue;
+
+                const rowDate = row[2];
+                const rowPeriod = row[3];
+
+                if (rowDate !== today) continue;
+
+                bookingsByPeriod[rowPeriod] = {
+                    teacher: row[4] || "غير محدد",
+                    subject: row[5] || "غير محدد",
+                    grade: row[6] || "غير محدد",
+                    lesson: row[7] || "غير محدد"
+                };
+
+                const note = (row[8] || '').trim();
+                if (note) safetyNotes.add(note);
+            }
+
+            return { bookingsByPeriod, safetyNotes: [...safetyNotes] };
+        }
+
+        function renderSchedule(bookingsByPeriod) {
+            const now = new Date();
+            const isSecondShift = now.getHours() >= 12;
+            const actualPeriods = timeTable.filter(p => p.period !== 'الطابور' && p.period !== 'الفسحة');
+            const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
+
+            let bookedCount = 0;
+            let html = `
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>
+                            <th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            timeTable.forEach((period, index) => {
+                const timeSlot = period.times[isSecondShift ? 1 : 0];
+                const timeDisplay = `${timeSlot.start} - ${timeSlot.end}`;
+                const booking = bookingsByPeriod[period.period] || null;
+
+                if (booking && period.period !== 'الطابور' && period.period !== 'الفسحة') {
+                    bookedCount++;
+                }
+
+                let rowClass = '';
+                if (currentPeriod && currentPeriod.index === index) {
+                    rowClass = 'current-period';
+                } else if (nextPeriod && nextPeriod.index === index) {
+                    rowClass = 'next-period';
+                } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                    rowClass = 'break-row';
+                } else if (booking) {
+                    rowClass = 'booked';
+                }
+
+                html += `<tr class="${rowClass}">`;
+                html += `<td>${index + 1}</td>`;
+                html += `<td><strong>${escapeHTML(period.period)}</strong></td>`;
+                html += `<td><span class="time-badge"><i class="fas fa-clock"></i> ${escapeHTML(timeDisplay)}</span></td>`;
+                html += `<td>${period.duration} د</td>`;
+
+                if (booking) {
+                    html += `<td>${escapeHTML(booking.grade)}</td>`;
+                    html += `<td>${escapeHTML(booking.subject)}</td>`;
+                    html += `<td><i class="fas fa-user-tie"></i> ${escapeHTML(booking.teacher)}</td>`;
+                    html += `<td><span class="experiment-badge"><i class="fas fa-flask"></i> ${escapeHTML(booking.lesson)}</span></td>`;
+                } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                    html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
+                } else {
+                    html += `<td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>`;
+                }
+
+                html += `</tr>`;
+            });
+
+            html += `</tbody></table>`;
+
+            document.getElementById('tableContent').innerHTML = html;
+            document.getElementById('bookedCount').textContent = bookedCount;
+            document.getElementById('emptyCount').textContent = actualPeriods.length - bookedCount;
+            document.getElementById('totalPeriods').textContent = actualPeriods.length;
+
+            setTimeout(() => {
+                const wrapper = document.getElementById('tableWrapper');
+                const rows = wrapper.querySelectorAll('tr');
+                for (const row of rows) {
+                    if (row.classList.contains('current-period')) {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        break;
+                    }
+                }
+            }, 500);
+
+            setTimeout(startAutoScroll, AUTO_SCROLL_DELAY);
+        }
 
         async function fetchSchedule() {
-
             try {
-
-                const response = await fetch(csvUrl);
+                const response = await fetch(csvUrl, { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
                 const data = await response.text();
-
-                const rows = data.split('\n').map(row => row.split(',').map(cell => cell.trim()));
-
-                
+                const rows = parseCSV(data);
 
                 const now = new Date();
-
                 const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-
-                
 
                 updateCurrentTime();
 
+                const { bookingsByPeriod, safetyNotes } = buildBookingsMap(rows, today);
+                currentBookings = bookingsByPeriod;
 
-
-                let bookedCount = 0;
-
-                const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
-
-                
-
-                currentBookings = {};
-
-                
-                // ============================================================
-                // جمع الملاحظات من العمود 9 (index 8) لليوم الحالي
-                // ============================================================
-                let safetyNotes = [];
-
-
-
-                let html = '<table class="schedule-table"><thead><tr>' +
-
-                          '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>' +
-
-                          '<th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>' +
-
-                          '</tr></thead><tbody>';
-
-
-
-                const isSecondShift = now.getHours() >= 12;
-
-                const actualPeriods = timeTable.filter(p => p.period !== 'الطابور' && p.period !== 'الفسحة');
-
-                const totalActualPeriods = actualPeriods.length;
-
-
-
-                timeTable.forEach((period, index) => {
-
-                    const timeSlot = period.times[isSecondShift ? 1 : 0];
-
-                    const timeDisplay = `${timeSlot.start} - ${timeSlot.end}`;
-
-                    
-
-                    let booking = null;
-
-                    for (let i = 1; i < rows.length; i++) {
-
-                        if (rows[i].length < 5) continue;
-
-                        
-
-                        const rowDate = rows[i][2];
-
-                        const rowPeriod = rows[i][3];
-
-                        
-
-                        if (rowDate === today && rowPeriod === period.period) {
-
-                            booking = {
-
-                                teacher: rows[i][4] || "غير محدد",
-
-                                subject: rows[i][5] || "غير محدد",
-
-                                grade: rows[i][6] || "غير محدد",
-
-                                lesson: rows[i][7] || "غير محدد"
-
-                            };
-
-                            
-
-                            // ============================================================
-                            // قراءة الملاحظة من العمود 9 (index 8) إن وُجدت
-                            // ============================================================
-                            const note = rows[i][8] ? rows[i][8].trim() : '';
-
-                            if (note && note !== '' && !safetyNotes.includes(note)) {
-
-                                safetyNotes.push(note);
-
-                            }
-
-                            
-
-                            if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
-
-                                bookedCount++;
-
-                            }
-
-                            
-
-                            currentBookings[period.period] = booking;
-
-                            break;
-
-                        }
-
-                    }
-
-
-
-                    let rowClass = '';
-
-                    if (currentPeriod && currentPeriod.index === index) {
-
-                        rowClass = 'current-period';
-
-                    } else if (nextPeriod && nextPeriod.index === index) {
-
-                        rowClass = 'next-period';
-
-                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-
-                        rowClass = 'break-row';
-
-                    } else if (booking) {
-
-                        rowClass = 'booked';
-
-                    }
-
-
-
-                    html += `<tr class="${rowClass}">`;
-
-                    html += `<td>${index + 1}</td>`;
-
-                    html += `<td><strong>${period.period}</strong></td>`;
-
-                    html += `<td><span class="time-badge"><i class="fas fa-clock"></i> ${timeDisplay}</span></td>`;
-
-                    html += `<td>${period.duration} د</td>`;
-
-
-
-                    if (booking) {
-
-                        html += `<td>${booking.grade}</td>`;
-
-                        html += `<td>${booking.subject}</td>`;
-
-                        html += `<td><i class="fas fa-user-tie"></i> ${booking.teacher}</td>`;
-
-                        html += `<td><span class="experiment-badge"><i class="fas fa-flask"></i> ${booking.lesson}</span></td>`;
-
-                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-
-                        html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
-
-                    } else {
-
-                        html += `<td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>`;
-
-                    }
-
-
-
-                    html += '</tr>';
-
-                });
-
-
-
-                html += '</tbody></table>';
-
-                
-
-                document.getElementById('tableContent').innerHTML = html;
-
-                document.getElementById('bookedCount').textContent = bookedCount;
-
-                document.getElementById('emptyCount').textContent = totalActualPeriods - bookedCount;
-
-                document.getElementById('totalPeriods').textContent = totalActualPeriods;
-
-
-
-                // ============================================================
-                // تحديث شريط السلامة بالملاحظات أو الرسالة الافتراضية
-                // ============================================================
+                renderSchedule(bookingsByPeriod);
                 updateSafetyMarquee(safetyNotes);
-
-
-
                 updateMarquee();
 
+                localStorage.setItem('lastScheduleData', data);
+                localStorage.setItem('lastScheduleTime', new Date().toISOString());
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                document.getElementById('tableContent').innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>خطأ في تحميل البيانات...</div>
+                    </div>
+                `;
 
-
-                if (currentPeriod) {
-
-                    setTimeout(() => {
-
-                        const wrapper = document.getElementById('tableWrapper');
-
-                        const rows = wrapper.querySelectorAll('tr');
-
-                        for (let i = 0; i < rows.length; i++) {
-
-                            if (rows[i].classList.contains('current-period')) {
-
-                                rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                                break;
-
-                            }
-
-                        }
-
-                    }, 500);
-
+                const cached = localStorage.getItem('lastScheduleData');
+                if (cached) {
+                    try {
+                        const rows = parseCSV(cached);
+                        const now = new Date();
+                        const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+                        const { bookingsByPeriod, safetyNotes } = buildBookingsMap(rows, today);
+                        currentBookings = bookingsByPeriod;
+                        renderSchedule(bookingsByPeriod);
+                        updateSafetyMarquee(safetyNotes);
+                        updateMarquee();
+                    } catch (cachedError) {
+                        console.error('فشل في قراءة البيانات المؤقتة:', cachedError);
+                        updateSafetyMarquee([]);
+                    }
+                } else {
+                    updateSafetyMarquee([]);
                 }
-
-
-
-                setTimeout(startAutoScroll, 2000);
-
-
-
-            } catch (e) {
-
-                console.error('خطأ في تحميل البيانات:', e);
-
-                document.getElementById('tableContent').innerHTML = '<p style="text-align:center; padding:20px; color:#e74c3c;"><i class="fas fa-exclamation-triangle"></i> خطأ في تحميل البيانات...</p>';
-
-                // في حالة الخطأ، عرض الرسالة الافتراضية
-
-                updateSafetyMarquee([]);
-
             }
-
         }
-
-
 
         function requestFullScreen() {
-
             const docElm = document.documentElement;
-
             if (docElm.requestFullscreen) docElm.requestFullscreen();
-
             else if (docElm.mozRequestFullScreen) docElm.mozRequestFullScreen();
-
             else if (docElm.webkitRequestFullScreen) docElm.webkitRequestFullScreen();
-
             else if (docElm.msRequestFullscreen) docElm.msRequestFullscreen();
-
         }
 
-
-
-        document.addEventListener("click", function() {
-
-            if (!window.fullScreenRequested) { requestFullScreen(); window.fullScreenRequested = true; }
-
+        document.addEventListener('click', () => {
+            if (!fullScreenRequested) {
+                requestFullScreen();
+                fullScreenRequested = true;
+            }
         });
 
-        
-
-        document.addEventListener("keydown", function() {
-
-            if (!window.fullScreenRequested) { requestFullScreen(); window.fullScreenRequested = true; }
-
+        document.addEventListener('keydown', () => {
+            if (!fullScreenRequested) {
+                requestFullScreen();
+                fullScreenRequested = true;
+            }
         });
-
-
-
-        setInterval(() => {
-
-            updateCurrentTime();
-
-            updateMarquee();
-
-        }, 1000);
-
-
-
-        setInterval(() => {
-
-            fetchSchedule();
-
-        }, 300000);
-
-
 
         document.addEventListener('DOMContentLoaded', () => {
-
-            // عرض الرسالة الافتراضية فوراً ريثما يتم تحميل البيانات
-
             updateSafetyMarquee([]);
-
+            updateCurrentTime();
+            updateMarquee();
             fetchSchedule();
 
             setTimeout(() => {
-
                 requestFullScreen();
-
-                window.fullScreenRequested = true;
-
+                fullScreenRequested = true;
             }, 1000);
 
+            setInterval(() => {
+                updateCurrentTime();
+                updateMarquee();
+            }, 1000);
+
+            setInterval(fetchSchedule, REFRESH_INTERVAL);
         });
-
     </script>
-
 </body>
-
 </html>
