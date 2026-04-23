@@ -2,327 +2,190 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
     <meta http-equiv="refresh" content="300" />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root {
             --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --current-period-color: #ffd700;
-            --current-period-bg: rgba(255, 215, 0, 0.15);
-            --next-period-color: #87CEEB;
-            --next-period-bg: rgba(135, 206, 235, 0.1);
             --card-bg: rgba(255, 255, 255, 0.98);
-            --shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        html, body {
-            min-height: 100vh;
-            width: 100vw;
-            overflow-x: hidden;
+        body {
             font-family: 'Tajawal', sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #2c3e50;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 15px;
-            position: relative;
+            height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 15px;
         }
-
-        @media (min-width: 1024px) {
-            html, body { height: 100vh; overflow: hidden; align-items: center; }
-        }
-
-        .tv-background {
-            position: fixed; inset: 0; z-index: 0;
-            background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
-            opacity: 0.15; pointer-events: none;
-        }
-
-        .container {
-            position: relative; z-index: 1;
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column; gap: 12px;
-            max-width: 1920px;
-        }
-
-        .header, .table-container, .stat-card, .footer {
-            background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            box-shadow: var(--shadow);
-            border-radius: 20px;
-        }
-
-        .header { padding: 15px 25px; border: 2px solid rgba(255, 255, 255, 0.5); flex-shrink: 0; }
-        .header-content { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-
-        .qr-code {
-            flex-shrink: 0; background: white; padding: 8px; border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid var(--primary-color);
-        }
-        .qr-code img { display: block; width: 80px; height: 80px; }
-
-        .time-info-container {
-            flex-shrink: 0;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 20px; padding: 12px 20px; color: white;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-            min-width: 180px;
-        }
-
-        .school-name-container { flex: 1; text-align: center; }
-        .school-name h1 { color: #2c3e50; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; }
-        .school-name .subtitle { color: #7f8c8d; border-bottom: 2px solid var(--primary-color); padding-bottom: 4px; }
-
-        .periods-marquee, .safety-marquee {
-            border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }
-        .periods-marquee { background: #2c3e50; padding: 8px 15px; }
-        .safety-marquee { background: #e74c3c; padding: 10px 15px; margin: 5px 0; }
-
-        .marquee-container, .safety-marquee-container {
-            display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
-        }
-        .marquee-container { animation: scrollLeftToRight 70s linear infinite; }
-        .safety-marquee-container { animation: scrollSafety 80s linear infinite; }
+        .container { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 12px; max-width: 1920px; z-index: 1; }
         
-        @keyframes scrollLeftToRight { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        /* التنسيقات العامة */
+        .header, .table-container, .stat-card, .footer { background: var(--card-bg); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .header { padding: 15px 25px; flex-shrink: 0; }
+        .header-content { display: flex; align-items: center; justify-content: space-between; }
+        .school-name h1 { color: #2c3e50; font-size: 2.2rem; font-weight: 800; }
+        
+        /* شريط التنبيهات */
+        .safety-marquee { background: #e74c3c; border-radius: 40px; padding: 12px; overflow: hidden; margin: 5px 0; flex-shrink: 0; }
+        .safety-marquee-container { display: flex; white-space: nowrap; animation: scrollSafety 60s linear infinite; width: fit-content; }
         @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .safety-text { color: white; font-size: 1.3rem; font-weight: bold; padding: 0 50px; }
 
-        .marquee-item {
-            display: inline-flex; align-items: center; gap: 12px; padding: 5px 18px; border-radius: 35px;
-            background: rgba(255,255,255,0.1); color: white;
-        }
-        .marquee-item.current { background: #ffd700; color: #2c3e50; font-weight: 700; }
-
-        .stats-cards {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; flex-shrink: 0;
-        }
-        .stat-card { padding: 12px 15px; display: flex; align-items: center; gap: 12px; border: 2px solid rgba(255,255,255,0.8); }
-        .stat-icon { width: 45px; height: 45px; background: #764ba2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
-        .stat-number { font-size: 1.8rem; font-weight: 800; color: #2c3e50; }
-
-        .table-container {
-            padding: 15px; border: 2px solid rgba(255,255,255,0.8);
-            flex: 1; display: flex; flex-direction: column; overflow: hidden;
-        }
-        .table-responsive { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
-        .table-responsive::-webkit-scrollbar { display: none; }
-
-        .schedule-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
-        .schedule-table th { background: var(--primary-color); color: white; padding: 12px 8px; position: sticky; top: 0; z-index: 10; }
-        .schedule-table td { background: white; padding: 12px 6px; text-align: center; border: 1px solid rgba(0,0,0,0.05); }
-
-        .current-period { background: var(--current-period-bg) !important; border-right: 5px solid var(--current-period-color) !important; }
+        /* الجدول */
+        .table-container { flex: 1; padding: 15px; overflow: hidden; }
+        .table-responsive { width: 100%; height: 100%; overflow-y: auto; scrollbar-width: none; }
+        .schedule-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .schedule-table th { background: var(--primary-color); color: white; padding: 12px; position: sticky; top: 0; }
+        .schedule-table td { background: #f8f9fa; padding: 12px; text-align: center; border: 1px solid #eee; }
         .booked { background: #27ae60 !important; color: white !important; }
         .booked td { background: transparent !important; color: white !important; }
-        
-        .time-badge { background: rgba(52, 152, 219, 0.1); padding: 4px 8px; border-radius: 15px; color: var(--primary-color); font-weight: bold; }
-        .booked .time-badge { background: rgba(255,255,255,0.2); color: white; }
 
-        .experiment-badge { border: 1px solid var(--primary-color); padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; }
-        .booked .experiment-badge { border-color: white; }
+        /* التذييل المحدث */
+        .footer { padding: 12px 30px; flex-shrink: 0; }
+        .footer-content { display: flex; justify-content: space-between; align-items: center; color: #2c3e50; font-weight: bold; }
 
-        .footer { text-align: center; color: white; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 30px; }
+        .qr-code img { width: 80px; height: 80px; }
     </style>
 </head>
-
 <body>
-    <div class="tv-background"></div>
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <div class="qr-code"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="QR"></div>
-                <div class="school-name-container">
-                    <div class="school-name">
-                        <h1>مختبر مدرسة الحوراء</h1>
-                        <div class="subtitle">نظام عرض الحجوزات الذكي</div>
-                    </div>
+                <div class="qr-code"><img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="QR"></div>
+                <div class="school-name"><h1>مختبر مدرسة الحوراء</h1></div>
+                <div id="timeBox" style="text-align: left;">
+                    <div id="currentTime" style="font-size: 1.5rem; font-weight: bold; color: #2980b9;">--:--</div>
+                    <div id="currentDate" style="font-size: 0.9rem;"></div>
                 </div>
-                <div class="time-info-container">
-                    <div id="currentDate"></div>
-                    <div id="currentTime" style="font-size: 1.5rem; font-weight: bold;">--:--</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="periods-marquee">
-            <div class="marquee-container" id="marqueeContainer"></div>
-        </div>
-
-        <div class="stats-cards">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
-                <div><small>إجمالي الحصص</small><div class="stat-number">8</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                <div><small>المحجوزة</small><div class="stat-number" id="bookedCount">0</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                <div><small>الشاغرة</small><div class="stat-number" id="emptyCount">8</div></div>
             </div>
         </div>
 
         <div class="table-container">
             <div id="tableWrapper" class="table-responsive">
-                <div id="tableContent">
-                    <div class="loading">جاري جلب البيانات...</div>
-                </div>
+                <div id="tableContent">جاري تحميل الحجوزات...</div>
             </div>
         </div>
 
         <div class="safety-marquee">
-            <div class="safety-marquee-container" id="safetyMarqueeContainer"></div>
+            <div class="safety-marquee-container" id="safetyMarqueeContainer">
+                <span class="safety-text">جاري تحميل تنبيهات السلامة...</span>
+            </div>
         </div>
 
         <div class="footer">
-            <p>إشراف فنية المختبر أ.نادية السيابي | جميع الحقوق محفوظة 2026</p>
+            <div class="footer-content">
+                <span><i class="fas fa-chalkboard-teacher"></i> إشراف فنية المختبر أ.نادية السيابي</span>
+                <span>جميع الحقوق محفوظة لمدرسة الحوراء 2026 <i class="fas fa-copyright"></i></span>
+            </div>
         </div>
     </div>
 
     <script>
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        var timeTable = [
-            { period: "الطابور", times: [{ s: "7:00", e: "7:10" }, { s: "7:10", e: "7:20" }] },
-            { period: "الأولى", times: [{ s: "7:10", e: "7:50" }, { s: "7:20", e: "8:00" }] },
-            { period: "الثانية", times: [{ s: "7:55", e: "8:35" }, { s: "8:05", e: "8:45" }] },
-            { period: "الثالثة", times: [{ s: "8:40", e: "9:20" }, { s: "8:50", e: "9:30" }] },
-            { period: "الرابعة", times: [{ s: "9:25", e: "10:05" }, { s: "9:35", e: "10:15" }] },
-            { period: "الفسحة", times: [{ s: "10:05", e: "10:25" }, { s: "10:15", e: "10:35" }] },
-            { period: "الخامسة", times: [{ s: "10:25", e: "11:05" }, { s: "10:35", e: "11:15" }] },
-            { period: "السادسة", times: [{ s: "11:10", e: "11:50" }, { s: "11:20", e: "12:00" }] },
-            { period: "السابعة", times: [{ s: "11:55", e: "12:35" }, { s: "12:05", e: "12:45" }] },
-            { period: "الثامنة", times: [{ s: "12:40", e: "1:20" }, { s: "12:50", e: "1:30" }] }
-        ];
-
-        var scrollTimer = null;
-
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        }
-
-        // دالة السكرول التلقائي (المتوافقة مع الشاشات)
-        function startAutoScroll() {
-            var wrapper = document.getElementById('tableWrapper');
-            if (!wrapper) return;
-            if (scrollTimer) clearInterval(scrollTimer);
-
-            var direction = 1; 
-            scrollTimer = setInterval(function() {
-                var current = wrapper.scrollTop;
-                var max = wrapper.scrollHeight - wrapper.clientHeight;
-                
-                if (max <= 0) return;
-
-                wrapper.scrollTop += direction;
-
-                if (wrapper.scrollTop >= max) {
-                    direction = 0; // توقف عند النهاية
-                    setTimeout(function() { 
-                        // العودة للأعلى ببطء أو مباشرة
-                        wrapper.scrollTop = 0; 
-                        direction = 1; 
-                    }, 5000);
-                }
-            }, 50); // سرعة السكرول (كلما قل الرقم زادت السرعة)
-        }
-
+        
         function fetchSchedule() {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', csvUrl + '&t=' + new Date().getTime(), true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    var rows = xhr.responseText.split(/\r?\n/).map(function(l) { return l.split(','); });
+                    var rows = xhr.responseText.split(/\r?\n/).map(function(line) {
+                        return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // تقسيم ذكي للـ CSV
+                    });
+
                     var now = new Date();
                     var today = now.getFullYear() + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + String(now.getDate()).padStart(2,'0');
                     
-                    var bookings = {};
-                    var notes = [];
+                    var currentBookings = {};
+                    var dailyNotes = []; // مصفوفة لتجميع كل التنبيهات
+
                     for (var i = 1; i < rows.length; i++) {
-                        if (rows[i][2] && rows[i][2].replace(/"/g, '') === today) {
-                            bookings[rows[i][3].replace(/"/g, '')] = { teacher: rows[i][4], subject: rows[i][5], grade: rows[i][6], lesson: rows[i][7] };
-                            if (rows[i][8]) notes.push(rows[i][8].replace(/"/g, ''));
+                        var row = rows[i];
+                        if (!row[2]) continue;
+                        
+                        var cleanDate = row[2].replace(/"/g, '').trim();
+                        
+                        if (cleanDate === today) {
+                            // 1. تجميع الحجوزات
+                            var period = row[3].replace(/"/g, '').trim();
+                            currentBookings[period] = {
+                                teacher: row[4].replace(/"/g, ''),
+                                subject: row[5].replace(/"/g, ''),
+                                grade: row[6].replace(/"/g, ''),
+                                lesson: row[7].replace(/"/g, '')
+                            };
+
+                            // 2. تجميع التنبيهات (من العمود التاسع - Index 8)
+                            if (row[8]) {
+                                var note = row[8].replace(/"/g, '').trim();
+                                if (note !== "" && dailyNotes.indexOf(note) === -1) {
+                                    dailyNotes.push(note);
+                                }
+                            }
                         }
                     }
-                    render(bookings, notes);
+                    renderUI(currentBookings, dailyNotes);
                 }
             };
             xhr.send();
         }
 
-        function render(bookings, notes) {
-            var now = new Date();
-            var isSecond = now.getHours() >= 12;
-            var bookedCount = 0;
-            var html = '<table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>الوقت</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>الدرس</th></tr></thead><tbody>';
-
-            for (var i = 0; i < timeTable.length; i++) {
-                var p = timeTable[i];
-                var t = p.times[isSecond ? 1 : 0];
-                var b = bookings[p.period];
-                var rowClass = (b) ? 'booked' : '';
-                
-                // تحديد الحصة الحالية (تقريبي للتبسيط)
-                var hr = now.getHours();
-                var min = now.getMinutes();
-                var currentTotal = hr * 60 + min;
-                // يمكنك إضافة منطق أدق هنا لتمييز الصف الحالي
-
-                html += '<tr class="'+rowClass+'"><td>'+(i+1)+'</td><td>'+p.period+'</td><td><span class="time-badge">'+t.s+'-'+t.e+'</span></td>';
-                if (b) {
-                    bookedCount++;
-                    html += '<td>'+escapeHTML(b.grade)+'</td><td>'+escapeHTML(b.subject)+'</td><td>'+escapeHTML(b.teacher)+'</td><td><span class="experiment-badge">'+escapeHTML(b.lesson)+'</span></td>';
+        function renderUI(bookings, notes) {
+            // رسم الجدول
+            var periods = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة"];
+            var html = '<table class="schedule-table"><thead><tr><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>الدرس</th></tr></thead><tbody>';
+            
+            periods.forEach(function(p) {
+                var b = bookings[p];
+                var cls = b ? 'booked' : '';
+                html += '<tr class="'+cls+'"><td>'+p+'</td>';
+                if(b) {
+                    html += '<td>'+b.grade+'</td><td>'+b.subject+'</td><td>'+b.teacher+'</td><td>'+b.lesson+'</td>';
                 } else {
-                    html += '<td colspan="4">متاح</td>';
+                    html += '<td colspan="4">شاغرة</td>';
                 }
                 html += '</tr>';
-            }
+            });
             html += '</tbody></table>';
             document.getElementById('tableContent').innerHTML = html;
-            document.getElementById('bookedCount').textContent = bookedCount;
-            document.getElementById('emptyCount').textContent = 8 - bookedCount;
 
-            // تحديث أشرطة الماركي
-            var m = document.getElementById('marqueeContainer');
-            m.innerHTML = '<div class="marquee-item">مرحباً بكم في مختبر مدرسة الحوراء</div>';
+            // تحديث شريط التنبيهات (تجميع الكل)
+            var marquee = document.getElementById('safetyMarqueeContainer');
+            if (notes.length > 0) {
+                var content = notes.join(' ✨ '); // الربط بين التنبيهات برمز مميز
+                // تكرار النص لضمان استمرارية الحركة في المتصفح
+                marquee.innerHTML = '<span class="safety-text">⚠️ ' + content + ' ⚠️</span>' + 
+                                   '<span class="safety-text">⚠️ ' + content + ' ⚠️</span>';
+            } else {
+                marquee.innerHTML = '<span class="safety-text">⚠️ مختبر مدرسة الحوراء يرحب بكم - نتمنى لكم تجارب علمية ممتعة وآمنة ⚠️</span>';
+            }
             
-            var s = document.getElementById('safetyMarqueeContainer');
-            var sn = (notes.length) ? notes[0] : "سلامتك أولاً في المختبر";
-            s.innerHTML = '<span class="safety-text">⚠️ '+escapeHTML(sn)+' ⚠️</span>';
-
-            // تشغيل السكرول بعد ثوانٍ من التحميل
-            setTimeout(startAutoScroll, 3000);
+            startScroll();
         }
 
-        function updateTime() {
-            var now = new Date();
-            document.getElementById('currentTime').textContent = now.getHours() + ":" + String(now.getMinutes()).padStart(2,'0');
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA');
+        function startScroll() {
+            var div = document.getElementById('tableWrapper');
+            var speed = 1;
+            if (window.scrollInterval) clearInterval(window.scrollInterval);
+            window.scrollInterval = setInterval(function() {
+                div.scrollTop += speed;
+                if (div.scrollTop >= (div.scrollHeight - div.offsetHeight)) {
+                    setTimeout(function() { div.scrollTop = 0; }, 3000);
+                }
+            }, 50);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTime();
-            fetchSchedule();
-            setInterval(updateTime, 1000);
-            setInterval(fetchSchedule, 300000);
-        });
+        function updateClock() {
+            var n = new Date();
+            document.getElementById('currentTime').textContent = n.getHours() + ":" + String(n.getMinutes()).padStart(2, '0');
+            document.getElementById('currentDate').textContent = n.toLocaleDateString('ar-OM', {weekday:'long', day:'numeric', month:'long'});
+        }
+
+        updateClock();
+        fetchSchedule();
+        setInterval(updateClock, 1000);
+        setInterval(fetchSchedule, 300000);
     </script>
 </body>
 </html>
