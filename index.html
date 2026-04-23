@@ -134,9 +134,7 @@
         .marquee-container, .safety-marquee-container {
             display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
         }
-        /* تعديل سرعة السكرول: أصبحت أبطأ (140 ثانية بدل 70) */
         .marquee-container { animation: scrollLeftToRight 140s linear infinite; }
-        /* تعديل سرعة شريط الأمان (أبطأ) */
         .safety-marquee-container { animation: scrollSafety 160s linear infinite; gap: 20px; }
         
         @keyframes scrollLeftToRight { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
@@ -149,37 +147,115 @@
         }
         .marquee-item.current { background: linear-gradient(135deg, #ffd700, #f39c12); color: #2c3e50; font-weight: 700; }
         .marquee-item.next { background: linear-gradient(135deg, #87CEEB, #00BFFF); color: #2c3e50; font-weight: 600; }
-        .marquee-icon, .safety-icon {
-            width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .marquee-icon { background: rgba(255,255,255,0.2); font-size: 0.9rem; }
-        .safety-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.2); font-size: 1.1rem; color: white; }
-        .marquee-text { font-size: 1rem; }
-        .safety-text { font-size: 1.15rem; font-weight: 600; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
 
         .stats-cards {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; flex-shrink: 0;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; flex-shrink: 0;
         }
         .stat-card {
             border-radius: 15px; padding: 12px 15px;
             display: flex; align-items: center; gap: 12px;
             border: 2px solid rgba(255,255,255,0.8);
+            transition: transform 0.2s;
         }
+        .stat-card:hover { transform: translateY(-2px); }
+        
         .stat-icon {
-            width: 45px; height: 45px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%;
+            width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; flex-shrink: 0;
         }
-        .stat-details { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-        .stat-details h3 { color: #7f8c8d; font-size: clamp(0.9rem, 1.5vw, 1.1rem); font-weight: 500; }
-        .stat-details .stat-number { color: #2c3e50; font-size: clamp(1.3rem, 2.5vw, 1.8rem); font-weight: 800; line-height: 1; }
+        /* بطاقة النسبة المئوية - لون مميز */
+        .stat-card.percentage-card .stat-icon {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        .stat-details { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        .stat-details h3 { color: #7f8c8d; font-size: clamp(0.8rem, 1.3vw, 1rem); font-weight: 500; margin: 0; }
+        .stat-number { color: #2c3e50; font-size: clamp(1.3rem, 2.2vw, 1.8rem); font-weight: 800; line-height: 1; }
+        
+        /* شريط النسبة الدائري */
+        .progress-circle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .progress-circle {
+            width: 45px;
+            height: 45px;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .progress-circle svg {
+            width: 45px;
+            height: 45px;
+            transform: rotate(-90deg);
+        }
+        .progress-circle circle {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+        .progress-circle .bg-circle {
+            stroke: #e0e0e0;
+        }
+        .progress-circle .progress-fill {
+            stroke: #27ae60;
+            transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+        }
+        .percentage-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
 
         .table-container {
             border-radius: 20px; padding: 15px; border: 2px solid rgba(255,255,255,0.8);
             flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
         }
-        .table-responsive { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
-        .table-responsive::-webkit-scrollbar { display: none; }
+        
+        /* إضافة حركة التمرير العمودية البطيئة */
+        .table-responsive {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            position: relative;
+        }
+        
+        /* إخفاء شريط التمرير مع الاحتفاظ بالوظيفة */
+        .table-responsive::-webkit-scrollbar {
+            width: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        /* أنيميشن الحركة العمودية التلقائية */
+        @keyframes slowScrollUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+        
+        .auto-scroll {
+            animation: slowScrollUp 60s linear infinite;
+        }
+        
+        /* إيقاف الحركة مؤقتاً عند المرور بالماوس */
+        .table-responsive:hover .auto-scroll {
+            animation-play-state: paused;
+        }
+        
+        /* نسخة مكررة للجدول لضمان استمرارية الحركة */
+        .table-content-wrapper {
+            position: relative;
+        }
+        .table-clone {
+            margin-top: 20px;
+        }
 
         .schedule-table {
             width: 100%; border-collapse: separate; border-spacing: 0 6px; table-layout: fixed;
@@ -206,7 +282,6 @@
         .schedule-table td:last-child { border-radius: 0 12px 12px 0; }
 
         .current-period { background: var(--current-period-bg) !important; border-right: 4px solid var(--current-period-color) !important; }
-        .current-period td, .next-period td { background: inherit !important; }
         .next-period { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
 
         .time-badge {
@@ -230,9 +305,8 @@
         .break-row { background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important; }
         .break-row td { background: transparent !important; color: white !important; font-weight: 700; }
 
-        /* تعديل تذييل الصفحة: المشرف يمين، الحقوق يسار */
         .footer {
-            text-align: center; color: white; padding: 8px 15px; background: rgba(0, 0, 0, 0.3);
+            text-align: center; padding: 8px 15px; background: rgba(0, 0, 0, 0.3);
             border-radius: 30px; backdrop-filter: blur(5px); flex-shrink: 0;
         }
         .footer-content {
@@ -242,13 +316,13 @@
             width: 100%;
             font-size: clamp(0.7rem, 1.1vw, 0.9rem);
             gap: 10px;
+            color: white;
         }
-        .footer-right {
-            text-align: right;
-        }
-        .footer-left {
-            text-align: left;
-        }
+        .footer-right { text-align: right; }
+        .footer-left { text-align: left; }
+
+        .loading, .error { text-align: center; padding: 20px; color: #2c3e50; }
+        .error { color: #e74c3c; }
     </style>
 </head>
 
@@ -294,6 +368,21 @@
                 <div class="stat-icon"><i class="fas fa-door-open"></i></div>
                 <div class="stat-details"><h3>الشاغرة</h3><div class="stat-number" id="emptyCount">8</div></div>
             </div>
+            <div class="stat-card percentage-card">
+                <div class="stat-icon"><i class="fas fa-chart-pie"></i></div>
+                <div class="stat-details">
+                    <h3>نسبة الحجز</h3>
+                    <div class="progress-circle-container">
+                        <div class="progress-circle" id="progressCircle">
+                            <svg viewBox="0 0 40 40">
+                                <circle class="bg-circle" cx="20" cy="20" r="16"></circle>
+                                <circle class="progress-fill" cx="20" cy="20" r="16" stroke-dasharray="100.53" stroke-dashoffset="0"></circle>
+                            </svg>
+                        </div>
+                        <span class="percentage-text" id="percentageValue">0%</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="table-container">
@@ -308,7 +397,6 @@
             <div class="safety-marquee-container" id="safetyMarqueeContainer"></div>
         </div>
 
-        <!-- تذييل الصفحة المعدل: يمين ويسار -->
         <div class="footer">
             <div class="footer-content">
                 <div class="footer-right">
@@ -325,7 +413,6 @@
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
         var REFRESH_INTERVAL = 300000;
-        var AUTO_SCROLL_DELAY = 2000;
 
         var timeTable = [
             { period: "الطابور", duration: 10, times: [{ start: "7:00", end: "7:10" }, { start: "7:10", end: "7:20" }] },
@@ -342,9 +429,7 @@
 
         var currentBookings = {};
         var scrollInterval = null;
-        var fullScreenRequested = false;
 
-        // دالة تنظيف النصوص المتوافقة
         function escapeHTML(str) {
             if (!str) return '';
             return String(str)
@@ -457,25 +542,51 @@
             marqueeContainer.innerHTML = item + item + item;
         }
 
+        function updatePercentage(booked, total) {
+            var percentage = total > 0 ? Math.round((booked / total) * 100) : 0;
+            document.getElementById('percentageValue').textContent = percentage + '%';
+            
+            // تحديث الدائرة
+            var radius = 16;
+            var circumference = 2 * Math.PI * radius;
+            var offset = circumference - (percentage / 100) * circumference;
+            var fillCircle = document.querySelector('#progressCircle .progress-fill');
+            if (fillCircle) {
+                fillCircle.style.strokeDashoffset = offset;
+                // تغيير اللون حسب النسبة
+                if (percentage >= 70) fillCircle.style.stroke = '#27ae60';
+                else if (percentage >= 40) fillCircle.style.stroke = '#f39c12';
+                else fillCircle.style.stroke = '#e74c3c';
+            }
+        }
+
         function renderSchedule(bookings) {
             var now = new Date();
             var isSecondShift = now.getHours() >= 12;
             var data = getCurrentAndNextPeriod();
             var bookedCount = 0;
-            var html = '<table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
+            var totalBookable = 0;
+            
+            var html = '<div class="table-content-wrapper"><table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
+            var cloneHtml = '';
 
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var timeSlot = period.times[isSecondShift ? 1 : 0];
                 var booking = bookings[period.period];
-                if (booking && period.period !== 'الطابور' && period.period !== 'الفسحة') bookedCount++;
+                
+                // حساب الحجوزات (لا نحسب الطابور والفسحة)
+                if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
+                    totalBookable++;
+                    if (booking) bookedCount++;
+                }
 
                 var rowClass = '';
                 if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
                 else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
                 else if (booking) rowClass = 'booked';
 
-                html += '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td><strong>' + period.period + '</strong></td>' +
+                html += '<tr class="' + rowClass + '"><tr>' + (i + 1) + '</td><tr><strong>' + period.period + '</strong></td>' +
                         '<td><span class="time-badge">' + timeSlot.start + ' - ' + timeSlot.end + '</span></td><td>' + period.duration + ' د</td>';
 
                 if (booking) {
@@ -488,13 +599,27 @@
                 }
                 html += '</tr>';
             }
-            html += '</tbody></table>';
-            document.getElementById('tableContent').innerHTML = html;
+            html += '</tbody></table></div>';
+            
+            // نسخة مكررة للجدول للحصول على حركة مستمرة وسلسة
+            cloneHtml = '<div class="table-content-wrapper table-clone">' + html + '</div>';
+            
+            document.getElementById('tableContent').innerHTML = html + cloneHtml;
             document.getElementById('bookedCount').textContent = bookedCount;
-            document.getElementById('emptyCount').textContent = 8 - bookedCount;
+            document.getElementById('emptyCount').textContent = totalBookable - bookedCount;
+            document.getElementById('totalPeriods').textContent = totalBookable;
+            
+            // تحديث النسبة المئوية
+            updatePercentage(bookedCount, totalBookable);
+            
+            // إضافة كلاس auto-scroll لعنصر التمرير
+            var scrollDiv = document.querySelector('.table-responsive');
+            if (scrollDiv && !scrollDiv.querySelector('.auto-scroll')) {
+                var contentWrapper = scrollDiv.querySelector('.table-content-wrapper');
+                if (contentWrapper) contentWrapper.classList.add('auto-scroll');
+            }
         }
 
-        // دالة جلب البيانات باستخدام XMLHttpRequest
         function fetchSchedule() {
             var xhr = new XMLHttpRequest();
             var finalUrl = csvUrl + '&t=' + new Date().getTime();
@@ -518,13 +643,11 @@
                     renderSchedule(bookings);
                     updateSafetyMarquee(notes);
                     updateMarquee();
-                    localStorage.setItem('lastData', data);
                 }
             };
             xhr.send();
         }
 
-        // تشغيل النظام
         document.addEventListener('DOMContentLoaded', function() {
             updateCurrentTime();
             fetchSchedule();
