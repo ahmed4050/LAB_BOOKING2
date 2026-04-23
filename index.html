@@ -136,8 +136,7 @@
         }
         .marquee-container { animation: scrollLeftToRight 70s linear infinite; }
         .safety-marquee-container { animation: scrollSafety 80s linear infinite; gap: 20px; }
-        .marquee-container:hover, .safety-marquee-container:hover { animation-play-state: paused; }
-
+        
         @keyframes scrollLeftToRight { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
         @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
@@ -235,21 +234,7 @@
         }
         .footer p { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: clamp(0.7rem, 1.1vw, 0.9rem); gap: 10px; }
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        @media (max-width: 1024px) {
-            .header-content { flex-wrap: wrap; justify-content: center; }
-            .time-info-container { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; }
-            .info-item { width: auto; }
-            .update-badge { width: auto; }
-            .safety-text { font-size: 1rem; }
-            .safety-icon { width: 30px; height: 30px; font-size: 1rem; }
-            .footer p { flex-direction: column; }
-        }
-
-        .loading, .error {
-            text-align: center; padding: 20px; color: #2c3e50;
-        }
+        .loading, .error { text-align: center; padding: 20px; color: #2c3e50; }
         .error { color: #e74c3c; }
     </style>
 </head>
@@ -260,38 +245,21 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')" title="افتح صفحة الحجوزات">
-                    <img
-                        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/"
-                        alt="QR Code"
-                        title="مسح للوصول إلى صفحة الحجوزات"
-                    />
+                <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="QR">
                 </div>
 
                 <div class="school-name-container">
                     <div class="school-name">
-                        <h1>
-                            <i class="fas fa-flask"></i>
-                            مختبر مدرسة الحوراء
-                            <i class="fas fa-microscope"></i>
-                        </h1>
+                        <h1><i class="fas fa-flask"></i> مختبر مدرسة الحوراء <i class="fas fa-microscope"></i></h1>
                         <div class="subtitle">عرض مرئي تفاعلي لحجز المختبر</div>
                     </div>
                 </div>
 
                 <div class="time-info-container">
-                    <div class="info-item">
-                        <i class="fas fa-calendar-day"></i>
-                        <span id="currentDate"></span>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-clock"></i>
-                        <span id="currentTime">--:-- --</span>
-                    </div>
-                    <div class="update-badge">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>تحديث كل 5 دقائق</span>
-                    </div>
+                    <div class="info-item"><i class="fas fa-calendar-day"></i> <span id="currentDate"></span></div>
+                    <div class="info-item"><i class="fas fa-clock"></i> <span id="currentTime">--:-- --</span></div>
+                    <div class="update-badge"><i class="fas fa-sync-alt"></i> <span>تحديث كل 5 دقائق</span></div>
                 </div>
             </div>
         </div>
@@ -336,12 +304,12 @@
     </div>
 
     <script>
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        const DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
-        const REFRESH_INTERVAL = 300000;
-        const AUTO_SCROLL_DELAY = 2000;
+        var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
+        var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
+        var REFRESH_INTERVAL = 300000;
+        var AUTO_SCROLL_DELAY = 2000;
 
-        const timeTable = [
+        var timeTable = [
             { period: "الطابور", duration: 10, times: [{ start: "7:00", end: "7:10" }, { start: "7:10", end: "7:20" }] },
             { period: "الأولى", duration: 40, times: [{ start: "7:10", end: "7:50" }, { start: "7:20", end: "8:00" }] },
             { period: "الثانية", duration: 40, times: [{ start: "7:55", end: "8:35" }, { start: "8:05", end: "8:45" }] },
@@ -354,384 +322,197 @@
             { period: "الثامنة", duration: 40, times: [{ start: "12:40", end: "1:20" }, { start: "12:50", end: "1:30" }] }
         ];
 
-        let currentBookings = {};
-        let scrollInterval = null;
-        let fullScreenRequested = false;
+        var currentBookings = {};
+        var scrollInterval = null;
+        var fullScreenRequested = false;
 
-        function escapeHTML(str = '') {
+        // دالة تنظيف النصوص المتوافقة
+        function escapeHTML(str) {
+            if (!str) return '';
             return String(str)
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#39;');
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                const next = line[i + 1];
-
-                if (char === '"' && inQuotes && next === '"') {
-                    current += '"';
-                    i++;
-                } else if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
+            var result = [];
+            var current = '';
+            var inQuotes = false;
+            for (var i = 0; i < line.length; i++) {
+                var char = line[i];
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
                     result.push(current.trim());
                     current = '';
-                } else {
-                    current += char;
-                }
+                } else current += char;
             }
             result.push(current.trim());
             return result;
         }
 
         function parseCSV(text) {
-            return text
-                .split(/\r?\n/)
-                .map(line => line.trim())
-                .filter(Boolean)
-                .map(parseCSVLine);
+            var lines = text.split(/\r?\n/);
+            var results = [];
+            for (var i = 0; i < lines.length; i++) {
+                if (lines[i].trim()) results.push(parseCSVLine(lines[i]));
+            }
+            return results;
         }
 
         function timeToMinutes(timeStr) {
             if (!timeStr) return 0;
-            const clean = String(timeStr).trim();
-            const parts = clean.split(':').map(Number);
-            if (parts.length !== 2 || parts.some(Number.isNaN)) return 0;
-            let [hours, minutes] = parts;
+            var parts = timeStr.split(':');
+            var hours = parseInt(parts[0]);
+            var minutes = parseInt(parts[1]);
             if (hours < 7 && hours > 0) hours += 12;
             return hours * 60 + minutes;
         }
 
         function getCurrentTimeInMinutes() {
-            const now = new Date();
+            var now = new Date();
             return now.getHours() * 60 + now.getMinutes();
         }
 
         function getCurrentAndNextPeriod() {
-            const currentTimeInMinutes = getCurrentTimeInMinutes();
-            const isSecondShift = currentTimeInMinutes >= 12 * 60;
+            var currentTimeInMinutes = getCurrentTimeInMinutes();
+            var isSecondShift = currentTimeInMinutes >= 12 * 60;
+            var currentPeriod = null;
+            var nextPeriod = null;
 
-            let currentPeriod = null;
-            let nextPeriod = null;
-
-            for (let i = 0; i < timeTable.length; i++) {
-                const period = timeTable[i];
-                const timeSlot = period.times[isSecondShift ? 1 : 0];
-                const startMinutes = timeToMinutes(timeSlot.start);
-                const endMinutes = timeToMinutes(timeSlot.end);
-
-                if (currentTimeInMinutes >= startMinutes && currentTimeInMinutes < endMinutes) {
-                    currentPeriod = { index: i, period: period.period, start: timeSlot.start, end: timeSlot.end, shift: isSecondShift ? 2 : 1 };
+            for (var i = 0; i < timeTable.length; i++) {
+                var period = timeTable[i];
+                var timeSlot = period.times[isSecondShift ? 1 : 0];
+                var start = timeToMinutes(timeSlot.start);
+                var end = timeToMinutes(timeSlot.end);
+                if (currentTimeInMinutes >= start && currentTimeInMinutes < end) {
+                    currentPeriod = { index: i, period: period.period, start: timeSlot.start, end: timeSlot.end };
                     break;
                 }
             }
-
-            if (currentPeriod) {
-                for (let i = currentPeriod.index + 1; i < timeTable.length; i++) {
-                    const period = timeTable[i];
-                    const timeSlot = period.times[isSecondShift ? 1 : 0];
-                    const startMinutes = timeToMinutes(timeSlot.start);
-                    if (startMinutes > currentTimeInMinutes) {
-                        nextPeriod = { index: i, period: period.period, start: timeSlot.start, end: timeSlot.end, shift: isSecondShift ? 2 : 1 };
-                        break;
-                    }
-                }
+            if (currentPeriod && timeTable[currentPeriod.index + 1]) {
+                var nextP = timeTable[currentPeriod.index + 1];
+                var nextSlot = nextP.times[isSecondShift ? 1 : 0];
+                nextPeriod = { period: nextP.period, start: nextSlot.start };
             }
-
-            return { currentPeriod, nextPeriod };
+            return { currentPeriod: currentPeriod, nextPeriod: nextPeriod };
         }
 
         function updateCurrentTime() {
-            const now = new Date();
+            var now = new Date();
             document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        function updateSafetyMarquee(notes = []) {
-            const safetyContainer = document.getElementById('safetyMarqueeContainer');
-            const messages = notes.length ? notes : [DEFAULT_SAFETY_MSG];
-
-            const content = messages.map(msg => `
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ ${escapeHTML(msg)} ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
-            `).join('');
-
+        function updateSafetyMarquee(notes) {
+            var safetyContainer = document.getElementById('safetyMarqueeContainer');
+            var messages = (notes && notes.length) ? notes : [DEFAULT_SAFETY_MSG];
+            var content = '';
+            for (var i = 0; i < messages.length; i++) {
+                content += '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
+                           '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
+                           '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
+            }
             safetyContainer.innerHTML = content + content;
         }
 
         function updateMarquee() {
-            const marqueeContainer = document.getElementById('marqueeContainer');
-            const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
+            var marqueeContainer = document.getElementById('marqueeContainer');
+            var data = getCurrentAndNextPeriod();
+            var current = data.currentPeriod;
+            var next = data.nextPeriod;
 
-            if (!currentPeriod) {
-                marqueeContainer.innerHTML = `
-                    <div class="marquee-item">
-                        <span class="marquee-icon"><i class="fas fa-clock"></i></span>
-                        <span class="marquee-text">لا توجد حصة حالياً</span>
-                    </div>
-                    <div class="marquee-item">
-                        <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
-                        <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? escapeHTML(nextPeriod.period) : 'غير معروفة'}</span>
-                    </div>
-                    <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
-                `;
+            if (!current) {
+                marqueeContainer.innerHTML = '<div class="marquee-item">لا توجد حصة حالياً</div>';
                 return;
             }
 
-            const currentBooking = currentBookings[currentPeriod.period];
-            const nextBooking = nextPeriod ? currentBookings[nextPeriod.period] : null;
-            const currentLesson = currentBooking ? currentBooking.lesson : 'لا يوجد حجز';
-            const nextLesson = nextBooking ? nextBooking.lesson : 'لا يوجد حجز';
+            var curBook = currentBookings[current.period];
+            var curLesson = curBook ? curBook.lesson : 'متاح';
+            var nextBook = next ? currentBookings[next.period] : null;
+            var nextLesson = nextBook ? nextBook.lesson : 'متاح';
 
-            const item = `
-                <div class="marquee-item current">
-                    <span class="marquee-icon"><i class="fas fa-play-circle"></i></span>
-                    <span class="marquee-text">🔴 الحصة الحالية: ${escapeHTML(currentPeriod.period)} | عنوان الدرس: ${escapeHTML(currentLesson)}</span>
-                </div>
-                <div class="marquee-item next">
-                    <span class="marquee-icon"><i class="fas fa-hourglass-half"></i></span>
-                    <span class="marquee-text">⏳ الحصة التالية: ${nextPeriod ? escapeHTML(nextPeriod.period) : 'لا توجد'} | عنوان الدرس: ${escapeHTML(nextLesson)}</span>
-                </div>
-                <span style="color: #ffd700; font-size: 1.5rem;">✦</span>
-            `;
-
-            marqueeContainer.innerHTML = item.repeat(3);
+            var item = '<div class="marquee-item current">🔴 الحصة: ' + escapeHTML(current.period) + ' | الدرس: ' + escapeHTML(curLesson) + '</div>' +
+                       '<div class="marquee-item next">⏳ التالية: ' + (next ? escapeHTML(next.period) : '---') + ' | الدرس: ' + escapeHTML(nextLesson) + '</div>';
+            marqueeContainer.innerHTML = item + item + item;
         }
 
-        function startAutoScroll() {
-            const wrapper = document.getElementById('tableWrapper');
-            if (!wrapper) return;
+        function renderSchedule(bookings) {
+            var now = new Date();
+            var isSecondShift = now.getHours() >= 12;
+            var data = getCurrentAndNextPeriod();
+            var bookedCount = 0;
+            var html = '<table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
 
-            if (scrollInterval) clearInterval(scrollInterval);
+            for (var i = 0; i < timeTable.length; i++) {
+                var period = timeTable[i];
+                var timeSlot = period.times[isSecondShift ? 1 : 0];
+                var booking = bookings[period.period];
+                if (booking && period.period !== 'الطابور' && period.period !== 'الفسحة') bookedCount++;
 
-            let scrollAmount = 0;
-            let direction = 1;
+                var rowClass = '';
+                if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
+                else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
+                else if (booking) rowClass = 'booked';
 
-            scrollInterval = setInterval(() => {
-                const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
-                if (maxScroll <= 0) return;
-
-                scrollAmount += direction * 0.8;
-
-                if (scrollAmount > maxScroll) {
-                    scrollAmount = maxScroll;
-                    direction = 0;
-                    setTimeout(() => { direction = -1; }, 3000);
-                } else if (scrollAmount < 0) {
-                    scrollAmount = 0;
-                    direction = 0;
-                    setTimeout(() => { direction = 1; }, 3000);
-                }
-
-                wrapper.scrollTop = scrollAmount;
-            }, 30);
-        }
-
-        function buildBookingsMap(rows, today) {
-            const bookingsByPeriod = {};
-            const safetyNotes = new Set();
-
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (row.length < 4) continue;
-
-                const rowDate = row[2];
-                const rowPeriod = row[3];
-
-                if (rowDate !== today) continue;
-
-                bookingsByPeriod[rowPeriod] = {
-                    teacher: row[4] || "غير محدد",
-                    subject: row[5] || "غير محدد",
-                    grade: row[6] || "غير محدد",
-                    lesson: row[7] || "غير محدد"
-                };
-
-                const note = (row[8] || '').trim();
-                if (note) safetyNotes.add(note);
-            }
-
-            return { bookingsByPeriod, safetyNotes: [...safetyNotes] };
-        }
-
-        function renderSchedule(bookingsByPeriod) {
-            const now = new Date();
-            const isSecondShift = now.getHours() >= 12;
-            const actualPeriods = timeTable.filter(p => p.period !== 'الطابور' && p.period !== 'الفسحة');
-            const { currentPeriod, nextPeriod } = getCurrentAndNextPeriod();
-
-            let bookedCount = 0;
-            let html = `
-                <table class="schedule-table">
-                    <thead>
-                        <tr>
-                            <th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th>
-                            <th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            timeTable.forEach((period, index) => {
-                const timeSlot = period.times[isSecondShift ? 1 : 0];
-                const timeDisplay = `${timeSlot.start} - ${timeSlot.end}`;
-                const booking = bookingsByPeriod[period.period] || null;
-
-                if (booking && period.period !== 'الطابور' && period.period !== 'الفسحة') {
-                    bookedCount++;
-                }
-
-                let rowClass = '';
-                if (currentPeriod && currentPeriod.index === index) {
-                    rowClass = 'current-period';
-                } else if (nextPeriod && nextPeriod.index === index) {
-                    rowClass = 'next-period';
-                } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    rowClass = 'break-row';
-                } else if (booking) {
-                    rowClass = 'booked';
-                }
-
-                html += `<tr class="${rowClass}">`;
-                html += `<td>${index + 1}</td>`;
-                html += `<td><strong>${escapeHTML(period.period)}</strong></td>`;
-                html += `<td><span class="time-badge"><i class="fas fa-clock"></i> ${escapeHTML(timeDisplay)}</span></td>`;
-                html += `<td>${period.duration} د</td>`;
+                html += '<tr class="' + rowClass + '"><td>' + (i + 1) + '</td><td><strong>' + period.period + '</strong></td>' +
+                        '<td><span class="time-badge">' + timeSlot.start + ' - ' + timeSlot.end + '</span></td><td>' + period.duration + ' د</td>';
 
                 if (booking) {
-                    html += `<td>${escapeHTML(booking.grade)}</td>`;
-                    html += `<td>${escapeHTML(booking.subject)}</td>`;
-                    html += `<td><i class="fas fa-user-tie"></i> ${escapeHTML(booking.teacher)}</td>`;
-                    html += `<td><span class="experiment-badge"><i class="fas fa-flask"></i> ${escapeHTML(booking.lesson)}</span></td>`;
+                    html += '<td>' + escapeHTML(booking.grade) + '</td><td>' + escapeHTML(booking.subject) + '</td>' +
+                            '<td>' + escapeHTML(booking.teacher) + '</td><td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    html += `<td colspan="4" class="empty-cell"><i class="fas fa-coffee"></i> استراحة</td>`;
+                    html += '<td colspan="4" class="empty-cell">استراحة</td>';
                 } else {
-                    html += `<td colspan="4" class="empty-cell"><i class="fas fa-check-circle"></i> متاح للحجز</td>`;
+                    html += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
                 }
-
-                html += `</tr>`;
-            });
-
-            html += `</tbody></table>`;
-
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
             document.getElementById('tableContent').innerHTML = html;
             document.getElementById('bookedCount').textContent = bookedCount;
-            document.getElementById('emptyCount').textContent = actualPeriods.length - bookedCount;
-            document.getElementById('totalPeriods').textContent = actualPeriods.length;
+            document.getElementById('emptyCount').textContent = 8 - bookedCount;
+        }
 
-            setTimeout(() => {
-                const wrapper = document.getElementById('tableWrapper');
-                const rows = wrapper.querySelectorAll('tr');
-                for (const row of rows) {
-                    if (row.classList.contains('current-period')) {
-                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        break;
+        // دالة جلب البيانات باستخدام XMLHttpRequest (المتوافقة مع الشاشات)
+        function fetchSchedule() {
+            var xhr = new XMLHttpRequest();
+            // إضافة التوقيت لمنع التخزين المؤقت (Cache)
+            var finalUrl = csvUrl + '&t=' + new Date().getTime();
+            xhr.open('GET', finalUrl, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var data = xhr.responseText;
+                    var rows = parseCSV(data);
+                    var now = new Date();
+                    // تنسيق التاريخ يدوي لضمان التوافق YYYY/MM/DD
+                    var today = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0');
+                    
+                    var bookings = {};
+                    var notes = [];
+                    for (var i = 1; i < rows.length; i++) {
+                        if (rows[i][2] === today) {
+                            bookings[rows[i][3]] = { teacher: rows[i][4], subject: rows[i][5], grade: rows[i][6], lesson: rows[i][7] };
+                            if (rows[i][8]) notes.push(rows[i][8]);
+                        }
                     }
+                    currentBookings = bookings;
+                    renderSchedule(bookings);
+                    updateSafetyMarquee(notes);
+                    updateMarquee();
+                    localStorage.setItem('lastData', data);
                 }
-            }, 500);
-
-            setTimeout(startAutoScroll, AUTO_SCROLL_DELAY);
+            };
+            xhr.send();
         }
 
-        async function fetchSchedule() {
-            try {
-                const response = await fetch(csvUrl, { cache: 'no-store' });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-                const data = await response.text();
-                const rows = parseCSV(data);
-
-                const now = new Date();
-                const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-
-                updateCurrentTime();
-
-                const { bookingsByPeriod, safetyNotes } = buildBookingsMap(rows, today);
-                currentBookings = bookingsByPeriod;
-
-                renderSchedule(bookingsByPeriod);
-                updateSafetyMarquee(safetyNotes);
-                updateMarquee();
-
-                localStorage.setItem('lastScheduleData', data);
-                localStorage.setItem('lastScheduleTime', new Date().toISOString());
-            } catch (error) {
-                console.error('خطأ في تحميل البيانات:', error);
-                document.getElementById('tableContent').innerHTML = `
-                    <div class="error">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div>خطأ في تحميل البيانات...</div>
-                    </div>
-                `;
-
-                const cached = localStorage.getItem('lastScheduleData');
-                if (cached) {
-                    try {
-                        const rows = parseCSV(cached);
-                        const now = new Date();
-                        const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
-                        const { bookingsByPeriod, safetyNotes } = buildBookingsMap(rows, today);
-                        currentBookings = bookingsByPeriod;
-                        renderSchedule(bookingsByPeriod);
-                        updateSafetyMarquee(safetyNotes);
-                        updateMarquee();
-                    } catch (cachedError) {
-                        console.error('فشل في قراءة البيانات المؤقتة:', cachedError);
-                        updateSafetyMarquee([]);
-                    }
-                } else {
-                    updateSafetyMarquee([]);
-                }
-            }
-        }
-
-        function requestFullScreen() {
-            const docElm = document.documentElement;
-            if (docElm.requestFullscreen) docElm.requestFullscreen();
-            else if (docElm.mozRequestFullScreen) docElm.mozRequestFullScreen();
-            else if (docElm.webkitRequestFullScreen) docElm.webkitRequestFullScreen();
-            else if (docElm.msRequestFullscreen) docElm.msRequestFullscreen();
-        }
-
-        document.addEventListener('click', () => {
-            if (!fullScreenRequested) {
-                requestFullScreen();
-                fullScreenRequested = true;
-            }
-        });
-
-        document.addEventListener('keydown', () => {
-            if (!fullScreenRequested) {
-                requestFullScreen();
-                fullScreenRequested = true;
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateSafetyMarquee([]);
+        // تشغيل النظام
+        document.addEventListener('DOMContentLoaded', function() {
             updateCurrentTime();
-            updateMarquee();
             fetchSchedule();
-
-            setTimeout(() => {
-                requestFullScreen();
-                fullScreenRequested = true;
-            }, 1000);
-
-            setInterval(() => {
-                updateCurrentTime();
-                updateMarquee();
-            }, 1000);
-
+            setInterval(updateCurrentTime, 1000);
             setInterval(fetchSchedule, REFRESH_INTERVAL);
         });
     </script>
