@@ -124,29 +124,81 @@
             border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 4px;
         }
 
-        .periods-marquee, .safety-marquee {
+        /* شريط الحصص - خط عريض ومكبر */
+        .periods-marquee {
             border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
+            background: linear-gradient(135deg, #2c3e50, #34495e); padding: 12px 15px;
         }
-        .periods-marquee { background: linear-gradient(135deg, #2c3e50, #34495e); padding: 8px 15px; }
-        .safety-marquee { background: linear-gradient(135deg, #e74c3c, #c0392b); padding: 10px 15px; margin: 5px 0; }
-
-        .marquee-container, .safety-marquee-container {
+        
+        .marquee-container {
             display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
+            animation: scrollLeftToRight 140s linear infinite;
         }
-        .marquee-container { animation: scrollLeftToRight 140s linear infinite; }
-        .safety-marquee-container { animation: scrollSafety 160s linear infinite; gap: 20px; }
         
         @keyframes scrollLeftToRight { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
+        
         .marquee-item {
-            display: inline-flex; align-items: center; gap: 12px; padding: 5px 18px; border-radius: 35px;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-size: 0.95rem;
+            display: inline-flex; align-items: center; gap: 12px; padding: 8px 25px; border-radius: 35px;
+            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
+            font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;
             color: white;
         }
-        .marquee-item.current { background: linear-gradient(135deg, #ffd700, #f39c12); color: #2c3e50; font-weight: 700; }
-        .marquee-item.next { background: linear-gradient(135deg, #87CEEB, #00BFFF); color: #2c3e50; font-weight: 600; }
+        .marquee-item.current { 
+            background: linear-gradient(135deg, #ffd700, #f39c12); 
+            color: #1a1a2e; 
+            font-weight: 900;
+            font-size: 1.35rem;
+            border: 2px solid #fff;
+        }
+        .marquee-item.next { 
+            background: linear-gradient(135deg, #87CEEB, #00BFFF); 
+            color: #1a1a2e;
+            font-weight: 900;
+            font-size: 1.35rem;
+            border: 2px solid #fff;
+        }
+        .marquee-item i { font-size: 1.3rem; }
+
+        /* شريط الأمان / التحذيرات - خلفية جديدة وخط عريض جداً ومكبر */
+        .safety-marquee {
+            border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 2px solid #ffcc00;
+            background: linear-gradient(135deg, #c0392b, #e74c3c, #c0392b);
+            padding: 14px 15px;
+            margin: 5px 0;
+            animation: pulseBg 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseBg {
+            0% { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+            50% { background: linear-gradient(135deg, #e74c3c, #ff6b6b); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
+            100% { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+        }
+        
+        .safety-marquee-container {
+            display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
+            animation: scrollSafety 160s linear infinite;
+        }
+        @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        
+        .safety-icon {
+            width: 48px; height: 48px; background: rgba(0,0,0,0.3); border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #ffd700;
+            flex-shrink: 0;
+            margin: 0 5px;
+        }
+        .safety-text {
+            font-size: 1.6rem;
+            font-weight: 900;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            color: #ffffff;
+            letter-spacing: 1px;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 15px;
+            border-radius: 40px;
+            display: inline-block;
+        }
 
         .stats-cards {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; flex-shrink: 0;
@@ -163,7 +215,6 @@
             width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; flex-shrink: 0;
         }
-        /* بطاقة النسبة المئوية - لون مميز */
         .stat-card.percentage-card .stat-icon {
             background: linear-gradient(135deg, #f39c12, #e67e22);
         }
@@ -171,7 +222,6 @@
         .stat-details h3 { color: #7f8c8d; font-size: clamp(0.8rem, 1.3vw, 1rem); font-weight: 500; margin: 0; }
         .stat-number { color: #2c3e50; font-size: clamp(1.3rem, 2.2vw, 1.8rem); font-weight: 800; line-height: 1; }
         
-        /* شريط النسبة الدائري */
         .progress-circle-container {
             display: flex;
             align-items: center;
@@ -206,12 +256,13 @@
             color: #2c3e50;
         }
 
+        /* حاوية الجدول - تمتد لطول الشاشة */
         .table-container {
-            border-radius: 20px; padding: 15px; border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 20px; padding: 0; border: 2px solid rgba(255,255,255,0.8);
             flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
+            min-height: 0;
         }
         
-        /* إضافة حركة التمرير العمودية البطيئة */
         .table-responsive {
             width: 100%;
             height: 100%;
@@ -219,9 +270,10 @@
             overflow-x: hidden;
             scrollbar-width: thin;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
         
-        /* إخفاء شريط التمرير مع الاحتفاظ بالوظيفة */
         .table-responsive::-webkit-scrollbar {
             width: 6px;
         }
@@ -234,36 +286,27 @@
             border-radius: 10px;
         }
         
-        /* أنيميشن الحركة العمودية التلقائية */
-        @keyframes slowScrollUp {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-100%); }
-        }
-        
-        .auto-scroll {
-            animation: slowScrollUp 60s linear infinite;
-        }
-        
-        /* إيقاف الحركة مؤقتاً عند المرور بالماوس */
-        .table-responsive:hover .auto-scroll {
-            animation-play-state: paused;
-        }
-        
-        /* نسخة مكررة للجدول لضمان استمرارية الحركة */
-        .table-content-wrapper {
-            position: relative;
-        }
-        .table-clone {
-            margin-top: 20px;
-        }
-
+        /* رأس الجدول ثابت - لا يتحرك */
         .schedule-table {
-            width: 100%; border-collapse: separate; border-spacing: 0 6px; table-layout: fixed;
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0 6px; 
+            table-layout: fixed;
         }
+        
+        .schedule-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+        }
+        
         .schedule-table th {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white; padding: 12px 8px; position: sticky; top: 0; z-index: 10;
+            color: white; 
+            padding: 12px 8px; 
             font-size: clamp(0.8rem, 1.3vw, 1rem);
+            font-weight: 700;
         }
         .schedule-table th:first-child { border-radius: 12px 0 0 12px; width: 45px; }
         .schedule-table th:nth-child(2) { width: 90px; }
@@ -275,11 +318,41 @@
         .schedule-table th:last-child { border-radius: 0 12px 12px 0; width: auto; }
 
         .schedule-table td {
-            background: white; padding: 10px 6px; text-align: center;
-            font-size: clamp(0.8rem, 1.3vw, 1rem); border: 1px solid rgba(0,0,0,0.05);
+            background: white; 
+            padding: 10px 6px; 
+            text-align: center;
+            font-size: clamp(0.8rem, 1.3vw, 1rem); 
+            border: 1px solid rgba(0,0,0,0.05);
         }
         .schedule-table td:first-child { border-radius: 12px 0 0 12px; font-weight: bold; background: linear-gradient(to left, white, #f0f7ff); }
         .schedule-table td:last-child { border-radius: 0 12px 12px 0; }
+
+        /* الحاوية المتحركة - تحتوي فقط على tbody */
+        .scrollable-tbody {
+            display: block;
+            overflow-y: hidden;
+        }
+        
+        .auto-scroll {
+            animation: slowScrollUp 60s linear infinite;
+        }
+        
+        @keyframes slowScrollUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+        
+        .table-responsive:hover .auto-scroll {
+            animation-play-state: paused;
+        }
+        
+        /* إعادة تعيين عرض الجدول */
+        .schedule-table thead,
+        .schedule-table tbody {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
 
         .current-period { background: var(--current-period-bg) !important; border-right: 4px solid var(--current-period-color) !important; }
         .next-period { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
@@ -411,7 +484,7 @@
 
     <script>
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
+        var DEFAULT_SAFETY_MSG = '⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️';
         var REFRESH_INTERVAL = 300000;
 
         var timeTable = [
@@ -428,7 +501,6 @@
         ];
 
         var currentBookings = {};
-        var scrollInterval = null;
 
         function escapeHTML(str) {
             if (!str) return '';
@@ -546,14 +618,12 @@
             var percentage = total > 0 ? Math.round((booked / total) * 100) : 0;
             document.getElementById('percentageValue').textContent = percentage + '%';
             
-            // تحديث الدائرة
             var radius = 16;
             var circumference = 2 * Math.PI * radius;
             var offset = circumference - (percentage / 100) * circumference;
             var fillCircle = document.querySelector('#progressCircle .progress-fill');
             if (fillCircle) {
                 fillCircle.style.strokeDashoffset = offset;
-                // تغيير اللون حسب النسبة
                 if (percentage >= 70) fillCircle.style.stroke = '#27ae60';
                 else if (percentage >= 40) fillCircle.style.stroke = '#f39c12';
                 else fillCircle.style.stroke = '#e74c3c';
@@ -567,15 +637,21 @@
             var bookedCount = 0;
             var totalBookable = 0;
             
-            var html = '<div class="table-content-wrapper"><table class="schedule-table"><thead><tr><th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th></tr></thead><tbody>';
-            var cloneHtml = '';
-
+            // بناء رأس الجدول (ثابت)
+            var html = '<table class="schedule-table">';
+            html += '<thead><tr>';
+            html += '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>';
+            html += '</tr></thead>';
+            
+            // بناء جسم الجدول (المتحرك)
+            html += '<tbody class="scrollable-tbody auto-scroll" id="movableTbody">';
+            
+            // النسخة الأصلية
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var timeSlot = period.times[isSecondShift ? 1 : 0];
                 var booking = bookings[period.period];
                 
-                // حساب الحجوزات (لا نحسب الطابور والفسحة)
                 if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
                     totalBookable++;
                     if (booking) bookedCount++;
@@ -586,12 +662,17 @@
                 else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
                 else if (booking) rowClass = 'booked';
 
-                html += '<tr class="' + rowClass + '"><tr>' + (i + 1) + '</td><tr><strong>' + period.period + '</strong></td>' +
-                        '<td><span class="time-badge">' + timeSlot.start + ' - ' + timeSlot.end + '</span></td><td>' + period.duration + ' د</td>';
+                html += '<tr class="' + rowClass + '">';
+                html += '<td>' + (i + 1) + '</td>';
+                html += '<td><strong>' + period.period + '</strong></td>';
+                html += '<td><span class="time-badge">' + timeSlot.start + ' - ' + timeSlot.end + '</span></td>';
+                html += '<td>' + period.duration + ' د</td>';
 
                 if (booking) {
-                    html += '<td>' + escapeHTML(booking.grade) + '</td><td>' + escapeHTML(booking.subject) + '</td>' +
-                            '<td>' + escapeHTML(booking.teacher) + '</td><td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
+                    html += '<td>' + escapeHTML(booking.grade) + '</td>';
+                    html += '<td>' + escapeHTML(booking.subject) + '</td>';
+                    html += '<td>' + escapeHTML(booking.teacher) + '</td>';
+                    html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
                     html += '<td colspan="4" class="empty-cell">استراحة</td>';
                 } else {
@@ -599,25 +680,45 @@
                 }
                 html += '</tr>';
             }
-            html += '</tbody></table></div>';
             
-            // نسخة مكررة للجدول للحصول على حركة مستمرة وسلسة
-            cloneHtml = '<div class="table-content-wrapper table-clone">' + html + '</div>';
+            // إضافة نسخة مكررة لاستمرارية الحركة
+            for (var i = 0; i < timeTable.length; i++) {
+                var period = timeTable[i];
+                var timeSlot = period.times[isSecondShift ? 1 : 0];
+                var booking = bookings[period.period];
+
+                var rowClass = '';
+                if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
+                else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
+                else if (booking) rowClass = 'booked';
+
+                html += '<tr class="' + rowClass + '">';
+                html += '<td>' + (i + 1) + '</td>';
+                html += '<td><strong>' + period.period + '</strong></td>';
+                html += '<td><span class="time-badge">' + timeSlot.start + ' - ' + timeSlot.end + '</span></td>';
+                html += '<td>' + period.duration + ' د</td>';
+
+                if (booking) {
+                    html += '<td>' + escapeHTML(booking.grade) + '</td>';
+                    html += '<td>' + escapeHTML(booking.subject) + '</td>';
+                    html += '<td>' + escapeHTML(booking.teacher) + '</td>';
+                    html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
+                } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                    html += '<td colspan="4" class="empty-cell">استراحة</td>';
+                } else {
+                    html += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
+                }
+                html += '</tr>';
+            }
             
-            document.getElementById('tableContent').innerHTML = html + cloneHtml;
+            html += '</tbody></table>';
+            
+            document.getElementById('tableContent').innerHTML = html;
             document.getElementById('bookedCount').textContent = bookedCount;
             document.getElementById('emptyCount').textContent = totalBookable - bookedCount;
             document.getElementById('totalPeriods').textContent = totalBookable;
             
-            // تحديث النسبة المئوية
             updatePercentage(bookedCount, totalBookable);
-            
-            // إضافة كلاس auto-scroll لعنصر التمرير
-            var scrollDiv = document.querySelector('.table-responsive');
-            if (scrollDiv && !scrollDiv.querySelector('.auto-scroll')) {
-                var contentWrapper = scrollDiv.querySelector('.table-content-wrapper');
-                if (contentWrapper) contentWrapper.classList.add('auto-scroll');
-            }
         }
 
         function fetchSchedule() {
