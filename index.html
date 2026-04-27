@@ -124,7 +124,6 @@
             border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 4px;
         }
 
-        /* شريط الحصص - خط عريض ومكبر */
         .periods-marquee {
             border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
@@ -160,7 +159,6 @@
         }
         .marquee-item i { font-size: 1.3rem; }
 
-        /* شريط الأمان / التحذيرات - خلفية جديدة وخط عريض جداً ومكبر */
         .safety-marquee {
             border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 2px solid #ffcc00;
@@ -256,7 +254,6 @@
             color: #2c3e50;
         }
 
-        /* حاوية الجدول - تمتد لطول الشاشة */
         .table-container {
             border-radius: 20px; padding: 0; border: 2px solid rgba(255,255,255,0.8);
             flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
@@ -267,7 +264,7 @@
             width: 100%;
             height: 100%;
             overflow-y: auto;
-            overflow-x: hidden;
+            overflow-x: auto;
             scrollbar-width: thin;
             position: relative;
             display: flex;
@@ -276,6 +273,7 @@
         
         .table-responsive::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
         .table-responsive::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.1);
@@ -286,12 +284,12 @@
             border-radius: 10px;
         }
         
-        /* رأس الجدول ثابت - لا يتحرك */
         .schedule-table {
             width: 100%; 
             border-collapse: separate; 
             border-spacing: 0 6px; 
-            table-layout: fixed;
+            table-layout: auto;
+            min-width: 600px;
         }
         
         .schedule-table thead {
@@ -307,38 +305,34 @@
             padding: 12px 8px; 
             font-size: clamp(0.8rem, 1.3vw, 1rem);
             font-weight: 700;
+            white-space: nowrap;
         }
-
-        /* ضبط عرض الأعمدة بحيث تتطابق العناوين مع خلايا الجدول */
-        .schedule-table th:nth-child(1),
-        .schedule-table td:nth-child(1) { width: 90px; }
-
-        .schedule-table th:nth-child(2),
-        .schedule-table td:nth-child(2) { width: 120px; }
-
-        .schedule-table th:nth-child(3),
-        .schedule-table td:nth-child(3) { width: 110px; }
-
-        .schedule-table th:nth-child(4),
-        .schedule-table td:nth-child(4) { width: 140px; }
-
-        .schedule-table th:nth-child(5),
-        .schedule-table td:nth-child(5) { width: auto; }
-
-        .schedule-table th:first-child { border-radius: 12px 0 0 12px; }
-        .schedule-table th:last-child { border-radius: 0 12px 12px 0; }
+        /* ضبط عرض الأعمدة بما يتناسب مع المحتوى الجديد */
+        .schedule-table th:nth-child(1) { width: 20%; }  /* الحصة */
+        .schedule-table th:nth-child(2) { width: 15%; }  /* الصف */
+        .schedule-table th:nth-child(3) { width: 20%; }  /* المادة */
+        .schedule-table th:nth-child(4) { width: 20%; }  /* المعلمة */
+        .schedule-table th:nth-child(5) { width: 25%; }  /* عنوان الدرس */
 
         .schedule-table td {
             background: white; 
-            padding: 10px 6px; 
+            padding: 10px 8px; 
             text-align: center;
             font-size: clamp(0.8rem, 1.3vw, 1rem); 
             border: 1px solid rgba(0,0,0,0.05);
+            white-space: nowrap;
         }
-        .schedule-table td:first-child { border-radius: 12px 0 0 12px; font-weight: bold; background: linear-gradient(to left, white, #f0f7ff); }
-        .schedule-table td:last-child { border-radius: 0 12px 12px 0; }
+        .schedule-table td:first-child { 
+            border-radius: 12px 0 0 12px; 
+            font-weight: bold; 
+            background: linear-gradient(to left, white, #f0f7ff);
+        }
+        .schedule-table td:last-child { 
+            border-radius: 0 12px 12px 0;
+            white-space: normal;
+            word-break: break-word;
+        }
 
-        /* الحاوية المتحركة - تحتوي فقط على tbody */
         .scrollable-tbody {
             display: block;
             overflow-y: hidden;
@@ -357,7 +351,6 @@
             animation-play-state: paused;
         }
         
-        /* إعادة تعيين عرض الجدول */
         .schedule-table thead,
         .schedule-table tbody {
             display: table;
@@ -368,21 +361,16 @@
         .current-period { background: var(--current-period-bg) !important; border-right: 4px solid var(--current-period-color) !important; }
         .next-period { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
 
-        .time-badge {
-            display: inline-block; background: rgba(52, 152, 219, 0.1); padding: 3px 6px;
-            border-radius: 15px; font-size: 0.75rem; color: var(--primary-color); white-space: nowrap;
-        }
-
         .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; }
         .booked td { background: transparent !important; color: white !important; }
-        .booked .time-badge, .booked .experiment-badge {
-            background: rgba(255,255,255,0.2); color: white; border-color: white;
-        }
 
         .experiment-badge {
             display: inline-block; background: rgba(52, 152, 219, 0.1); padding: 4px 10px; border-radius: 25px;
             border: 1px solid var(--primary-color); color: var(--primary-color); font-size: 0.8rem;
             max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .booked .experiment-badge {
+            background: rgba(255,255,255,0.2); color: white; border-color: white;
         }
 
         .empty-cell { color: #95a5a6; font-style: italic; background: #f8f9fa !important; }
@@ -519,7 +507,7 @@
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
-                .replace(/\"/g, '&quot;')
+                .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
         }
 
@@ -648,16 +636,14 @@
             var bookedCount = 0;
             var totalBookable = 0;
             
-            // بناء رأس الجدول (ثابت)
             var html = '<table class="schedule-table">';
+            // رأس الجدول الجديد (5 أعمدة فقط)
             html += '<thead><tr>';
             html += '<th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>';
             html += '</tr></thead>';
             
-            // بناء جسم الجدول (المتحرك)
             html += '<tbody class="scrollable-tbody auto-scroll" id="movableTbody">';
             
-            // النسخة الأصلية
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var booking = bookings[period.period];
@@ -674,21 +660,21 @@
 
                 html += '<tr class="' + rowClass + '">';
                 html += '<td><strong>' + period.period + '</strong></td>';
-
+                
                 if (booking) {
                     html += '<td>' + escapeHTML(booking.grade) + '</td>';
                     html += '<td>' + escapeHTML(booking.subject) + '</td>';
                     html += '<td>' + escapeHTML(booking.teacher) + '</td>';
                     html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    html += '<td colspan="4" class="empty-cell">استراحة</td>';
+                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
                 } else {
-                    html += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
+                    html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
                 }
                 html += '</tr>';
             }
             
-            // إضافة نسخة مكررة لاستمرارية الحركة
+            // نسخة مكررة لاستمرارية الحركة
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var booking = bookings[period.period];
@@ -700,21 +686,21 @@
 
                 html += '<tr class="' + rowClass + '">';
                 html += '<td><strong>' + period.period + '</strong></td>';
-
+                
                 if (booking) {
                     html += '<td>' + escapeHTML(booking.grade) + '</td>';
                     html += '<td>' + escapeHTML(booking.subject) + '</td>';
                     html += '<td>' + escapeHTML(booking.teacher) + '</td>';
                     html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    html += '<td colspan="4" class="empty-cell">استراحة</td>';
+                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
                 } else {
-                    html += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
+                    html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
                 }
                 html += '</tr>';
             }
             
-            html += '</tbody></table>';
+            html += '</tbody><table>';
             
             document.getElementById('tableContent').innerHTML = html;
             document.getElementById('bookedCount').textContent = bookedCount;
