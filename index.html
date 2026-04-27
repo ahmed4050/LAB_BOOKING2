@@ -308,11 +308,25 @@
             font-size: clamp(0.8rem, 1.3vw, 1rem);
             font-weight: 700;
         }
-        .schedule-table th:first-child { border-radius: 12px 0 0 12px; width: 90px; }
-        .schedule-table th:nth-child(2) { width: 120px; }
-        .schedule-table th:nth-child(3) { width: 100px; }
-        .schedule-table th:nth-child(4) { width: 130px; }
-        .schedule-table th:last-child { border-radius: 0 12px 12px 0; width: auto; }
+
+        /* ضبط عرض الأعمدة بحيث تتطابق العناوين مع خلايا الجدول */
+        .schedule-table th:nth-child(1),
+        .schedule-table td:nth-child(1) { width: 90px; }
+
+        .schedule-table th:nth-child(2),
+        .schedule-table td:nth-child(2) { width: 120px; }
+
+        .schedule-table th:nth-child(3),
+        .schedule-table td:nth-child(3) { width: 110px; }
+
+        .schedule-table th:nth-child(4),
+        .schedule-table td:nth-child(4) { width: 140px; }
+
+        .schedule-table th:nth-child(5),
+        .schedule-table td:nth-child(5) { width: auto; }
+
+        .schedule-table th:first-child { border-radius: 12px 0 0 12px; }
+        .schedule-table th:last-child { border-radius: 0 12px 12px 0; }
 
         .schedule-table td {
             background: white; 
