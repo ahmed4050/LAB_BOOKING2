@@ -308,13 +308,10 @@
             font-size: clamp(0.8rem, 1.3vw, 1rem);
             font-weight: 700;
         }
-        .schedule-table th:first-child { border-radius: 12px 0 0 12px; width: 45px; }
-        .schedule-table th:nth-child(2) { width: 90px; }
-        .schedule-table th:nth-child(3) { width: 110px; }
-        .schedule-table th:nth-child(4) { width: 80px; }
-        .schedule-table th:nth-child(5) { width: 120px; }
-        .schedule-table th:nth-child(6) { width: 100px; }
-        .schedule-table th:nth-child(7) { width: 130px; }
+        .schedule-table th:first-child { border-radius: 12px 0 0 12px; width: 90px; }
+        .schedule-table th:nth-child(2) { width: 120px; }
+        .schedule-table th:nth-child(3) { width: 100px; }
+        .schedule-table th:nth-child(4) { width: 130px; }
         .schedule-table th:last-child { border-radius: 0 12px 12px 0; width: auto; }
 
         .schedule-table td {
@@ -508,7 +505,7 @@
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
+                .replace(/\"/g, '&quot;')
                 .replace(/'/g, '&#39;');
         }
 
@@ -640,7 +637,7 @@
             // بناء رأس الجدول (ثابت)
             var html = '<table class="schedule-table">';
             html += '<thead><tr>';
-            html += '<th>#</th><th>الحصة</th><th>التوقيت</th><th>المدة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>';
+            html += '<th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>';
             html += '</tr></thead>';
             
             // بناء جسم الجدول (المتحرك)
@@ -649,7 +646,6 @@
             // النسخة الأصلية
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
-                var timeSlot = period.times[isSecondShift ? 1 : 0];
                 var booking = bookings[period.period];
                 
                 if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
@@ -663,10 +659,7 @@
                 else if (booking) rowClass = 'booked';
 
                 html += '<tr class="' + rowClass + '">';
-                html += '<td>' + (i + 1) + '</td>';
                 html += '<td><strong>' + period.period + '</strong></td>';
-                html += '<td><span class="time-badge">' + timeSlot.start + ' - ' + timeSlot.end + '</span></td>';
-                html += '<td>' + period.duration + ' د</td>';
 
                 if (booking) {
                     html += '<td>' + escapeHTML(booking.grade) + '</td>';
@@ -684,7 +677,6 @@
             // إضافة نسخة مكررة لاستمرارية الحركة
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
-                var timeSlot = period.times[isSecondShift ? 1 : 0];
                 var booking = bookings[period.period];
 
                 var rowClass = '';
@@ -693,10 +685,7 @@
                 else if (booking) rowClass = 'booked';
 
                 html += '<tr class="' + rowClass + '">';
-                html += '<td>' + (i + 1) + '</td>';
                 html += '<td><strong>' + period.period + '</strong></td>';
-                html += '<td><span class="time-badge">' + timeSlot.start + ' - ' + timeSlot.end + '</span></td>';
-                html += '<td>' + period.duration + ' د</td>';
 
                 if (booking) {
                     html += '<td>' + escapeHTML(booking.grade) + '</td>';
