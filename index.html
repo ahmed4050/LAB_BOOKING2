@@ -24,7 +24,7 @@
             --next-period-bg: rgba(135, 206, 235, 0.1);
             --card-bg: rgba(255, 255, 255, 0.98);
             --shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-            --icon-uniform: #3498db;
+            --icon-uniform: #3498db; /* لون موحد لجميع الأيقونات */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,7 +99,7 @@
         .info-item {
             display: flex; align-items: center; gap: 8px; font-size: 1rem; width: 100%; justify-content: center;
         }
-        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; color: white; }
+        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; color: white; } /* توحيد لون أيقونات الوقت والتاريخ */
 
         .update-badge {
             background: rgba(255, 215, 0, 0.25);
@@ -107,7 +107,7 @@
             display: flex; align-items: center; gap: 8px; font-size: 0.9rem; width: 100%; justify-content: center;
             margin-top: 5px;
         }
-        .update-badge i { animation: spin 3s linear infinite; color: #ffd700; }
+        .update-badge i { animation: spin 3s linear infinite; color: #ffd700; } /* بقاء لون أيقونة التحديث ذهبياً للتمييز */
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .school-name-container { flex: 1; text-align: center; }
@@ -119,6 +119,7 @@
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
             display: flex; align-items: center; justify-content: center; gap: 15px;
         }
+        /* توحيد لون أيقونات عنوان المختبر */
         .school-name h1 i { 
             color: var(--icon-uniform); 
             animation: pulse 2s infinite; 
@@ -150,7 +151,7 @@
             font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;
             color: white;
         }
-        .marquee-item i { color: white; }
+        .marquee-item i { color: white; } /* أيقونات الشريط بيضاء */
         .marquee-item.current { 
             background: linear-gradient(135deg, #ffd700, #f39c12); 
             color: #1a1a2e; 
@@ -193,6 +194,7 @@
             flex-shrink: 0;
             margin: 0 5px;
         }
+        /* أيقونات شريط الأمان بلون ذهبي ثابت */
         .safety-icon i { color: #ffd700; }
         
         .safety-text {
@@ -218,17 +220,19 @@
         }
         .stat-card:hover { transform: translateY(-2px); }
         
+        /* توحيد لون جميع أيقونات البطاقات الأربع إلى اللون الأزرق المحدد */
         .stat-icon {
             width: 50px; height: 50px; 
-            background: linear-gradient(135deg, var(--icon-uniform), #1f618d);
+            background: linear-gradient(135deg, var(--icon-uniform), #1f618d); /* تدرج أزرق موحد */
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center; 
             font-size: 1.5rem; 
             color: white; 
             flex-shrink: 0;
         }
+        /* إزالة التدرج الخاص بنسبة الحجز */
         .stat-card.percentage-card .stat-icon {
-            background: linear-gradient(135deg, var(--icon-uniform), #1f618d);
+            background: linear-gradient(135deg, var(--icon-uniform), #1f618d); /* نفس اللون الأزرق الموحد */
         }
         
         .stat-details { display: flex; flex-direction: column; gap: 5px; flex: 1; }
@@ -406,6 +410,7 @@
         }
         .footer-right { text-align: right; }
         .footer-left { text-align: left; }
+        /* أيقونات التذييل بلون أبيض */
         .footer-content i { color: white; }
 
         .loading, .error { text-align: center; padding: 20px; color: #2c3e50; }
@@ -501,18 +506,17 @@
         var DEFAULT_SAFETY_MSG = '⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️';
         var REFRESH_INTERVAL = 300000;
 
-        // تحديث جدول التوقيت بناءً على الملف المرفق
         var timeTable = [
-            { period: "الطابور", duration: 15, times: [{ start: "7:00", end: "7:15" }, { start: "7:00", end: "7:15" }] },
-            { period: "الأولى", duration: 40, times: [{ start: "7:15", end: "7:55" }, { start: "7:15", end: "7:55" }] },
-            { period: "الثانية", duration: 40, times: [{ start: "8:00", end: "8:40" }, { start: "8:00", end: "8:40" }] },
-            { period: "الثالثة", duration: 40, times: [{ start: "8:45", end: "9:25" }, { start: "8:45", end: "9:25" }] },
-            { period: "الرابعة", duration: 40, times: [{ start: "9:30", end: "10:10" }, { start: "9:30", end: "10:10" }] },
-            { period: "الفسحة", duration: 25, times: [{ start: "10:10", end: "10:35" }, { start: "10:10", end: "10:35" }] },
-            { period: "الخامسة", duration: 40, times: [{ start: "10:35", end: "11:15" }, { start: "10:35", end: "11:15" }] },
-            { period: "السادسة", duration: 40, times: [{ start: "11:20", end: "12:00" }, { start: "11:20", end: "12:00" }] },
-            { period: "السابعة", duration: 40, times: [{ start: "12:05", end: "12:45" }, { start: "12:05", end: "12:45" }] },
-            { period: "الثامنة", duration: 40, times: [{ start: "12:50", end: "13:30" }, { start: "12:50", end: "13:30" }] }
+            { period: "الطابور", duration: 10, times: [{ start: "7:00", end: "7:10" }, { start: "7:10", end: "7:20" }] },
+            { period: "الأولى", duration: 40, times: [{ start: "7:10", end: "7:50" }, { start: "7:20", end: "8:00" }] },
+            { period: "الثانية", duration: 40, times: [{ start: "7:55", end: "8:35" }, { start: "8:05", end: "8:45" }] },
+            { period: "الثالثة", duration: 40, times: [{ start: "8:40", end: "9:20" }, { start: "8:50", end: "9:30" }] },
+            { period: "الرابعة", duration: 40, times: [{ start: "9:25", end: "10:05" }, { start: "9:35", end: "10:15" }] },
+            { period: "الفسحة", duration: 20, times: [{ start: "10:05", end: "10:25" }, { start: "10:15", end: "10:35" }] },
+            { period: "الخامسة", duration: 40, times: [{ start: "10:25", end: "11:05" }, { start: "10:35", end: "11:15" }] },
+            { period: "السادسة", duration: 40, times: [{ start: "11:10", end: "11:50" }, { start: "11:20", end: "12:00" }] },
+            { period: "السابعة", duration: 40, times: [{ start: "11:55", end: "12:35" }, { start: "12:05", end: "12:45" }] },
+            { period: "الثامنة", duration: 40, times: [{ start: "12:40", end: "1:20" }, { start: "12:50", end: "1:30" }] }
         ];
 
         var currentBookings = {};
@@ -557,6 +561,7 @@
             var parts = timeStr.split(':');
             var hours = parseInt(parts[0]);
             var minutes = parseInt(parts[1]);
+            if (hours < 7 && hours > 0) hours += 12;
             return hours * 60 + minutes;
         }
 
@@ -567,13 +572,13 @@
 
         function getCurrentAndNextPeriod() {
             var currentTimeInMinutes = getCurrentTimeInMinutes();
-            // تحديد الفترة (جميع التوقيتات بنفس الفارق في هذا الجدول)
+            var isSecondShift = currentTimeInMinutes >= 12 * 60;
             var currentPeriod = null;
             var nextPeriod = null;
 
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
-                var timeSlot = period.times[0]; // نفس التوقيت للفترتين
+                var timeSlot = period.times[isSecondShift ? 1 : 0];
                 var start = timeToMinutes(timeSlot.start);
                 var end = timeToMinutes(timeSlot.end);
                 if (currentTimeInMinutes >= start && currentTimeInMinutes < end) {
@@ -583,7 +588,7 @@
             }
             if (currentPeriod && timeTable[currentPeriod.index + 1]) {
                 var nextP = timeTable[currentPeriod.index + 1];
-                var nextSlot = nextP.times[0];
+                var nextSlot = nextP.times[isSecondShift ? 1 : 0];
                 nextPeriod = { period: nextP.period, start: nextSlot.start };
             }
             return { currentPeriod: currentPeriod, nextPeriod: nextPeriod };
@@ -645,14 +650,16 @@
         }
 
         function renderSchedule(bookings) {
+            var now = new Date();
+            var isSecondShift = now.getHours() >= 12;
             var data = getCurrentAndNextPeriod();
             var bookedCount = 0;
             var totalBookable = 0;
             
             var html = '<table class="schedule-table">';
-            html += '<thead></td>';
+            html += '<thead><tr>';
             html += '<th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>';
-            html += '</thead>';
+            html += '<tr></thead>';
             
             html += '<tbody class="scrollable-tbody auto-scroll" id="movableTbody">';
             
@@ -679,7 +686,7 @@
                     html += '<td>' + escapeHTML(booking.teacher) + '</td>';
                     html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)<\/td>';
+                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
                 } else {
                     html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
                 }
@@ -702,13 +709,13 @@
                     html += '<td>' + escapeHTML(booking.grade) + '</td>';
                     html += '<td>' + escapeHTML(booking.subject) + '</td>';
                     html += '<td>' + escapeHTML(booking.teacher) + '</td>';
-                    html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span><td>';
+                    html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)<\/td>';
+                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
                 } else {
                     html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
                 }
-                html += '</tr>';
+                html += '<tr>';
             }
             
             html += '</tbody></table>';
