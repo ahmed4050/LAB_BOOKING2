@@ -485,8 +485,18 @@
             </div>
         </div>
 
-        <div class="safety-marquee">
-            <div class="safety-marquee-container" id="safetyMarqueeContainer"></div>
+        <!-- شريط السلامة مع العبارة الافتراضية مثبتة مسبقاً لمنع التأخير -->
+<div class="safety-marquee">
+    <div class="safety-marquee-container" id="safetyMarqueeContainer">
+        <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+        <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
+        <span class="safety-icon"><i class="fas fa-flask"></i></span>
+        <!-- تكرار النص لضمان ملء الشاشات العريضة وانسيابية الحركة -->
+        <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+        <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
+        <span class="safety-icon"><i class="fas fa-flask"></i></span>
+    </div>
+</div>
         </div>
 
         <div class="footer">
@@ -503,7 +513,8 @@
 
     <script>
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        var DEFAULT_SAFETY_MSG = '⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️';
+        
+        var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
         var REFRESH_INTERVAL = 300000;
 
         var timeTable = [
@@ -599,18 +610,32 @@
             document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
+    function updateSafetyMarquee(notes) {
+    var safetyContainer = document.getElementById('safetyMarqueeContainer');
+    
+    // استخدام الملاحظات القادمة من الجدول أو العبارة الافتراضية
+    var messages = (notes && notes.length > 0) ? notes : [DEFAULT_SAFETY_MSG];
+    
+    var content = '';
+    for (var i = 0; i < messages.length; i++) {
+        content += '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
+                   '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
+                   '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
+    }
+    
+    // تكرار المحتوى لضمان انسيابية الحركة وعدم وجود فراغات
+    var finalHTML = content + content + content;
+    
+    // التحديث فقط إذا تغير النص (هذا يمنع الشريط من إعادة التشغيل من البداية عند كل تحديث)
+    if (safetyContainer.innerHTML !== finalHTML) {
+        safetyContainer.innerHTML = finalHTML;
+    }
+}
 
-        function updateSafetyMarquee(notes) {
-            var safetyContainer = document.getElementById('safetyMarqueeContainer');
-            var messages = (notes && notes.length) ? notes : [DEFAULT_SAFETY_MSG];
-            var content = '';
-            for (var i = 0; i < messages.length; i++) {
-                content += '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
-                           '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
-                           '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
-            }
-            safetyContainer.innerHTML = content + content;
-        }
+
+
+        
+       
 
         function updateMarquee() {
             var marqueeContainer = document.getElementById('marqueeContainer');
