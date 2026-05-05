@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
-    <meta http-equiv="refresh" content="300" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -24,7 +23,7 @@
             --next-period-bg: rgba(135, 206, 235, 0.1);
             --card-bg: rgba(255, 255, 255, 0.98);
             --shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-            --icon-uniform: #3498db; /* لون موحد لجميع الأيقونات */
+            --icon-uniform: #3498db;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,7 +98,7 @@
         .info-item {
             display: flex; align-items: center; gap: 8px; font-size: 1rem; width: 100%; justify-content: center;
         }
-        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; color: white; } /* توحيد لون أيقونات الوقت والتاريخ */
+        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; color: white; }
 
         .update-badge {
             background: rgba(255, 215, 0, 0.25);
@@ -107,7 +106,7 @@
             display: flex; align-items: center; gap: 8px; font-size: 0.9rem; width: 100%; justify-content: center;
             margin-top: 5px;
         }
-        .update-badge i { animation: spin 3s linear infinite; color: #ffd700; } /* بقاء لون أيقونة التحديث ذهبياً للتمييز */
+        .update-badge i { animation: spin 3s linear infinite; color: #ffd700; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .school-name-container { flex: 1; text-align: center; }
@@ -119,7 +118,6 @@
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
             display: flex; align-items: center; justify-content: center; gap: 15px;
         }
-        /* توحيد لون أيقونات عنوان المختبر */
         .school-name h1 i { 
             color: var(--icon-uniform); 
             animation: pulse 2s infinite; 
@@ -132,18 +130,28 @@
             border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 4px;
         }
 
+        /* ===== شريط الحصص ===== */
         .periods-marquee {
             border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
             background: linear-gradient(135deg, #2c3e50, #34495e); padding: 12px 15px;
         }
         
+        .marquee-wrapper {
+            overflow: hidden;
+            width: 100%;
+        }
+
         .marquee-container {
-            display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
+            display: flex; align-items: center; gap: 30px; white-space: nowrap;
+            direction: ltr; width: max-content;
             animation: scrollLeftToRight 140s linear infinite;
         }
         
-        @keyframes scrollLeftToRight { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        @keyframes scrollLeftToRight {
+            0%   { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
         
         .marquee-item {
             display: inline-flex; align-items: center; gap: 12px; padding: 8px 25px; border-radius: 35px;
@@ -151,7 +159,7 @@
             font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;
             color: white;
         }
-        .marquee-item i { color: white; } /* أيقونات الشريط بيضاء */
+        .marquee-item i { color: white; }
         .marquee-item.current { 
             background: linear-gradient(135deg, #ffd700, #f39c12); 
             color: #1a1a2e; 
@@ -167,6 +175,7 @@
             border: 2px solid #fff;
         }
 
+        /* ===== شريط السلامة - الإصلاح الرئيسي ===== */
         .safety-marquee {
             border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 2px solid #ffcc00;
@@ -174,18 +183,35 @@
             padding: 14px 15px;
             margin: 5px 0;
             animation: pulseBg 1.5s ease-in-out infinite;
+            /* ضمان ارتفاع ثابت دائماً حتى لو كان الشريط فارغاً */
+            min-height: 76px;
+            display: flex;
+            align-items: center;
         }
         @keyframes pulseBg {
-            0% { background: linear-gradient(135deg, #c0392b, #e74c3c); }
-            50% { background: linear-gradient(135deg, #e74c3c, #ff6b6b); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
+            0%   { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+            50%  { background: linear-gradient(135deg, #e74c3c, #ff6b6b); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
             100% { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+        }
+
+        .safety-marquee-wrapper {
+            overflow: hidden;
+            width: 100%;
         }
         
         .safety-marquee-container {
-            display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
+            display: flex; align-items: center; gap: 30px;
+            white-space: nowrap; direction: ltr;
+            width: max-content;
+            /* الحركة: من اليمين إلى اليسار بشكل مستمر */
             animation: scrollSafety 160s linear infinite;
         }
-        @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        /* ✅ إصلاح اتجاه الحركة: من اليمين إلى اليسار */
+        @keyframes scrollSafety {
+            0%   { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
         
         .safety-icon {
             width: 48px; height: 48px; background: rgba(0,0,0,0.3); border-radius: 50%;
@@ -194,7 +220,6 @@
             flex-shrink: 0;
             margin: 0 5px;
         }
-        /* أيقونات شريط الأمان بلون ذهبي ثابت */
         .safety-icon i { color: #ffd700; }
         
         .safety-text {
@@ -209,6 +234,7 @@
             display: inline-block;
         }
 
+        /* ===== بطاقات الإحصاء ===== */
         .stats-cards {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; flex-shrink: 0;
         }
@@ -220,19 +246,14 @@
         }
         .stat-card:hover { transform: translateY(-2px); }
         
-        /* توحيد لون جميع أيقونات البطاقات الأربع إلى اللون الأزرق المحدد */
         .stat-icon {
             width: 50px; height: 50px; 
-            background: linear-gradient(135deg, var(--icon-uniform), #1f618d); /* تدرج أزرق موحد */
+            background: linear-gradient(135deg, var(--icon-uniform), #1f618d);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center; 
             font-size: 1.5rem; 
             color: white; 
             flex-shrink: 0;
-        }
-        /* إزالة التدرج الخاص بنسبة الحجز */
-        .stat-card.percentage-card .stat-icon {
-            background: linear-gradient(135deg, var(--icon-uniform), #1f618d); /* نفس اللون الأزرق الموحد */
         }
         
         .stat-details { display: flex; flex-direction: column; gap: 5px; flex: 1; }
@@ -240,39 +261,25 @@
         .stat-number { color: #2c3e50; font-size: clamp(1.3rem, 2.2vw, 1.8rem); font-weight: 800; line-height: 1; }
         
         .progress-circle-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
         }
         .progress-circle {
-            width: 45px;
-            height: 45px;
-            position: relative;
-            flex-shrink: 0;
+            width: 45px; height: 45px; position: relative; flex-shrink: 0;
         }
         .progress-circle svg {
-            width: 45px;
-            height: 45px;
-            transform: rotate(-90deg);
+            width: 45px; height: 45px; transform: rotate(-90deg);
         }
         .progress-circle circle {
-            fill: none;
-            stroke-width: 4;
-            stroke-linecap: round;
+            fill: none; stroke-width: 4; stroke-linecap: round;
         }
-        .progress-circle .bg-circle {
-            stroke: #e0e0e0;
-        }
+        .progress-circle .bg-circle { stroke: #e0e0e0; }
         .progress-circle .progress-fill {
             stroke: #27ae60;
             transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
         }
-        .percentage-text {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
+        .percentage-text { font-size: 1rem; font-weight: 700; color: #2c3e50; }
 
+        /* ===== جدول الحصص ===== */
         .table-container {
             border-radius: 20px; padding: 0; border: 2px solid rgba(255,255,255,0.8);
             flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
@@ -280,51 +287,31 @@
         }
         
         .table-responsive {
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: auto;
+            width: 100%; height: 100%;
+            overflow-y: auto; overflow-x: auto;
             scrollbar-width: thin;
             position: relative;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
         
-        .table-responsive::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .table-responsive::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
-            border-radius: 10px;
-        }
-        .table-responsive::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
-            border-radius: 10px;
-        }
+        .table-responsive::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-responsive::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .table-responsive::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
         
         .schedule-table {
-            width: 100%; 
-            border-collapse: separate; 
-            border-spacing: 0 6px; 
-            table-layout: auto;
-            min-width: 600px;
+            width: 100%; border-collapse: separate; border-spacing: 0 6px; 
+            table-layout: auto; min-width: 600px;
         }
         
         .schedule-table thead {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            background: white;
+            position: sticky; top: 0; z-index: 20; background: white;
         }
         
         .schedule-table th {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white; 
-            padding: 12px 8px; 
+            color: white; padding: 12px 8px; 
             font-size: clamp(0.8rem, 1.3vw, 1rem);
-            font-weight: 700;
-            white-space: nowrap;
+            font-weight: 700; white-space: nowrap;
         }
         .schedule-table th:nth-child(1) { width: 20%; }
         .schedule-table th:nth-child(2) { width: 15%; }
@@ -333,36 +320,27 @@
         .schedule-table th:nth-child(5) { width: 25%; }
 
         .schedule-table td {
-            background: white; 
-            padding: 10px 8px; 
-            text-align: center;
+            background: white; padding: 10px 8px; text-align: center;
             font-size: clamp(0.8rem, 1.3vw, 1rem); 
             border: 1px solid rgba(0,0,0,0.05);
             white-space: nowrap;
         }
         .schedule-table td:first-child { 
-            border-radius: 12px 0 0 12px; 
-            font-weight: bold; 
+            border-radius: 12px 0 0 12px; font-weight: bold; 
             background: linear-gradient(to left, white, #f0f7ff);
         }
         .schedule-table td:last-child { 
             border-radius: 0 12px 12px 0;
-            white-space: normal;
-            word-break: break-word;
+            white-space: normal; word-break: break-word;
         }
 
-        .scrollable-tbody {
-            display: block;
-            overflow-y: hidden;
-        }
+        .scrollable-tbody { display: block; overflow-y: hidden; }
         
-        .auto-scroll {
-            animation: slowScrollUp 60s linear infinite;
-        }
+        .auto-scroll { animation: slowScrollUp 60s linear infinite; }
         
         @keyframes slowScrollUp {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-100%); }
+            0%   { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
         }
         
         .table-responsive:hover .auto-scroll {
@@ -371,13 +349,11 @@
         
         .schedule-table thead,
         .schedule-table tbody {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
+            display: table; width: 100%; table-layout: fixed;
         }
 
         .current-period { background: var(--current-period-bg) !important; border-right: 4px solid var(--current-period-color) !important; }
-        .next-period { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
+        .next-period    { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
 
         .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; }
         .booked td { background: transparent !important; color: white !important; }
@@ -387,34 +363,29 @@
             border: 1px solid var(--primary-color); color: var(--primary-color); font-size: 0.8rem;
             max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-        .booked .experiment-badge {
-            background: rgba(255,255,255,0.2); color: white; border-color: white;
-        }
+        .booked .experiment-badge { background: rgba(255,255,255,0.2); color: white; border-color: white; }
 
-        .empty-cell { color: #95a5a6; font-style: italic; background: #f8f9fa !important; }
-        .break-row { background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important; }
+        .empty-cell   { color: #95a5a6; font-style: italic; background: #f8f9fa !important; }
+        .break-row    { background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important; }
         .break-row td { background: transparent !important; color: white !important; font-weight: 700; }
 
+        /* ===== التذييل ===== */
         .footer {
             text-align: center; padding: 8px 15px; background: rgba(0, 0, 0, 0.3);
             border-radius: 30px; backdrop-filter: blur(5px); flex-shrink: 0;
         }
         .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
+            display: flex; justify-content: space-between;
+            align-items: center; width: 100%;
             font-size: clamp(0.7rem, 1.1vw, 0.9rem);
-            gap: 10px;
-            color: white;
+            gap: 10px; color: white;
         }
         .footer-right { text-align: right; }
-        .footer-left { text-align: left; }
-        /* أيقونات التذييل بلون أبيض */
+        .footer-left  { text-align: left; }
         .footer-content i { color: white; }
 
-        .loading, .error { text-align: center; padding: 20px; color: #2c3e50; }
-        .error { color: #e74c3c; }
+        .loading { text-align: center; padding: 20px; color: #2c3e50; }
+        .error   { text-align: center; padding: 20px; color: #e74c3c; }
     </style>
 </head>
 
@@ -422,6 +393,8 @@
     <div class="tv-background"></div>
 
     <div class="container">
+
+        <!-- ===== الرأس ===== -->
         <div class="header">
             <div class="header-content">
                 <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')">
@@ -437,16 +410,28 @@
 
                 <div class="time-info-container">
                     <div class="info-item"><i class="fas fa-calendar-day"></i> <span id="currentDate"></span></div>
-                    <div class="info-item"><i class="fas fa-clock"></i> <span id="currentTime">--:-- --</span></div>
+                    <div class="info-item"><i class="fas fa-clock"></i> <span id="currentTime">--:--</span></div>
                     <div class="update-badge"><i class="fas fa-sync-alt"></i> <span>تحديث كل 5 دقائق</span></div>
                 </div>
             </div>
         </div>
 
-        <div class="periods-marquee" id="periodsMarquee">
-            <div class="marquee-container" id="marqueeContainer"></div>
+        <!-- ===== شريط الحصص ===== -->
+        <div class="periods-marquee">
+            <div class="marquee-wrapper">
+                <!--
+                    ✅ الحل #1 (Static Fallback): محتوى افتراضي يظهر فوراً عند تحميل الصفحة
+                    قبل وصول أي بيانات من Google Sheets
+                -->
+                <div class="marquee-container" id="marqueeContainer">
+                    <div class="marquee-item"><i class="fas fa-clock"></i> جارٍ تحديد الحصة الحالية...</div>
+                    <div class="marquee-item"><i class="fas fa-clock"></i> جارٍ تحديد الحصة الحالية...</div>
+                    <div class="marquee-item"><i class="fas fa-clock"></i> جارٍ تحديد الحصة الحالية...</div>
+                </div>
+            </div>
         </div>
 
+        <!-- ===== بطاقات الإحصاء ===== -->
         <div class="stats-cards">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
@@ -468,7 +453,7 @@
                         <div class="progress-circle" id="progressCircle">
                             <svg viewBox="0 0 40 40">
                                 <circle class="bg-circle" cx="20" cy="20" r="16"></circle>
-                                <circle class="progress-fill" cx="20" cy="20" r="16" stroke-dasharray="100.53" stroke-dashoffset="0"></circle>
+                                <circle class="progress-fill" cx="20" cy="20" r="16" stroke-dasharray="100.53" stroke-dashoffset="100.53"></circle>
                             </svg>
                         </div>
                         <span class="percentage-text" id="percentageValue">0%</span>
@@ -477,6 +462,7 @@
             </div>
         </div>
 
+        <!-- ===== جدول الحصص ===== -->
         <div class="table-container">
             <div id="tableWrapper" class="table-responsive">
                 <div id="tableContent">
@@ -485,20 +471,48 @@
             </div>
         </div>
 
-        <!-- شريط السلامة مع العبارة الافتراضية مثبتة مسبقاً لمنع التأخير -->
-<div class="safety-marquee">
-    <div class="safety-marquee-container" id="safetyMarqueeContainer">
-        <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-        <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-        <span class="safety-icon"><i class="fas fa-flask"></i></span>
-        <!-- تكرار النص لضمان ملء الشاشات العريضة وانسيابية الحركة -->
-        <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-        <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-        <span class="safety-icon"><i class="fas fa-flask"></i></span>
-    </div>
-</div>
+        <!--
+            ✅ الحل #1 (Static Fallback): شريط السلامة يحتوي على محتوى افتراضي مباشرةً في HTML.
+            يبدأ الشريط بالحركة فوراً عند تحميل الصفحة دون انتظار الشبكة.
+        -->
+        <div class="safety-marquee">
+            <div class="safety-marquee-wrapper">
+                <div class="safety-marquee-container" id="safetyMarqueeContainer">
+                    <!-- المحتوى الافتراضي - سيتم استبداله بالبيانات الحقيقية بعد التحميل -->
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <!-- تكرار ثانٍ لضمان الاستمرارية على الشاشات العريضة -->
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <!-- تكرار ثالث للتأكيد على الاستمرارية -->
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                    <span class="safety-text">⚠️ الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع ⚠️</span>
+                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                </div>
+            </div>
         </div>
 
+        <!-- ===== التذييل ===== -->
         <div class="footer">
             <div class="footer-content">
                 <div class="footer-right">
@@ -512,26 +526,42 @@
     </div>
 
     <script>
+        /* ===== الإعدادات ===== */
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        
-        var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
-        var REFRESH_INTERVAL = 300000;
+        var REFRESH_INTERVAL = 300000; // 5 دقائق
+
+        /*
+         * ✅ الحل #1 (Static Fallback): رسائل السلامة الافتراضية المُدمجة في الكود.
+         * تُستخدم عند فشل الاتصال بالشبكة أو قبل وصول البيانات.
+         */
+        var DEFAULT_SAFETY_MESSAGES = [
+            'تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي',
+            'يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة',
+            'الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع'
+        ];
+
+        /*
+         * ✅ الحل #2 (Smart Update): متغير لتخزين آخر نص معروض في شريط السلامة.
+         * يُمنع مسح الشريط إلا إذا تغير المحتوى فعلاً.
+         */
+        var lastSafetyContent = '';
 
         var timeTable = [
-            { period: "الطابور", duration: 10, times: [{ start: "7:00", end: "7:10" }, { start: "7:10", end: "7:20" }] },
-            { period: "الأولى", duration: 40, times: [{ start: "7:10", end: "7:50" }, { start: "7:20", end: "8:00" }] },
-            { period: "الثانية", duration: 40, times: [{ start: "7:55", end: "8:35" }, { start: "8:05", end: "8:45" }] },
-            { period: "الثالثة", duration: 40, times: [{ start: "8:40", end: "9:20" }, { start: "8:50", end: "9:30" }] },
-            { period: "الرابعة", duration: 40, times: [{ start: "9:25", end: "10:05" }, { start: "9:35", end: "10:15" }] },
-            { period: "الفسحة", duration: 20, times: [{ start: "10:05", end: "10:25" }, { start: "10:15", end: "10:35" }] },
-            { period: "الخامسة", duration: 40, times: [{ start: "10:25", end: "11:05" }, { start: "10:35", end: "11:15" }] },
-            { period: "السادسة", duration: 40, times: [{ start: "11:10", end: "11:50" }, { start: "11:20", end: "12:00" }] },
-            { period: "السابعة", duration: 40, times: [{ start: "11:55", end: "12:35" }, { start: "12:05", end: "12:45" }] },
-            { period: "الثامنة", duration: 40, times: [{ start: "12:40", end: "1:20" }, { start: "12:50", end: "1:30" }] }
+            { period: "الطابور",  duration: 10, times: [{ start: "7:00",  end: "7:10"  }, { start: "7:10",  end: "7:20"  }] },
+            { period: "الأولى",   duration: 40, times: [{ start: "7:10",  end: "7:50"  }, { start: "7:20",  end: "8:00"  }] },
+            { period: "الثانية",  duration: 40, times: [{ start: "7:55",  end: "8:35"  }, { start: "8:05",  end: "8:45"  }] },
+            { period: "الثالثة",  duration: 40, times: [{ start: "8:40",  end: "9:20"  }, { start: "8:50",  end: "9:30"  }] },
+            { period: "الرابعة",  duration: 40, times: [{ start: "9:25",  end: "10:05" }, { start: "9:35",  end: "10:15" }] },
+            { period: "الفسحة",   duration: 20, times: [{ start: "10:05", end: "10:25" }, { start: "10:15", end: "10:35" }] },
+            { period: "الخامسة",  duration: 40, times: [{ start: "10:25", end: "11:05" }, { start: "10:35", end: "11:15" }] },
+            { period: "السادسة",  duration: 40, times: [{ start: "11:10", end: "11:50" }, { start: "11:20", end: "12:00" }] },
+            { period: "السابعة",  duration: 40, times: [{ start: "11:55", end: "12:35" }, { start: "12:05", end: "12:45" }] },
+            { period: "الثامنة",  duration: 40, times: [{ start: "12:40", end: "1:20"  }, { start: "12:50", end: "1:30"  }] }
         ];
 
         var currentBookings = {};
 
+        /* ===== دوال مساعدة ===== */
         function escapeHTML(str) {
             if (!str) return '';
             return String(str)
@@ -543,24 +573,19 @@
         }
 
         function parseCSVLine(line) {
-            var result = [];
-            var current = '';
-            var inQuotes = false;
+            var result = [], current = '', inQuotes = false;
             for (var i = 0; i < line.length; i++) {
                 var char = line[i];
                 if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) {
-                    result.push(current.trim());
-                    current = '';
-                } else current += char;
+                else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+                else current += char;
             }
             result.push(current.trim());
             return result;
         }
 
         function parseCSV(text) {
-            var lines = text.split(/\r?\n/);
-            var results = [];
+            var lines = text.split(/\r?\n/), results = [];
             for (var i = 0; i < lines.length; i++) {
                 if (lines[i].trim()) results.push(parseCSVLine(lines[i]));
             }
@@ -584,80 +609,108 @@
         function getCurrentAndNextPeriod() {
             var currentTimeInMinutes = getCurrentTimeInMinutes();
             var isSecondShift = currentTimeInMinutes >= 12 * 60;
-            var currentPeriod = null;
-            var nextPeriod = null;
+            var currentPeriod = null, nextPeriod = null;
 
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var timeSlot = period.times[isSecondShift ? 1 : 0];
                 var start = timeToMinutes(timeSlot.start);
-                var end = timeToMinutes(timeSlot.end);
+                var end   = timeToMinutes(timeSlot.end);
                 if (currentTimeInMinutes >= start && currentTimeInMinutes < end) {
                     currentPeriod = { index: i, period: period.period, start: timeSlot.start, end: timeSlot.end };
                     break;
                 }
             }
             if (currentPeriod && timeTable[currentPeriod.index + 1]) {
-                var nextP = timeTable[currentPeriod.index + 1];
+                var nextP    = timeTable[currentPeriod.index + 1];
                 var nextSlot = nextP.times[isSecondShift ? 1 : 0];
-                nextPeriod = { period: nextP.period, start: nextSlot.start };
+                nextPeriod   = { period: nextP.period, start: nextSlot.start };
             }
             return { currentPeriod: currentPeriod, nextPeriod: nextPeriod };
         }
 
+        /* ===== تحديث الوقت ===== */
         function updateCurrentTime() {
             var now = new Date();
-            document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('currentTime').textContent =
+                now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentDate').textContent =
+                now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
-    function updateSafetyMarquee(notes) {
-    var safetyContainer = document.getElementById('safetyMarqueeContainer');
-    
-    // استخدام الملاحظات القادمة من الجدول أو العبارة الافتراضية
-    var messages = (notes && notes.length > 0) ? notes : [DEFAULT_SAFETY_MSG];
-    
-    var content = '';
-    for (var i = 0; i < messages.length; i++) {
-        content += '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
-                   '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
-                   '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
-    }
-    
-    // تكرار المحتوى لضمان انسيابية الحركة وعدم وجود فراغات
-    var finalHTML = content + content + content;
-    
-    // التحديث فقط إذا تغير النص (هذا يمنع الشريط من إعادة التشغيل من البداية عند كل تحديث)
-    if (safetyContainer.innerHTML !== finalHTML) {
-        safetyContainer.innerHTML = finalHTML;
-    }
-}
 
+        /*
+         * ✅ الحل #2 (Smart Update) + الحل #3 (Triple Buffering):
+         * - لا يُمسح الشريط إلا إذا تغير المحتوى فعلاً (Smart Update).
+         * - كل رسالة تُكرَّر 3 مرات لملء الشاشات العريضة (Triple Buffering).
+         */
+        function buildSafetyHTML(messages) {
+            var unit = '';
+            for (var i = 0; i < messages.length; i++) {
+                unit += '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
+                        '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
+                        '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
+            }
+            // تكرار ثلاثي لضمان الاستمرارية على الشاشات العريضة
+            return unit + unit + unit;
+        }
 
+        function updateSafetyMarquee(notes) {
+            var messages = (notes && notes.length) ? notes : DEFAULT_SAFETY_MESSAGES;
+            var newContent = buildSafetyHTML(messages);
 
-        
-       
+            /*
+             * ✅ التحديث الذكي: لا نمسح الشريط إذا كان المحتوى لم يتغير.
+             * هذا يمنع "الوميض" عند التحديث الدوري كل 5 دقائق.
+             */
+            if (newContent === lastSafetyContent) return;
+            lastSafetyContent = newContent;
 
+            var container = document.getElementById('safetyMarqueeContainer');
+
+            /*
+             * بدلاً من مسح الشريط مباشرة، نضيف المحتوى الجديد ثم نزيل القديم
+             * بعد تأخير بسيط لتجنب الفجوة البصرية.
+             */
+            var oldAnimation = container.style.animationName;
+            container.style.animation = 'none'; // إيقاف الحركة مؤقتاً
+
+            // استبدال المحتوى
+            container.innerHTML = newContent;
+
+            // إعادة تشغيل الحركة في الإطار التالي (reflow trick)
+            void container.offsetWidth;
+            container.style.animation = '';
+        }
+
+        /* ===== تحديث شريط الحصص ===== */
         function updateMarquee() {
             var marqueeContainer = document.getElementById('marqueeContainer');
-            var data = getCurrentAndNextPeriod();
+            var data    = getCurrentAndNextPeriod();
             var current = data.currentPeriod;
-            var next = data.nextPeriod;
+            var next    = data.nextPeriod;
 
+            var item;
             if (!current) {
-                marqueeContainer.innerHTML = '<div class="marquee-item">لا توجد حصة حالياً</div>';
-                return;
+                item = '<div class="marquee-item"><i class="fas fa-moon"></i> لا توجد حصة حالياً - خارج أوقات الدراسة</div>';
+            } else {
+                var curBook   = currentBookings[current.period];
+                var curLesson = curBook ? curBook.lesson : 'متاح للحجز';
+                var nextBook  = next ? currentBookings[next.period] : null;
+                var nextLesson = nextBook ? nextBook.lesson : 'متاح للحجز';
+
+                item = '<div class="marquee-item current"><i class="fas fa-circle" style="color:#e74c3c;font-size:0.7rem;"></i> الحصة الحالية: ' +
+                            escapeHTML(current.period) + ' | الدرس: ' + escapeHTML(curLesson) +
+                       '</div>' +
+                       (next ? '<div class="marquee-item next"><i class="fas fa-clock"></i> التالية: ' +
+                            escapeHTML(next.period) + ' | ' + escapeHTML(nextLesson) +
+                       '</div>' : '');
             }
 
-            var curBook = currentBookings[current.period];
-            var curLesson = curBook ? curBook.lesson : 'متاح';
-            var nextBook = next ? currentBookings[next.period] : null;
-            var nextLesson = nextBook ? nextBook.lesson : 'متاح';
-
-            var item = '<div class="marquee-item current">🔴 الحصة: ' + escapeHTML(current.period) + ' | الدرس: ' + escapeHTML(curLesson) + '</div>' +
-                       '<div class="marquee-item next">⏳ التالية: ' + (next ? escapeHTML(next.period) : '---') + ' | الدرس: ' + escapeHTML(nextLesson) + '</div>';
+            // تكرار ثلاثي لشريط الحصص أيضاً
             marqueeContainer.innerHTML = item + item + item;
         }
 
+        /* ===== تحديث نسبة الحجز ===== */
         function updatePercentage(booked, total) {
             var percentage = total > 0 ? Math.round((booked / total) * 100) : 0;
             document.getElementById('percentageValue').textContent = percentage + '%';
@@ -668,124 +721,146 @@
             var fillCircle = document.querySelector('#progressCircle .progress-fill');
             if (fillCircle) {
                 fillCircle.style.strokeDashoffset = offset;
-                if (percentage >= 70) fillCircle.style.stroke = '#27ae60';
+                if (percentage >= 70)      fillCircle.style.stroke = '#27ae60';
                 else if (percentage >= 40) fillCircle.style.stroke = '#f39c12';
-                else fillCircle.style.stroke = '#e74c3c';
+                else                       fillCircle.style.stroke = '#e74c3c';
             }
         }
 
+        /* ===== رسم الجدول ===== */
         function renderSchedule(bookings) {
-            var now = new Date();
-            var isSecondShift = now.getHours() >= 12;
             var data = getCurrentAndNextPeriod();
-            var bookedCount = 0;
-            var totalBookable = 0;
-            
-            var html = '<table class="schedule-table">';
-            html += '<thead><tr>';
-            html += '<th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>';
-            html += '<tr></thead>';
-            
-            html += '<tbody class="scrollable-tbody auto-scroll" id="movableTbody">';
-            
+            var bookedCount = 0, totalBookable = 0;
+
+            // بناء صفوف الجدول (مرتين للتمرير الدائري)
+            function buildRows() {
+                var rows = '';
+                for (var i = 0; i < timeTable.length; i++) {
+                    var period  = timeTable[i];
+                    var booking = bookings[period.period];
+                    
+                    if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
+                        totalBookable++;
+                        if (booking) bookedCount++;
+                    }
+
+                    var rowClass = '';
+                    if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
+                    else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
+                    else if (booking) rowClass = 'booked';
+
+                    rows += '<tr class="' + rowClass + '">';
+                    rows += '<td><strong>' + escapeHTML(period.period) + '</strong></td>';
+
+                    if (booking) {
+                        rows += '<td>' + escapeHTML(booking.grade)   + '</td>';
+                        rows += '<td>' + escapeHTML(booking.subject) + '</td>';
+                        rows += '<td>' + escapeHTML(booking.teacher) + '</td>';
+                        rows += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
+                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
+                        rows += '<td colspan="4" class="empty-cell">استراحة</td>';
+                    } else {
+                        rows += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
+                    }
+                    rows += '</tr>';
+                }
+                return rows;
+            }
+
+            var rowsHTML = buildRows();
+            // إعادة الحساب (bookedCount/totalBookable يُحسبان داخل buildRows)
+            bookedCount = 0; totalBookable = 0;
             for (var i = 0; i < timeTable.length; i++) {
-                var period = timeTable[i];
-                var booking = bookings[period.period];
-                
-                if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
+                var p = timeTable[i].period;
+                if (p !== 'الطابور' && p !== 'الفسحة') {
                     totalBookable++;
-                    if (booking) bookedCount++;
+                    if (bookings[p]) bookedCount++;
                 }
-
-                var rowClass = '';
-                if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
-                else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
-                else if (booking) rowClass = 'booked';
-
-                html += '<tr class="' + rowClass + '">';
-                html += '<td><strong>' + period.period + '</strong></td>';
-                
-                if (booking) {
-                    html += '<td>' + escapeHTML(booking.grade) + '</td>';
-                    html += '<td>' + escapeHTML(booking.subject) + '</td>';
-                    html += '<td>' + escapeHTML(booking.teacher) + '</td>';
-                    html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
-                } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
-                } else {
-                    html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
-                }
-                html += '</tr>';
             }
-            
-            for (var i = 0; i < timeTable.length; i++) {
-                var period = timeTable[i];
-                var booking = bookings[period.period];
 
-                var rowClass = '';
-                if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
-                else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
-                else if (booking) rowClass = 'booked';
+            var html = '<table class="schedule-table">' +
+                '<thead><tr>' +
+                '<th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>' +
+                '</tr></thead>' +
+                '<tbody class="scrollable-tbody auto-scroll" id="movableTbody">' +
+                rowsHTML + rowsHTML + // تكرار مزدوج للتمرير الدائري
+                '</tbody></table>';
 
-                html += '<tr class="' + rowClass + '">';
-                html += '<td><strong>' + period.period + '</strong></td>';
-                
-                if (booking) {
-                    html += '<td>' + escapeHTML(booking.grade) + '</td>';
-                    html += '<td>' + escapeHTML(booking.subject) + '</td>';
-                    html += '<td>' + escapeHTML(booking.teacher) + '</td>';
-                    html += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
-                } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                    html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
-                } else {
-                    html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
-                }
-                html += '<tr>';
-            }
-            
-            html += '</tbody></table>';
-            
             document.getElementById('tableContent').innerHTML = html;
-            document.getElementById('bookedCount').textContent = bookedCount;
-            document.getElementById('emptyCount').textContent = totalBookable - bookedCount;
+            document.getElementById('bookedCount').textContent  = bookedCount;
+            document.getElementById('emptyCount').textContent   = totalBookable - bookedCount;
             document.getElementById('totalPeriods').textContent = totalBookable;
-            
             updatePercentage(bookedCount, totalBookable);
         }
 
+        /* ===== جلب البيانات من Google Sheets ===== */
         function fetchSchedule() {
             var xhr = new XMLHttpRequest();
-            var finalUrl = csvUrl + '&t=' + new Date().getTime();
-            xhr.open('GET', finalUrl, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    var data = xhr.responseText;
-                    var rows = parseCSV(data);
-                    var now = new Date();
-                    var today = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0');
-                    
-                    var bookings = {};
-                    var notes = [];
+            xhr.open('GET', csvUrl + '&t=' + Date.now(), true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+
+                if (xhr.status === 200) {
+                    var rows  = parseCSV(xhr.responseText);
+                    var now   = new Date();
+                    var today = now.getFullYear() + '/' +
+                                String(now.getMonth() + 1).padStart(2, '0') + '/' +
+                                String(now.getDate()).padStart(2, '0');
+
+                    var bookings = {}, notes = [];
                     for (var i = 1; i < rows.length; i++) {
                         if (rows[i][2] === today) {
-                            bookings[rows[i][3]] = { teacher: rows[i][4], subject: rows[i][5], grade: rows[i][6], lesson: rows[i][7] };
+                            bookings[rows[i][3]] = {
+                                teacher: rows[i][4], subject: rows[i][5],
+                                grade:   rows[i][6], lesson:  rows[i][7]
+                            };
                             if (rows[i][8]) notes.push(rows[i][8]);
                         }
                     }
+
                     currentBookings = bookings;
                     renderSchedule(bookings);
+
+                    /*
+                     * ✅ الحل #2: تمرير الملاحظات المستخرجة إلى updateSafetyMarquee.
+                     * الدالة نفسها ستقرر إن كان يجب تحديث الشريط أم لا.
+                     */
                     updateSafetyMarquee(notes);
                     updateMarquee();
+
+                } else {
+                    /*
+                     * عند فشل الاتصال: الشريط الافتراضي يبقى دون تغيير (لا نمسحه).
+                     * نعرض فقط رسالة خطأ في الجدول إذا كان لا يزال يعرض "جاري التحميل".
+                     */
+                    var tableContent = document.getElementById('tableContent');
+                    if (tableContent.querySelector('.loading')) {
+                        tableContent.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> تعذّر الاتصال بالشبكة. سيتم المحاولة مجدداً...</div>';
+                    }
                 }
             };
+
             xhr.send();
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        /* ===== بدء التشغيل ===== */
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. تحديث الوقت فوراً
             updateCurrentTime();
+
+            // 2. تحديث شريط الحصص بناءً على الوقت الحالي (دون انتظار الشبكة)
+            updateMarquee();
+
+            // 3. جلب البيانات من الشبكة
             fetchSchedule();
+
+            // 4. تكرار دوري
             setInterval(updateCurrentTime, 1000);
-            setInterval(fetchSchedule, REFRESH_INTERVAL);
+            setInterval(function () {
+                fetchSchedule();
+                updateMarquee();
+            }, REFRESH_INTERVAL);
         });
     </script>
 </body>
