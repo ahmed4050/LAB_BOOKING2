@@ -1,867 +1,1213 @@
+#include <Arduino.h>
+#include <Arduino_GFX_Library.h>
+#include <Wire.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+#include <esp_task_wdt.h>
+
+// =============================================================
+//  HARDWARE PINS - Waveshare ESP32-S3 2inch Touch LCD
+// =============================================================
+#define LCD_SCLK    39
+#define LCD_MOSI    38
+#define LCD_MISO    40
+#define LCD_DC      42
+#define LCD_RST     -1
+#define LCD_CS      45
+#define LCD_BL       1
+
+#define TOUCH_SDA    48
+#define TOUCH_SCL    47
+#define TOUCH_INT    5
+#define TOUCH_RST    4
+
+#define INA226_ADDR  0x40
+
+// --- L298N PEMF Driver ---
+#define PEMF_IN1    11
+#define PEMF_IN2    12
+#define PEMF_ENA    10      // NEW: PWM intensity control
+#define PWM_CHANNEL 1       // LEDC channel 1 (0 used for buzzer)
+#define PWM_FREQ    5000    // 5KHz PWM frequency
+#define PWM_RES     8       // 8-bit resolution (0-255)
+
+#define NTC_PIN      13
+#define FAN_PIN     18
+#define BUZZER_PIN     14
+#define BUZZER_CHANNEL 0
+
+// =============================================================
+//  DISPLAY SETTINGS
+// =============================================================
+#define LCD_ROTATION  0
+#define LCD_WIDTH     240
+#define LCD_HEIGHT    320
+
+// =============================================================
+//  APPLICATION SETTINGS
+// =============================================================
+#define SESSION_DURATION_MS     (30UL * 60UL * 1000UL)
+#define PHASE_DURATION_MS       (15UL * 60UL * 1000UL)
+#define PEMF_FREQ_BREAKDOWN     15.0f
+#define PEMF_FREQ_DRAINAGE      50.0f
+#define PEMF_PULSE_US           5000UL
+
+// --- Adaptive Safety Thresholds ---
+#define TEMP_ALARM_C            40.0f
+#define CURRENT_WARNING_MA      2000.0f   // Start reducing intensity
+#define CURRENT_ALARM_MA        3500.0f   // Hard stop threshold
+#define CURRENT_REDUCE_STEP     5         // PWM reduction step
+#define MAF_SIZE                8
+#define NTC_ERROR_VALUE         -999.0f
+
+// =============================================================
+//  COLOR PALETTE (RGB565)
+// =============================================================
+#define C_BG        0x0841u
+#define C_PANEL     0x10A2u
+#define C_ACCENT    0x07FFu
+#define C_WHITE     0xFFFFu
+#define C_GRAY      0x8410u
+#define C_GREEN     0x07E0u
+#define C_DKGREEN   0x03E0u
+#define C_RED       0xF800u
+#define C_YELLOW    0xFFE0u
+#define C_ORANGE    0xFC00u
+#define C_PURPLE    0x8010u
+
+// =============================================================
+//  WiFi ACCESS POINT SETTINGS
+// =============================================================
+const char* AP_SSID       = "PulseFlow-Pro";
+const char* AP_PASSWORD   = "12345678";
+const IPAddress AP_IP(192, 168, 4, 1);
+
+// =============================================================
+//  CST816S & INA226 REGISTERS
+// =============================================================
+#define CST816S_ADDR    0x15
+#define CST816S_DATA    0x01
+#define INA226_REG_CONFIG   0x00
+#define INA226_REG_CALIB    0x05
+#define INA226_REG_CURRENT  0x04
+#define INA226_REG_BUSVOLT  0x02
+
+#define NTC_NOMINAL_R   10000.0f
+#define NTC_NOMINAL_T   25.0f
+#define NTC_BETA        3950.0f
+#define NTC_SERIES_R    10000.0f
+
+// =============================================================
+//  STATE MACHINE ENUMS
+// =============================================================
+enum AppState : uint8_t { STATE_IDLE = 0, STATE_RUNNING = 1, STATE_ALARM = 2, STATE_COMPLETED = 3 };
+enum TherapyMode : uint8_t { MODE_BREAKDOWN = 0, MODE_DRAINAGE = 1, MODE_SMART = 2 };
+enum TherapyPhase : uint8_t { PHASE_BREAKDOWN = 0, PHASE_DRAINAGE = 1 };
+enum AlarmType : uint8_t { ALARM_NONE = 0, ALARM_OVERTEMP = 1, ALARM_OVERCURRENT = 2, ALARM_SENSOR_FAIL = 3 };
+
+// =============================================================
+//  GFX & WEB SERVER OBJECTS
+// =============================================================
+static Arduino_DataBus *bus = new Arduino_ESP32SPI(LCD_DC, LCD_CS, LCD_SCLK, LCD_MOSI, LCD_MISO);
+static Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, LCD_ROTATION, true, LCD_WIDTH, LCD_HEIGHT);
+static WebServer server(80);
+
+// =============================================================
+//  GLOBAL STATE
+// =============================================================
+static AppState      appState        = STATE_IDLE;
+static TherapyMode   currentMode     = MODE_BREAKDOWN;
+static TherapyPhase  currentPhase    = PHASE_BREAKDOWN;
+static AlarmType     currentAlarm    = ALARM_NONE;
+static unsigned long sessionStartMs  = 0;
+static unsigned long phaseStartMs    = 0;
+static float         temperature     = 25.0f;
+static float         current_mA      = 0.0f;
+static float         voltage_V       = 0.0f;
+static float         pemfFreq        = PEMF_FREQ_BREAKDOWN;
+
+// --- PWM Intensity Control ---
+static uint8_t       globalIntensity = 255;     // 0-255 (fixed at 100%)
+static uint8_t       targetIntensity = 255;     // Target from user
+static bool          intensityLocked = false;   // Locked by safety system
+
+// --- Sensor Buffers ---
+static float   tempBuf[MAF_SIZE] = {};
+static float   currBuf[MAF_SIZE] = {};
+static float   voltBuf[MAF_SIZE] = {};
+static uint8_t tempMafIdx = 0, currMafIdx = 0, voltMafIdx = 0;
+
+// --- Safety Counters ---
+static uint8_t ntcFailCount  = 0;
+static uint8_t currWarnCnt   = 0;
+static uint8_t currAlarmCnt  = 0;
+static bool    soundEnabled  = true;
+
+// --- PEMF Timing ---
+static int           pemfPhase   = 0;
+static unsigned long lastPemfUs  = 0;
+
+// --- Loop Timing ---
+static unsigned long lastSensorMs = 0, lastUiMs = 0, lastTouchMs = 0, lastSafetyMs = 0;
+
+// =============================================================
+//  FORWARD DECLARATIONS
+// =============================================================
+void initINA226(); void initPWM(); void setPWMIntensity(uint8_t intensity);
+void beepShort(); void beepSuccess(); void beepComplete(); void beepAlarm(); void beepPhaseChange();
+float readNTC(); float readINA226current(); float readINA226voltage();
+float movingAvg(float *buf, uint8_t *idx, float newVal);
+void readSensors(); void checkSafety(); void adaptiveCurrentControl();
+void updateTherapyPhase(); void updatePEMFFrequency(); void processPEMF(); void stopPEMF();
+bool readTouch(uint16_t *tx, uint16_t *ty); void handleTouch();
+void drawUI(); void updateDashboard(); void drawProgressBar(uint32_t elapsed, uint32_t total);
+void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const char *label, uint16_t bg, uint16_t fg);
+void drawAlarmScreen(); void drawCompletedScreen();
+void initWiFi(); void setupWebServer();
+void handleRoot(); void handleAPI(); void handleStart(); void handleStop();
+void handleSetMode(); void handleSetSound(); void handleSetIntensity();
+void displayWiFiInfo();
+
+// =============================================================
+//  SETUP
+// =============================================================
+void setup()
+{
+    Serial.begin(115200); delay(100);
+    
+    esp_task_wdt_init(3, true);
+    esp_task_wdt_add(NULL);
+    Serial.println("[SAFETY] Watchdog Timer initialized (3s timeout)");
+
+    pinMode(PEMF_IN1, OUTPUT); digitalWrite(PEMF_IN1, LOW);
+    pinMode(PEMF_IN2, OUTPUT); digitalWrite(PEMF_IN2, LOW);
+    pinMode(FAN_PIN,  OUTPUT); digitalWrite(FAN_PIN,  LOW);
+    pinMode(LCD_BL,   OUTPUT); digitalWrite(LCD_BL,   HIGH);
+
+    // Buzzer setup
+    pinMode(BUZZER_PIN, OUTPUT); digitalWrite(BUZZER_PIN, LOW);
+    ledcSetup(BUZZER_CHANNEL, 2000, 8);
+    ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
+    ledcWrite(BUZZER_CHANNEL, 0);
+
+    // NEW: Initialize PWM for ENA
+    initPWM();
+
+    // Touch reset
+    pinMode(TOUCH_RST, OUTPUT);
+    digitalWrite(TOUCH_RST, LOW); delay(10);
+    digitalWrite(TOUCH_RST, HIGH); delay(50);
+    pinMode(TOUCH_INT, INPUT);
+
+    Wire.begin(TOUCH_SDA, TOUCH_SCL); delay(50);
+    initINA226();
+
+    analogReadResolution(12);
+    analogSetPinAttenuation(NTC_PIN, ADC_11db);
+
+    if (!gfx->begin()) {
+        Serial.println("[ERROR] Display init failed.");
+        while (true) { delay(1000); }
+    }
+    Serial.println("[INFO] PulseFlow Pro booting...");
+
+    initWiFi();
+    setupWebServer();
+
+    drawUI();
+    displayWiFiInfo();
+    beepSuccess();
+}
+
+// =============================================================
+//  LOOP
+// =============================================================
+void loop()
+{
+    unsigned long now = millis();
+    esp_task_wdt_reset();
+
+    if (now - lastSensorMs >= 200) {
+        lastSensorMs = now;
+        readSensors();
+        checkSafety();
+    }
+
+    if (now - lastSafetyMs >= 100 && appState == STATE_RUNNING) {
+        lastSafetyMs = now;
+        adaptiveCurrentControl();
+    }
+
+    if (appState == STATE_RUNNING) {
+        updatePEMFFrequency();
+        updateTherapyPhase();
+        processPEMF();
+
+        if (now - sessionStartMs >= SESSION_DURATION_MS) {
+            beepComplete();
+            stopPEMF();
+            digitalWrite(FAN_PIN, HIGH);
+            appState = STATE_COMPLETED;
+            drawCompletedScreen();
+        }
+    }
+
+    if (appState <= STATE_RUNNING && now - lastUiMs >= 500) {
+        lastUiMs = now;
+        updateDashboard();
+        uint32_t elapsed = (appState == STATE_RUNNING) ? (uint32_t)(now - sessionStartMs) : 0u;
+        drawProgressBar(elapsed, (uint32_t)SESSION_DURATION_MS);
+    }
+
+    handleTouch();
+    server.handleClient();
+    delay(2);
+}
+
+// =============================================================
+//  PWM INITIALIZATION
+// =============================================================
+void initPWM()
+{
+    ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RES);
+    ledcAttachPin(PEMF_ENA, PWM_CHANNEL);
+    ledcWrite(PWM_CHANNEL, 0);
+    Serial.println("[PWM] ENA PWM initialized: 5KHz, 8-bit, GPIO 10");
+}
+
+void setPWMIntensity(uint8_t intensity)
+{
+    if (intensity > 255) intensity = 255;
+    globalIntensity = intensity;
+    ledcWrite(PWM_CHANNEL, intensity);
+}
+
+// =============================================================
+//  SENSORS
+// =============================================================
+void initINA226()
+{
+    const uint16_t cfg = 0x4127;
+    Wire.beginTransmission(INA226_ADDR);
+    Wire.write(INA226_REG_CONFIG);
+    Wire.write((uint8_t)(cfg >> 8));
+    Wire.write((uint8_t)(cfg & 0xFF));
+    Wire.endTransmission();
+
+    const uint16_t cal = 2048;
+    Wire.beginTransmission(INA226_ADDR);
+    Wire.write(INA226_REG_CALIB);
+    Wire.write((uint8_t)(cal >> 8));
+    Wire.write((uint8_t)(cal & 0xFF));
+    Wire.endTransmission();
+}
+
+float readNTC()
+{
+    int raw = analogRead(NTC_PIN);
+    if (raw <= 0 || raw >= 4095) {
+        ntcFailCount++;
+        if (ntcFailCount >= 3) {
+            Serial.println("[ALARM] NTC sensor failure detected!");
+            return NTC_ERROR_VALUE;
+        }
+        return 25.0f;
+    }
+    ntcFailCount = 0;
+    float vout = raw * (3.3f / 4095.0f);
+    float rNTC = NTC_SERIES_R * vout / (3.3f - vout);
+    float st = logf(rNTC / NTC_NOMINAL_R) / NTC_BETA + 1.0f / (NTC_NOMINAL_T + 273.15f);
+    return 1.0f / st - 273.15f;
+}
+
+float readINA226current()
+{
+    Wire.beginTransmission(INA226_ADDR);
+    Wire.write(INA226_REG_CURRENT);
+    if (Wire.endTransmission(false) != 0) return 0.0f;
+    Wire.requestFrom((uint8_t)INA226_ADDR, (uint8_t)2);
+    if (Wire.available() < 2) return 0.0f;
+    int16_t raw = (int16_t)(((uint16_t)Wire.read() << 8) | Wire.read());
+    return raw * 0.025f;
+}
+
+float readINA226voltage()
+{
+    Wire.beginTransmission(INA226_ADDR);
+    Wire.write(INA226_REG_BUSVOLT);
+    if (Wire.endTransmission(false) != 0) return 0.0f;
+    Wire.requestFrom((uint8_t)INA226_ADDR, (uint8_t)2);
+    if (Wire.available() < 2) return 0.0f;
+    uint16_t raw = ((uint16_t)Wire.read() << 8) | Wire.read();
+    return (raw * 1.25f) / 1000.0f;
+}
+
+float movingAvg(float *buf, uint8_t *idx, float newVal)
+{
+    buf[*idx] = newVal;
+    float sum = 0.0f;
+    for (uint8_t i = 0; i < MAF_SIZE; i++) sum += buf[i];
+    *idx = (*idx + 1) % MAF_SIZE;
+    return sum / MAF_SIZE;
+}
+
+void readSensors()
+{
+    temperature = movingAvg(tempBuf, &tempMafIdx, readNTC());
+    current_mA  = movingAvg(currBuf, &currMafIdx, readINA226current());
+    voltage_V   = movingAvg(voltBuf, &voltMafIdx, readINA226voltage());
+}
+
+// =============================================================
+//  BUZZER FUNCTIONS
+// =============================================================
+void playTone(uint16_t frequency, uint32_t duration_ms)
+{
+    if (frequency > 0) {
+        ledcSetup(BUZZER_CHANNEL, frequency, 8);
+        ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
+        ledcWrite(BUZZER_CHANNEL, 128);
+        delay(duration_ms);
+        ledcWrite(BUZZER_CHANNEL, 0);
+    } else {
+        ledcWrite(BUZZER_CHANNEL, 0);
+        delay(duration_ms);
+    }
+}
+
+void beepShort()   { if (!soundEnabled) return; playTone(2000, 100); }
+void beepSuccess() { if (!soundEnabled) return; playTone(1500, 200); delay(50); playTone(2000, 300); }
+void beepComplete(){ if (!soundEnabled) return; playTone(1000, 200); delay(50); playTone(1500, 200); delay(50); playTone(2000, 400); }
+void beepAlarm()   { if (!soundEnabled) return; playTone(3000, 200); delay(100); playTone(3000, 200); }
+void beepPhaseChange() { if (!soundEnabled) return; playTone(1800, 150); delay(50); playTone(2200, 150); }
+
+// =============================================================
+//  ADAPTIVE SAFETY SYSTEM
+// =============================================================
+void adaptiveCurrentControl()
+{
+    // Phase 1: Warning zone - gradually reduce intensity
+    if (current_mA >= CURRENT_WARNING_MA && current_mA < CURRENT_ALARM_MA) {
+        currWarnCnt++;
+        if (currWarnCnt >= 2) {
+            if (globalIntensity > CURRENT_REDUCE_STEP) {
+                globalIntensity -= CURRENT_REDUCE_STEP;
+                setPWMIntensity(globalIntensity);
+                intensityLocked = true;
+                Serial.printf("[SAFETY] Current %.0fmA - Reducing intensity to %d\n", current_mA, globalIntensity);
+            }
+            currWarnCnt = 0;
+        }
+    } else {
+        currWarnCnt = 0;
+        // Slowly restore intensity if current is normal
+        if (intensityLocked && current_mA < CURRENT_WARNING_MA * 0.8f && globalIntensity < 255) {
+            globalIntensity += 2;
+            if (globalIntensity > 255) globalIntensity = 255;
+            setPWMIntensity(globalIntensity);
+            if (globalIntensity >= 255) intensityLocked = false;
+        }
+    }
+}
+
+void checkSafety()
+{
+    if (appState != STATE_RUNNING) return;
+
+    // Over-temperature: HARD STOP
+    if (temperature >= TEMP_ALARM_C) {
+        beepAlarm();
+        stopPEMF();
+        digitalWrite(FAN_PIN, HIGH);
+        appState = STATE_ALARM;
+        currentAlarm = ALARM_OVERTEMP;
+        drawAlarmScreen();
+        Serial.printf("[ALARM] Over-temperature: %.1fC (limit %.0fC)\n", temperature, TEMP_ALARM_C);
+        return;
+    }
+
+    // Over-current HARD STOP
+    if (current_mA >= CURRENT_ALARM_MA) {
+        currAlarmCnt++;
+        if (currAlarmCnt >= 3) {
+            beepAlarm();
+            stopPEMF();
+            appState = STATE_ALARM;
+            currentAlarm = ALARM_OVERCURRENT;
+            drawAlarmScreen();
+            Serial.printf("[ALARM] Over-current: %.0f mA (limit %.0f mA)\n", current_mA, CURRENT_ALARM_MA);
+            currAlarmCnt = 0;
+            return;
+        }
+    } else {
+        currAlarmCnt = 0;
+    }
+
+    // NTC sensor failure
+    if (temperature <= NTC_ERROR_VALUE) {
+        beepAlarm();
+        stopPEMF();
+        appState = STATE_ALARM;
+        currentAlarm = ALARM_SENSOR_FAIL;
+        drawAlarmScreen();
+        Serial.println("[ALARM] NTC sensor failure - PEMF stopped!");
+        return;
+    }
+}
+
+// =============================================================
+//  PEMF BIPHASIC WITH PWM INTENSITY
+// =============================================================
+void processPEMF()
+{
+    unsigned long nowUs = micros();
+    uint32_t periodUs = (uint32_t)(1000000UL / (uint32_t)pemfFreq);
+    uint32_t halfUs = periodUs / 2;
+    uint32_t gapUs = (halfUs > PEMF_PULSE_US) ? halfUs - PEMF_PULSE_US : 1UL;
+
+    switch (pemfPhase) {
+        case 0:
+            digitalWrite(PEMF_IN1, HIGH); digitalWrite(PEMF_IN2, LOW);
+            setPWMIntensity(globalIntensity);
+            pemfPhase = 1; lastPemfUs = nowUs;
+            break;
+        case 1:
+            if (nowUs - lastPemfUs >= PEMF_PULSE_US) {
+                digitalWrite(PEMF_IN1, LOW); digitalWrite(PEMF_IN2, LOW);
+                setPWMIntensity(0);
+                pemfPhase = 2; lastPemfUs = nowUs;
+            }
+            break;
+        case 2:
+            if (nowUs - lastPemfUs >= gapUs) {
+                digitalWrite(PEMF_IN1, LOW); digitalWrite(PEMF_IN2, HIGH);
+                setPWMIntensity(globalIntensity);
+                pemfPhase = 3; lastPemfUs = nowUs;
+            }
+            break;
+        case 3:
+            if (nowUs - lastPemfUs >= PEMF_PULSE_US) {
+                digitalWrite(PEMF_IN1, LOW); digitalWrite(PEMF_IN2, LOW);
+                setPWMIntensity(0);
+                pemfPhase = 4; lastPemfUs = nowUs;
+            }
+            break;
+        case 4:
+            if (nowUs - lastPemfUs >= gapUs) {
+                pemfPhase = 0;
+            }
+            break;
+    }
+}
+
+void stopPEMF()
+{
+    digitalWrite(PEMF_IN1, LOW);
+    digitalWrite(PEMF_IN2, LOW);
+    setPWMIntensity(0);
+    pemfPhase = 0;
+}
+
+// =============================================================
+//  THERAPY MODE MANAGEMENT
+// =============================================================
+void updateTherapyPhase()
+{
+    if (currentMode != MODE_SMART) return;
+    unsigned long now = millis();
+    unsigned long elapsed = now - sessionStartMs;
+
+    if (elapsed < PHASE_DURATION_MS) {
+        if (currentPhase != PHASE_BREAKDOWN) {
+            currentPhase = PHASE_BREAKDOWN;
+            phaseStartMs = sessionStartMs;
+            Serial.println("[SMART] Phase 1: Breakdown (15Hz)");
+        }
+    } else {
+        if (currentPhase != PHASE_DRAINAGE) {
+            beepPhaseChange();
+            currentPhase = PHASE_DRAINAGE;
+            phaseStartMs = sessionStartMs + PHASE_DURATION_MS;
+            Serial.println("[SMART] Phase 2: Drainage (50Hz)");
+        }
+    }
+}
+
+void updatePEMFFrequency()
+{
+    switch (currentMode) {
+        case MODE_BREAKDOWN: pemfFreq = PEMF_FREQ_BREAKDOWN; break;
+        case MODE_DRAINAGE:  pemfFreq = PEMF_FREQ_DRAINAGE;  break;
+        case MODE_SMART:     pemfFreq = (currentPhase == PHASE_BREAKDOWN) ? PEMF_FREQ_BREAKDOWN : PEMF_FREQ_DRAINAGE; break;
+    }
+}
+
+// =============================================================
+//  TOUCH HANDLING
+// =============================================================
+bool readTouch(uint16_t *tx, uint16_t *ty)
+{
+    Wire.beginTransmission(CST816S_ADDR);
+    Wire.write(CST816S_DATA);
+    if (Wire.endTransmission(false) != 0) return false;
+    Wire.requestFrom((uint8_t)CST816S_ADDR, (uint8_t)6);
+    if (Wire.available() < 6) return false;
+    uint8_t buf[6];
+    for (uint8_t i = 0; i < 6; i++) buf[i] = Wire.read();
+    if ((buf[1] & 0x0F) == 0) return false;
+    *tx = (uint16_t)(((buf[2] & 0x0F) << 8) | buf[3]);
+    *ty = (uint16_t)(((buf[4] & 0x0F) << 8) | buf[5]);
+    return true;
+}
+
+void handleTouch()
+{
+    if (millis() - lastTouchMs < 300) return;
+    uint16_t tx = 0, ty = 0;
+    if (!readTouch(&tx, &ty)) return;
+    lastTouchMs = millis();
+
+    // Mode selection buttons (top row): y 34-56
+    if (ty >= 34 && ty <= 56 && appState == STATE_IDLE) {
+        beepShort();
+        if (tx >= 4 && tx <= 78) {
+            currentMode = MODE_BREAKDOWN; updatePEMFFrequency(); drawUI();
+            Serial.println("[INFO] Mode changed to: Breakdown");
+        }
+        else if (tx >= 83 && tx <= 157) {
+            currentMode = MODE_DRAINAGE; updatePEMFFrequency(); drawUI();
+            Serial.println("[INFO] Mode changed to: Drainage");
+        }
+        else if (tx >= 162 && tx <= 236) {
+            currentMode = MODE_SMART; updatePEMFFrequency(); drawUI();
+            Serial.println("[INFO] Mode changed to: Smart");
+        }
+    }
+
+
+    // START button: x 10-110, y 235-271
+    if (tx >= 10 && tx <= 110 && ty >= 235 && ty <= 271) {
+        if (appState == STATE_IDLE) {
+            beepSuccess();
+            appState = STATE_RUNNING;
+            sessionStartMs = millis();
+            phaseStartMs = millis();
+            pemfPhase = 0;
+            currentPhase = PHASE_BREAKDOWN;
+            globalIntensity = 255;
+            intensityLocked = false;
+            updatePEMFFrequency();
+            drawUI();
+            Serial.printf("[INFO] Session started - Mode: %d\n", (int)currentMode);
+        }
+    }
+
+    // E-STOP button: x 130-230, y 235-271
+    if (tx >= 130 && tx <= 230 && ty >= 235 && ty <= 271) {
+        beepShort();
+        stopPEMF();
+        digitalWrite(FAN_PIN, LOW);
+        appState = STATE_IDLE;
+        currentAlarm = ALARM_NONE;
+        intensityLocked = false;
+        ntcFailCount = 0;
+        currAlarmCnt = 0;
+        currWarnCnt = 0;
+        drawUI();
+        Serial.println("[INFO] E-STOP / reset.");
+    }
+}
+
+// =============================================================
+//  UI DRAWING
+// =============================================================
+void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, const char *label, uint16_t bg, uint16_t fg)
+{
+    gfx->fillRoundRect(x, y, w, h, 7, bg);
+    gfx->drawRoundRect(x, y, w, h, 7, C_WHITE);
+    gfx->setTextColor(fg); gfx->setTextSize(2);
+    int16_t lx = x + (w - (int16_t)(strlen(label) * 12)) / 2;
+    int16_t ly = y + (h - 16) / 2;
+    gfx->setCursor(lx, ly); gfx->print(label);
+}
+
+void drawUI()
+{
+    gfx->fillScreen(C_BG);
+    
+    // Title bar
+    gfx->fillRect(0, 0, LCD_WIDTH, 28, C_PANEL);
+    gfx->drawFastHLine(0, 28, LCD_WIDTH, C_ACCENT);
+    gfx->setTextColor(C_ACCENT); gfx->setTextSize(2);
+    gfx->setCursor(6, 6); gfx->print("PulseFlow");
+    gfx->setTextColor(C_WHITE); gfx->setCursor(126, 6); gfx->print("Pro");
+
+    // Mode selector buttons
+    const int16_t btnY = 34, btnH = 22, btnW = 74, gap = 5;
+    
+    uint16_t bg0 = (currentMode == MODE_BREAKDOWN) ? C_ORANGE : C_PANEL;
+    uint16_t fg0 = (currentMode == MODE_BREAKDOWN) ? C_WHITE : C_GRAY;
+    gfx->fillRoundRect(4, btnY, btnW, btnH, 4, bg0);
+    gfx->drawRoundRect(4, btnY, btnW, btnH, 4, C_WHITE);
+    gfx->setTextColor(fg0); gfx->setTextSize(1);
+    gfx->setCursor(10, btnY + 8); gfx->print("Break 15");
+
+    uint16_t bg1 = (currentMode == MODE_DRAINAGE) ? C_ACCENT : C_PANEL;
+    uint16_t fg1 = (currentMode == MODE_DRAINAGE) ? C_WHITE : C_GRAY;
+    gfx->fillRoundRect(4 + btnW + gap, btnY, btnW, btnH, 4, bg1);
+    gfx->drawRoundRect(4 + btnW + gap, btnY, btnW, btnH, 4, C_WHITE);
+    gfx->setTextColor(fg1); gfx->setTextSize(1);
+    gfx->setCursor(10 + btnW + gap, btnY + 8); gfx->print("Drain 50");
+
+    uint16_t bg2 = (currentMode == MODE_SMART) ? C_YELLOW : C_PANEL;
+    uint16_t fg2 = (currentMode == MODE_SMART) ? C_BG : C_GRAY;
+    gfx->fillRoundRect(4 + 2*(btnW + gap), btnY, btnW, btnH, 4, bg2);
+    gfx->drawRoundRect(4 + 2*(btnW + gap), btnY, btnW, btnH, 4, C_WHITE);
+    gfx->setTextColor(fg2); gfx->setTextSize(1);
+    gfx->setCursor(10 + 2*(btnW + gap), btnY + 8); gfx->print("Smart Dx");
+
+    // Phase indicator (Smart mode)
+    if (currentMode == MODE_SMART && appState == STATE_RUNNING) {
+        gfx->fillRect(4, 58, LCD_WIDTH - 8, 12, C_BG);
+        gfx->setTextColor(C_GRAY); gfx->setTextSize(1);
+        gfx->setCursor(7, 60);
+        const char* phaseNames[] = {"Phase 1: Breakdown 15Hz", "Phase 2: Drainage 50Hz"};
+        gfx->print(phaseNames[currentPhase]);
+    }
+
+    
+    // Buttons
+    drawButton(10,  235, 100, 36, "START",  C_DKGREEN, C_WHITE);
+    drawButton(130, 235, 100, 36, "E-STOP", C_RED,     C_WHITE);
+
+    
+
+    updateDashboard();
+    drawProgressBar(0, (uint32_t)SESSION_DURATION_MS);
+}
+
+void updateDashboard()
+{
+    // Temperature card
+    gfx->fillRect(4, 64, 54, 62, C_PANEL);
+    gfx->setTextColor(C_GRAY); gfx->setTextSize(1);
+    gfx->setCursor(7, 67); gfx->print("TEMP C");
+    uint16_t tCol = (temperature >= TEMP_ALARM_C) ? C_RED : (temperature >= 37.0f) ? C_ORANGE : C_GREEN;
+    gfx->setTextColor(tCol); gfx->setTextSize(2);
+    gfx->fillRect(5, 80, 52, 18, C_PANEL);
+    gfx->setCursor(7, 82); gfx->print(temperature, 1);
+
+    // Current card (in Amperes)
+    gfx->fillRect(62, 64, 54, 62, C_PANEL);
+    gfx->setTextColor(C_GRAY); gfx->setTextSize(1);
+    gfx->setCursor(65, 67); gfx->print("CURR A");
+    uint16_t cCol = (current_mA >= CURRENT_ALARM_MA) ? C_RED : (current_mA >= CURRENT_WARNING_MA) ? C_ORANGE : C_ACCENT;
+    gfx->setTextColor(cCol); gfx->setTextSize(2);
+    gfx->fillRect(63, 80, 52, 18, C_PANEL);
+    gfx->setCursor(65, 82); gfx->print(current_mA / 1000.0f, 2);
+
+    // Voltage card
+    gfx->fillRect(120, 64, 54, 62, C_PANEL);
+    gfx->setTextColor(C_GRAY); gfx->setTextSize(1);
+    gfx->setCursor(123, 67); gfx->print("VOLT V");
+    gfx->setTextColor(C_GREEN); gfx->setTextSize(2);
+    gfx->fillRect(121, 80, 52, 18, C_PANEL);
+    gfx->setCursor(123, 82); gfx->print(voltage_V, 1);
+
+    // Frequency card
+    gfx->fillRect(178, 64, 58, 62, C_PANEL);
+    gfx->setTextColor(C_GRAY); gfx->setTextSize(1);
+    gfx->setCursor(181, 67); gfx->print("FREQ Hz");
+    gfx->setTextColor(C_YELLOW); gfx->setTextSize(2);
+    gfx->fillRect(179, 80, 56, 18, C_PANEL);
+    gfx->setCursor(181, 82); gfx->print((int)pemfFreq);
+
+    // Status row
+    gfx->fillRect(4, 130, LCD_WIDTH - 8, 18, C_BG);
+    const char *stLbl;
+    uint16_t stCol;
+    switch (appState) {
+        case STATE_IDLE:      stLbl = "IDLE -- Press START";  stCol = C_GRAY;   break;
+        case STATE_RUNNING:   stLbl = "SESSION ACTIVE";       stCol = C_GREEN;  break;
+        case STATE_ALARM:
+            switch (currentAlarm) {
+                case ALARM_OVERTEMP:     stLbl = "!! THERMAL ALARM !!";    break;
+                case ALARM_OVERCURRENT:  stLbl = "!! OVERCURRENT ALARM !!"; break;
+                case ALARM_SENSOR_FAIL:  stLbl = "!! SENSOR FAILURE !!";   break;
+                default:                 stLbl = "!! ALARM !!";            break;
+            }
+            stCol = C_RED;    break;
+        default:              stLbl = "SESSION COMPLETED";    stCol = C_ACCENT; break;
+    }
+    gfx->setTextColor(stCol); gfx->setTextSize(1);
+    int16_t sx = (LCD_WIDTH - (int16_t)(strlen(stLbl) * 6)) / 2;
+    gfx->setCursor(sx < 0 ? 0 : sx, 133); gfx->print(stLbl);
+
+    // Timer countdown
+    gfx->fillRect(4, 150, LCD_WIDTH - 8, 16, C_BG);
+    if (appState == STATE_RUNNING) {
+        uint32_t elapsed = (uint32_t)(millis() - sessionStartMs);
+        uint32_t remaining = (SESSION_DURATION_MS > elapsed) ? (uint32_t)(SESSION_DURATION_MS - elapsed) : 0u;
+        char tbuf[24];
+        snprintf(tbuf, sizeof(tbuf), "%02u:%02u remaining",
+                 (unsigned)(remaining / 60000u), (unsigned)((remaining % 60000u) / 1000u));
+        gfx->setTextColor(C_WHITE); gfx->setTextSize(1);
+        int16_t tx2 = (LCD_WIDTH - (int16_t)(strlen(tbuf) * 6)) / 2;
+        gfx->setCursor(tx2 < 0 ? 0 : tx2, 153); gfx->print(tbuf);
+    }
+
+    Serial.printf("[DATA] T=%.1fC I=%.2fA V=%.1fV F=%dHz Mode=%d State=%d\n",
+                  temperature, current_mA / 1000.0f, voltage_V, (int)pemfFreq,
+                  (int)currentMode, (int)appState);
+}
+
+void drawProgressBar(uint32_t elapsed, uint32_t total)
+{
+    const int16_t bx = 11, by = 184, bw = LCD_WIDTH - 22, bh = 16;
+    float pct = (total > 0) ? (float)elapsed / (float)total : 0.0f;
+    if (pct > 1.0f) pct = 1.0f;
+    int16_t filled = (int16_t)(pct * bw);
+
+    gfx->fillRect(bx, by, bw, bh, C_BG);
+    if (filled > 0) {
+        uint16_t barCol = (pct < 0.5f) ? C_GREEN : (pct < 0.8f) ? C_YELLOW : C_ORANGE;
+        gfx->fillRect(bx, by, filled, bh, barCol);
+    }
+    char pbuf[6];
+    snprintf(pbuf, sizeof(pbuf), "%3d%%", (int)(pct * 100.0f));
+    gfx->setTextColor(C_WHITE); gfx->setTextSize(1);
+    gfx->setCursor(bx + bw - 24, by + 4); gfx->print(pbuf);
+}
+
+void drawAlarmScreen()
+{
+    gfx->fillRect(0, 30, LCD_WIDTH, 100, C_RED);
+    gfx->setTextColor(C_WHITE); gfx->setTextSize(3);
+    gfx->setCursor(20, 40); gfx->print("ALARM!");
+    gfx->setTextSize(1);
+
+    switch (currentAlarm) {
+        case ALARM_OVERTEMP:
+            gfx->setCursor(10, 78); gfx->print("Over-temp: driver disabled.");
+            gfx->setCursor(10, 92); gfx->printf("T = %.1f C  (limit %.0f C)", temperature, TEMP_ALARM_C);
+            break;
+        case ALARM_OVERCURRENT:
+            gfx->setCursor(10, 78); gfx->print("Over-current: driver disabled.");
+            gfx->setCursor(10, 92); gfx->printf("I = %.2f A (limit %.1f A)", current_mA / 1000.0f, CURRENT_ALARM_MA / 1000.0f);
+            break;
+        case ALARM_SENSOR_FAIL:
+            gfx->setCursor(10, 78); gfx->print("NTC sensor failure detected.");
+            gfx->setCursor(10, 92); gfx->print("Unable to monitor temperature.");
+            break;
+        default:
+            gfx->setCursor(10, 78); gfx->print("System safety alarm triggered.");
+            break;
+    }
+    gfx->setTextColor(C_YELLOW);
+    gfx->setCursor(10, 106); gfx->print("Press E-STOP to reset.");
+    drawProgressBar(0, (uint32_t)SESSION_DURATION_MS);
+}
+
+void drawCompletedScreen()
+{
+    gfx->fillRect(0, 30, LCD_WIDTH, 160, C_BG);
+    gfx->fillCircle(LCD_WIDTH / 2, 88, 34, C_DKGREEN);
+    gfx->setTextColor(C_WHITE); gfx->setTextSize(3);
+    gfx->setCursor(LCD_WIDTH / 2 - 12, 76); gfx->print("OK");
+    gfx->setTextColor(C_ACCENT); gfx->setTextSize(2);
+    gfx->setCursor(8, 132); gfx->print("Session Complete!");
+    gfx->setTextColor(C_GREEN); gfx->setTextSize(1);
+    gfx->setCursor(16, 158); gfx->print("Cooling fan ON -- E-STOP to reset.");
+    drawProgressBar((uint32_t)SESSION_DURATION_MS, (uint32_t)SESSION_DURATION_MS);
+}
+
+// =============================================================
+//  WIFI & WEB SERVER
+// =============================================================
+void initWiFi()
+{
+    Serial.println("\n[WiFi] Creating Access Point...");
+    WiFi.disconnect(); WiFi.mode(WIFI_OFF); delay(100);
+    WiFi.mode(WIFI_AP);
+    WiFi.softAPConfig(AP_IP, AP_IP, IPAddress(255, 255, 255, 0));
+    bool apStarted = WiFi.softAP(AP_SSID, AP_PASSWORD);
+
+    if (apStarted) {
+        delay(500);
+        IPAddress myIP = WiFi.softAPIP();
+        Serial.println("[WiFi] AP Started!");
+        Serial.println("[WiFi] SSID: " + String(AP_SSID));
+        Serial.println("[WiFi] IP: " + myIP.toString());
+    } else {
+        Serial.println("[WiFi] Failed to start AP!");
+    }
+}
+
+void setupWebServer()
+{
+    server.on("/", handleRoot);
+    server.on("/api", handleAPI);
+    server.on("/start", handleStart);
+    server.on("/stop", handleStop);
+    server.on("/setmode", handleSetMode);
+    server.on("/setsound", handleSetSound);
+    server.begin();
+    Serial.println("[WebServer] Started on port 80");
+}
+
+// =============================================================
+//  DARK MODE WEB DASHBOARD (Complete HTML)
+// =============================================================
+void handleRoot()
+{
+    String html = R"rawliteral(
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
-    <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PulseFlow Pro - لوحة التحكم</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family:'Segoe UI',Tahoma,sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    min-height:100vh; padding:20px; color:#fff;
+}
+.container { max-width:600px; margin:0 auto; }
+.header {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius:20px; padding:25px; text-align:center;
+    border:1px solid rgba(255,255,255,0.1);
+    margin-bottom:20px;
+}
+h1 { font-size:32px; background: linear-gradient(90deg, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { color:#8892b0; font-size:14px; margin-top:5px; }
+.status-badge { display:inline-block; padding:10px 25px; border-radius:25px; font-size:14px; font-weight:bold; margin:15px 0; }
+.status-idle { background:#2d3748; color:#a0aec0; }
+.status-running { background: linear-gradient(90deg, #11998e, #38ef7d); color:#fff; animation:pulse 2s infinite; }
+.status-alarm { background: linear-gradient(90deg, #cb2d3e, #ef473a); color:#fff; animation:blink 1s infinite; }
+.status-completed { background: linear-gradient(90deg, #667eea, #764ba2); color:#fff; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
+@keyframes blink { 0%,50%,100%{opacity:1;} 25%,75%{opacity:0.3;} }
+.card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius:20px; padding:25px;
+    border:1px solid rgba(255,255,255,0.1);
+    margin-bottom:20px;
+}
+.card h3 { color:#00d2ff; margin-bottom:15px; font-size:18px; }
+.mode-selector { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:15px 0; }
+.mode-btn {
+    padding:15px; border:2px solid rgba(255,255,255,0.1);
+    border-radius:12px; background:rgba(255,255,255,0.05);
+    cursor:pointer; text-align:center; font-size:13px; font-weight:bold;
+    transition:all 0.3s; color:#a0aec0;
+}
+.mode-btn:hover { background:rgba(255,255,255,0.1); transform:translateY(-2px); }
+.mode-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color:#fff; border-color:transparent; }
+.mode-btn:disabled { opacity:0.4; cursor:not-allowed; }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+.metrics { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin:20px 0; }
+.metric {
+    background: linear-gradient(135deg, rgba(102,126,234,0.3) 0%, rgba(118,75,162,0.3) 100%);
+    padding:18px 10px; border-radius:15px; text-align:center;
+    border:1px solid rgba(255,255,255,0.1);
+}
+.metric-label { font-size:11px; color:#8892b0; margin-bottom:8px; text-transform:uppercase; }
+.metric-value { font-size:26px; font-weight:bold; color:#fff; }
+.metric-unit { font-size:12px; color:#00d2ff; }
 
-    <style>
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --current-period-color: #ffd700;
-            --current-period-bg: rgba(255, 215, 0, 0.15);
-            --next-period-color: #87CEEB;
-            --next-period-bg: rgba(135, 206, 235, 0.1);
-            --card-bg: rgba(255, 255, 255, 0.98);
-            --shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-            --icon-uniform: #3498db;
-        }
+.progress-container {
+    background:rgba(255,255,255,0.1); border-radius:15px; height:35px;
+    overflow:hidden; margin:15px 0; position:relative;
+}
+.progress-bar {
+    background: linear-gradient(90deg, #11998e 0%, #38ef7d 50%, #f093fb 100%);
+    height:100%; transition:width 0.5s; border-radius:15px;
+}
+.progress-text { position:absolute; width:100%; text-align:center; line-height:35px; font-weight:bold; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.3); }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+.btn-group { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px; }
+.btn {
+    padding:20px; border:none; border-radius:15px; font-size:18px; font-weight:bold;
+    cursor:pointer; transition:all 0.3s; box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.btn:active { transform:scale(0.95); }
+.btn-start { background: linear-gradient(135deg, #11998e, #38ef7d); color:#fff; }
+.btn-start:hover { box-shadow:0 10px 30px rgba(17,153,142,0.4); }
+.btn-stop { background: linear-gradient(135deg, #cb2d3e, #ef473a); color:#fff; }
+.btn-stop:hover { box-shadow:0 10px 30px rgba(203,45,62,0.4); }
 
-        html, body {
-            min-height: 100vh;
-            width: 100vw;
-            overflow-x: hidden;
-            font-family: 'Tajawal', sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #2c3e50;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 15px;
-            position: relative;
-        }
-
-        @media (min-width: 1024px) {
-            html, body { height: 100vh; overflow: hidden; align-items: center; }
-        }
-
-        .tv-background {
-            position: fixed; inset: 0; z-index: 0;
-            background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
-            opacity: 0.15; pointer-events: none;
-        }
-
-        .container {
-            position: relative; z-index: 1;
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column; gap: 12px;
-            max-width: 1920px;
-        }
-
-        .header, .table-container, .stat-card, .footer {
-            background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            box-shadow: var(--shadow);
-        }
-
-        .header {
-            border-radius: 20px;
-            padding: 15px 25px;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            flex-shrink: 0;
-        }
-
-        .header-content {
-            display: flex; align-items: center; justify-content: space-between; gap: 20px;
-        }
-
-        .qr-code {
-            flex-shrink: 0; background: white; padding: 8px; border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid var(--primary-color);
-            cursor: pointer; transition: transform 0.3s ease;
-        }
-        .qr-code:hover { transform: scale(1.05); }
-        .qr-code img { display: block; width: 80px; height: 80px; object-fit: contain; }
-        @media (min-width: 768px) { .qr-code img { width: 100px; height: 100px; } }
-
-        .time-info-container {
-            flex-shrink: 0;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 20px; padding: 12px 20px; color: white;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-width: 180px;
-        }
-
-        .info-item {
-            display: flex; align-items: center; gap: 8px; font-size: 1rem; width: 100%; justify-content: center;
-        }
-        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; color: white; }
-
-        .update-badge {
-            background: rgba(255, 215, 0, 0.25);
-            padding: 5px 15px; border-radius: 30px; border: 1px solid #ffd700;
-            display: flex; align-items: center; gap: 8px; font-size: 0.9rem; width: 100%; justify-content: center;
-            margin-top: 5px;
-        }
-        .update-badge i { animation: spin 3s linear infinite; color: #ffd700; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .school-name-container { flex: 1; text-align: center; }
-        .school-name h1 {
-            color: #2c3e50;
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-            font-weight: 800;
-            margin-bottom: 5px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
-            display: flex; align-items: center; justify-content: center; gap: 15px;
-        }
-        .school-name h1 i { 
-            color: var(--icon-uniform); 
-            animation: pulse 2s infinite; 
-            font-size: clamp(1.3rem, 2.8vw, 2rem); 
-        }
-        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
-        
-        .school-name .subtitle {
-            color: #7f8c8d; font-size: clamp(0.9rem, 1.6vw, 1.2rem); font-weight: 400;
-            border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 4px;
-        }
-
-        /* ===== شريط الحصص ===== */
-        .periods-marquee {
-            border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
-            background: linear-gradient(135deg, #2c3e50, #34495e); padding: 12px 15px;
-        }
-        
-        .marquee-wrapper {
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .marquee-container {
-            display: flex; align-items: center; gap: 30px; white-space: nowrap;
-            direction: ltr; width: max-content;
-            animation: scrollLeftToRight 140s linear infinite;
-        }
-        
-        @keyframes scrollLeftToRight {
-            0%   { transform: translateX(100vw); }
-            100% { transform: translateX(-100%); }
-        }
-        
-        .marquee-item {
-            display: inline-flex; align-items: center; gap: 12px; padding: 8px 25px; border-radius: 35px;
-            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
-            font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;
-            color: white;
-        }
-        .marquee-item i { color: white; }
-        .marquee-item.current { 
-            background: linear-gradient(135deg, #ffd700, #f39c12); 
-            color: #1a1a2e; 
-            font-weight: 900;
-            font-size: 1.35rem;
-            border: 2px solid #fff;
-        }
-        .marquee-item.next { 
-            background: linear-gradient(135deg, #87CEEB, #00BFFF); 
-            color: #1a1a2e;
-            font-weight: 900;
-            font-size: 1.35rem;
-            border: 2px solid #fff;
-        }
-
-        /* ===== شريط السلامة - الإصلاح الرئيسي ===== */
-        .safety-marquee {
-            border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 2px solid #ffcc00;
-            background: linear-gradient(135deg, #c0392b, #e74c3c, #c0392b);
-            padding: 14px 15px;
-            margin: 5px 0;
-            animation: pulseBg 1.5s ease-in-out infinite;
-            /* ضمان ارتفاع ثابت دائماً حتى لو كان الشريط فارغاً */
-            min-height: 76px;
-            display: flex;
-            align-items: center;
-        }
-        @keyframes pulseBg {
-            0%   { background: linear-gradient(135deg, #c0392b, #e74c3c); }
-            50%  { background: linear-gradient(135deg, #e74c3c, #ff6b6b); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
-            100% { background: linear-gradient(135deg, #c0392b, #e74c3c); }
-        }
-
-        .safety-marquee-wrapper {
-            overflow: hidden;
-            width: 100%;
-        }
-        
-        .safety-marquee-container {
-            display: flex; align-items: center; gap: 30px;
-            white-space: nowrap; direction: ltr;
-            width: max-content;
-            /* الحركة: من اليمين إلى اليسار بشكل مستمر */
-            animation: scrollSafety 160s linear infinite;
-        }
-
-        /* ✅ إصلاح اتجاه الحركة: من اليمين إلى اليسار */
-        @keyframes scrollSafety {
-            0%   { transform: translateX(100vw); }
-            100% { transform: translateX(-100%); }
-        }
-        
-        .safety-icon {
-            width: 48px; height: 48px; background: rgba(0,0,0,0.3); border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; 
-            flex-shrink: 0;
-            margin: 0 5px;
-        }
-        .safety-icon i { color: #ffd700; }
-        
-        .safety-text {
-            font-size: 1.6rem;
-            font-weight: 900;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-            color: #ffffff;
-            letter-spacing: 1px;
-            background: rgba(0,0,0,0.2);
-            padding: 5px 15px;
-            border-radius: 40px;
-            display: inline-block;
-        }
-
-        /* ===== بطاقات الإحصاء ===== */
-        .stats-cards {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; flex-shrink: 0;
-        }
-        .stat-card {
-            border-radius: 15px; padding: 12px 15px;
-            display: flex; align-items: center; gap: 12px;
-            border: 2px solid rgba(255,255,255,0.8);
-            transition: transform 0.2s;
-        }
-        .stat-card:hover { transform: translateY(-2px); }
-        
-        .stat-icon {
-            width: 50px; height: 50px; 
-            background: linear-gradient(135deg, var(--icon-uniform), #1f618d);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 1.5rem; 
-            color: white; 
-            flex-shrink: 0;
-        }
-        
-        .stat-details { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-        .stat-details h3 { color: #7f8c8d; font-size: clamp(0.8rem, 1.3vw, 1rem); font-weight: 500; margin: 0; }
-        .stat-number { color: #2c3e50; font-size: clamp(1.3rem, 2.2vw, 1.8rem); font-weight: 800; line-height: 1; }
-        
-        .progress-circle-container {
-            display: flex; align-items: center; gap: 8px;
-        }
-        .progress-circle {
-            width: 45px; height: 45px; position: relative; flex-shrink: 0;
-        }
-        .progress-circle svg {
-            width: 45px; height: 45px; transform: rotate(-90deg);
-        }
-        .progress-circle circle {
-            fill: none; stroke-width: 4; stroke-linecap: round;
-        }
-        .progress-circle .bg-circle { stroke: #e0e0e0; }
-        .progress-circle .progress-fill {
-            stroke: #27ae60;
-            transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
-        }
-        .percentage-text { font-size: 1rem; font-weight: 700; color: #2c3e50; }
-
-        /* ===== جدول الحصص ===== */
-        .table-container {
-            border-radius: 20px; padding: 0; border: 2px solid rgba(255,255,255,0.8);
-            flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
-            min-height: 0;
-        }
-        
-        .table-responsive {
-            width: 100%; height: 100%;
-            overflow-y: auto; overflow-x: auto;
-            scrollbar-width: thin;
-            position: relative;
-            display: flex; flex-direction: column;
-        }
-        
-        .table-responsive::-webkit-scrollbar { width: 6px; height: 6px; }
-        .table-responsive::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
-        .table-responsive::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
-        
-        .schedule-table {
-            width: 100%; border-collapse: separate; border-spacing: 0 6px; 
-            table-layout: auto; min-width: 600px;
-        }
-        
-        .schedule-table thead {
-            position: sticky; top: 0; z-index: 20; background: white;
-        }
-        
-        .schedule-table th {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white; padding: 12px 8px; 
-            font-size: clamp(0.8rem, 1.3vw, 1rem);
-            font-weight: 700; white-space: nowrap;
-        }
-        .schedule-table th:nth-child(1) { width: 20%; }
-        .schedule-table th:nth-child(2) { width: 15%; }
-        .schedule-table th:nth-child(3) { width: 20%; }
-        .schedule-table th:nth-child(4) { width: 20%; }
-        .schedule-table th:nth-child(5) { width: 25%; }
-
-        .schedule-table td {
-            background: white; padding: 10px 8px; text-align: center;
-            font-size: clamp(0.8rem, 1.3vw, 1rem); 
-            border: 1px solid rgba(0,0,0,0.05);
-            white-space: nowrap;
-        }
-        .schedule-table td:first-child { 
-            border-radius: 12px 0 0 12px; font-weight: bold; 
-            background: linear-gradient(to left, white, #f0f7ff);
-        }
-        .schedule-table td:last-child { 
-            border-radius: 0 12px 12px 0;
-            white-space: normal; word-break: break-word;
-        }
-
-        .scrollable-tbody { display: block; overflow-y: hidden; }
-        
-        .auto-scroll { animation: slowScrollUp 60s linear infinite; }
-        
-        @keyframes slowScrollUp {
-            0%   { transform: translateY(0); }
-            100% { transform: translateY(-50%); }
-        }
-        
-        .table-responsive:hover .auto-scroll {
-            animation-play-state: paused;
-        }
-        
-        .schedule-table thead,
-        .schedule-table tbody {
-            display: table; width: 100%; table-layout: fixed;
-        }
-
-        .current-period { background: var(--current-period-bg) !important; border-right: 4px solid var(--current-period-color) !important; }
-        .next-period    { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
-
-        .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; }
-        .booked td { background: transparent !important; color: white !important; }
-
-        .experiment-badge {
-            display: inline-block; background: rgba(52, 152, 219, 0.1); padding: 4px 10px; border-radius: 25px;
-            border: 1px solid var(--primary-color); color: var(--primary-color); font-size: 0.8rem;
-            max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .booked .experiment-badge { background: rgba(255,255,255,0.2); color: white; border-color: white; }
-
-        .empty-cell   { color: #95a5a6; font-style: italic; background: #f8f9fa !important; }
-        .break-row    { background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important; }
-        .break-row td { background: transparent !important; color: white !important; font-weight: 700; }
-
-        /* ===== التذييل ===== */
-        .footer {
-            text-align: center; padding: 8px 15px; background: rgba(0, 0, 0, 0.3);
-            border-radius: 30px; backdrop-filter: blur(5px); flex-shrink: 0;
-        }
-        .footer-content {
-            display: flex; justify-content: space-between;
-            align-items: center; width: 100%;
-            font-size: clamp(0.7rem, 1.1vw, 0.9rem);
-            gap: 10px; color: white;
-        }
-        .footer-right { text-align: right; }
-        .footer-left  { text-align: left; }
-        .footer-content i { color: white; }
-
-        .loading { text-align: center; padding: 20px; color: #2c3e50; }
-        .error   { text-align: center; padding: 20px; color: #e74c3c; }
-    </style>
+.timer { text-align:center; font-size:22px; color:#00d2ff; margin:15px 0; font-weight:bold; }
+.phase-indicator {
+    text-align:center; padding:12px; background:rgba(0,210,255,0.1);
+    border-radius:10px; margin:10px 0; font-size:14px; color:#00d2ff;
+    border:1px solid rgba(0,210,255,0.2);
+}
+.footer { text-align:center; color:#8892b0; font-size:12px; margin-top:20px; }
+</style>
 </head>
-
 <body>
-    <div class="tv-background"></div>
+<div class="container">
+<div class="header">
+<h1>⚡ PulseFlow Pro</h1>
+<div class="subtitle">نظام التحكم في العلاج المغناطيسي النبضي</div>
+<div id="status-badge" class="status-badge status-idle">في وضع الانتظار</div>
+</div>
 
-    <div class="container">
+<div class="card">
+<h3>🎯 اختيار وضع العلاج</h3>
+<div class="mode-selector">
+<div class="mode-btn active" id="mode0" onclick="setMode(0)">🔥<br>Breakdown<br>15Hz</div>
+<div class="mode-btn" id="mode1" onclick="setMode(1)">💧<br>Drainage<br>50Hz</div>
+<div class="mode-btn" id="mode2" onclick="setMode(2)">🧠<br>Smart<br>Dual</div>
+</div>
+<div class="phase-indicator" id="phase-info" style="display:none;">المرحلة: --</div>
+<div style="text-align:center; margin-top:15px;">
+<button class="mode-btn" id="sound-toggle" onclick="toggleSound()" style="width:auto; padding:10px 25px;">🔊 الصوت: تشغيل</button>
+</div>
+</div>
 
-        <!-- ===== الرأس ===== -->
-        <div class="header">
-            <div class="header-content">
-                <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="QR">
-                </div>
+<div class="card">
+<h3>📊 القراءات الحية</h3>
+<div class="metrics">
+<div class="metric">
+<div class="metric-label">درجة الحرارة</div>
+<div class="metric-value" id="temp">--</div>
+<div class="metric-unit">°C</div>
+</div>
+<div class="metric">
+<div class="metric-label">التيار</div>
+<div class="metric-value" id="current">--</div>
+<div class="metric-unit">A</div>
+</div>
+<div class="metric">
+<div class="metric-label">الجهد</div>
+<div class="metric-value" id="voltage">--</div>
+<div class="metric-unit">V</div>
+</div>
+<div class="metric">
+<div class="metric-label">التردد</div>
+<div class="metric-value" id="freq">--</div>
+<div class="metric-unit">Hz</div>
+</div>
+</div>
+<div class="timer" id="timer">--:--</div>
+<div class="progress-container">
+<div class="progress-bar" id="progress" style="width:0%"></div>
+<div class="progress-text" id="progress-text">0%</div>
+</div>
+</div>
 
-                <div class="school-name-container">
-                    <div class="school-name">
-                        <h1><i class="fas fa-flask"></i> مختبر مدرسة الحوراء <i class="fas fa-microscope"></i></h1>
-                        <div class="subtitle">عرض مرئي تفاعلي لحجز المختبر</div>
-                    </div>
-                </div>
+<div class="card">
+<div class="btn-group">
+<button class="btn btn-start" onclick="sendCommand('start')">▶ بدء الجلسة</button>
+<button class="btn btn-stop" onclick="sendCommand('stop')">⏹ إيقاف طارئ</button>
+</div>
+</div>
 
-                <div class="time-info-container">
-                    <div class="info-item"><i class="fas fa-calendar-day"></i> <span id="currentDate"></span></div>
-                    <div class="info-item"><i class="fas fa-clock"></i> <span id="currentTime">--:--</span></div>
-                    <div class="update-badge"><i class="fas fa-sync-alt"></i> <span>تحديث كل 5 دقائق</span></div>
-                </div>
-            </div>
-        </div>
+<div class="footer">PulseFlow Pro © 2026 | نظام علاجي متطور | مدة الجلسة: 30 دقيقة</div>
+</div>
 
-        <!-- ===== شريط الحصص ===== -->
-        <div class="periods-marquee">
-            <div class="marquee-wrapper">
-                <!--
-                    ✅ الحل #1 (Static Fallback): محتوى افتراضي يظهر فوراً عند تحميل الصفحة
-                    قبل وصول أي بيانات من Google Sheets
-                -->
-                <div class="marquee-container" id="marqueeContainer">
-                    <div class="marquee-item"><i class="fas fa-clock"></i> جارٍ تحديد الحصة الحالية...</div>
-                    <div class="marquee-item"><i class="fas fa-clock"></i> جارٍ تحديد الحصة الحالية...</div>
-                    <div class="marquee-item"><i class="fas fa-clock"></i> جارٍ تحديد الحصة الحالية...</div>
-                </div>
-            </div>
-        </div>
+<script>
+let currentMode=0;
+let soundEnabled=true;
 
-        <!-- ===== بطاقات الإحصاء ===== -->
-        <div class="stats-cards">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
-                <div class="stat-details"><h3>إجمالي الحصص</h3><div class="stat-number" id="totalPeriods">8</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-details"><h3>المحجوزة</h3><div class="stat-number" id="bookedCount">0</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                <div class="stat-details"><h3>الشاغرة</h3><div class="stat-number" id="emptyCount">8</div></div>
-            </div>
-            <div class="stat-card percentage-card">
-                <div class="stat-icon"><i class="fas fa-chart-pie"></i></div>
-                <div class="stat-details">
-                    <h3>نسبة الحجز</h3>
-                    <div class="progress-circle-container">
-                        <div class="progress-circle" id="progressCircle">
-                            <svg viewBox="0 0 40 40">
-                                <circle class="bg-circle" cx="20" cy="20" r="16"></circle>
-                                <circle class="progress-fill" cx="20" cy="20" r="16" stroke-dasharray="100.53" stroke-dashoffset="100.53"></circle>
-                            </svg>
-                        </div>
-                        <span class="percentage-text" id="percentageValue">0%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== جدول الحصص ===== -->
-        <div class="table-container">
-            <div id="tableWrapper" class="table-responsive">
-                <div id="tableContent">
-                    <div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</div>
-                </div>
-            </div>
-        </div>
-
-        <!--
-            ✅ الحل #1 (Static Fallback): شريط السلامة يحتوي على محتوى افتراضي مباشرةً في HTML.
-            يبدأ الشريط بالحركة فوراً عند تحميل الصفحة دون انتظار الشبكة.
-        -->
-        <div class="safety-marquee">
-            <div class="safety-marquee-wrapper">
-                <div class="safety-marquee-container" id="safetyMarqueeContainer">
-                    <!-- المحتوى الافتراضي - سيتم استبداله بالبيانات الحقيقية بعد التحميل -->
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <!-- تكرار ثانٍ لضمان الاستمرارية على الشاشات العريضة -->
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <!-- تكرار ثالث للتأكيد على الاستمرارية -->
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                    <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="safety-text">⚠️ الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع ⚠️</span>
-                    <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== التذييل ===== -->
-        <div class="footer">
-            <div class="footer-content">
-                <div class="footer-right">
-                    <i class="fas fa-chalkboard-teacher"></i> إشراف فنية المختبر أ.نادية السيابي
-                </div>
-                <div class="footer-left">
-                    <i class="fas fa-copyright"></i> جميع الحقوق محفوظة لمدرسة الحوراء 2026
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        /* ===== الإعدادات ===== */
-        var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        var REFRESH_INTERVAL = 300000; // 5 دقائق
-
-        /*
-         * ✅ الحل #1 (Static Fallback): رسائل السلامة الافتراضية المُدمجة في الكود.
-         * تُستخدم عند فشل الاتصال بالشبكة أو قبل وصول البيانات.
-         */
-        var DEFAULT_SAFETY_MESSAGES = [
-            'تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي',
-            'يُمنع دخول المختبر إلا بإذن مسبق من المعلمة المشرفة',
-            'الحفاظ على نظافة المختبر وسلامة الأجهزة مسؤولية الجميع'
-        ];
-
-        /*
-         * ✅ الحل #2 (Smart Update): متغير لتخزين آخر نص معروض في شريط السلامة.
-         * يُمنع مسح الشريط إلا إذا تغير المحتوى فعلاً.
-         */
-        var lastSafetyContent = '';
-
-        var timeTable = [
-            { period: "الطابور",  duration: 10, times: [{ start: "7:00",  end: "7:10"  }, { start: "7:10",  end: "7:20"  }] },
-            { period: "الأولى",   duration: 40, times: [{ start: "7:10",  end: "7:50"  }, { start: "7:20",  end: "8:00"  }] },
-            { period: "الثانية",  duration: 40, times: [{ start: "7:55",  end: "8:35"  }, { start: "8:05",  end: "8:45"  }] },
-            { period: "الثالثة",  duration: 40, times: [{ start: "8:40",  end: "9:20"  }, { start: "8:50",  end: "9:30"  }] },
-            { period: "الرابعة",  duration: 40, times: [{ start: "9:25",  end: "10:05" }, { start: "9:35",  end: "10:15" }] },
-            { period: "الفسحة",   duration: 20, times: [{ start: "10:05", end: "10:25" }, { start: "10:15", end: "10:35" }] },
-            { period: "الخامسة",  duration: 40, times: [{ start: "10:25", end: "11:05" }, { start: "10:35", end: "11:15" }] },
-            { period: "السادسة",  duration: 40, times: [{ start: "11:10", end: "11:50" }, { start: "11:20", end: "12:00" }] },
-            { period: "السابعة",  duration: 40, times: [{ start: "11:55", end: "12:35" }, { start: "12:05", end: "12:45" }] },
-            { period: "الثامنة",  duration: 40, times: [{ start: "12:40", end: "1:20"  }, { start: "12:50", end: "1:30"  }] }
-        ];
-
-        var currentBookings = {};
-
-        /* ===== دوال مساعدة ===== */
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        function parseCSVLine(line) {
-            var result = [], current = '', inQuotes = false;
-            for (var i = 0; i < line.length; i++) {
-                var char = line[i];
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-                else current += char;
+function setMode(mode){
+    fetch('/setmode?mode='+mode).then(r=>{
+        if(r.ok){
+            currentMode=mode;
+            for(let i=0;i<3;i++){
+                document.getElementById('mode'+i).classList.remove('active');
             }
-            result.push(current.trim());
-            return result;
+            document.getElementById('mode'+mode).classList.add('active');
+            updateData();
+        }
+    }).catch(e=>console.error(e));
+}
+
+function toggleSound(){
+    fetch('/setsound?enable='+(soundEnabled?'0':'1')).then(r=>{
+        if(r.ok){
+            soundEnabled=!soundEnabled;
+            const btn=document.getElementById('sound-toggle');
+            btn.textContent=(soundEnabled?'🔊':'🔇')+' الصوت: '+(soundEnabled?'تشغيل':'إيقاف');
+        }
+    }).catch(e=>console.error(e));
+}
+
+function updateData(){
+    fetch('/api').then(r=>r.json()).then(d=>{
+        document.getElementById('temp').textContent=d.temp.toFixed(1);
+        document.getElementById('current').textContent=(d.current/1000).toFixed(2);
+        document.getElementById('voltage').textContent=d.voltage.toFixed(1);
+        document.getElementById('freq').textContent=Math.round(d.freq);
+        currentMode=d.mode;
+
+        const elapsed=d.elapsed;
+        const total=1800000;
+        const pct=Math.min(100,(elapsed/total)*100);
+        document.getElementById('progress').style.width=pct+'%';
+        document.getElementById('progress-text').textContent=Math.round(pct)+'%';
+
+        const mins=Math.floor((total-elapsed)/60000);
+        const secs=Math.floor(((total-elapsed)%60000)/1000);
+        if(d.state===1) document.getElementById('timer').textContent=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0')+' متبقي';
+        else document.getElementById('timer').textContent='--:--';
+
+        for(let i=0;i<3;i++){
+            const btn=document.getElementById('mode'+i);
+            btn.classList.toggle('active',i===d.mode);
+            btn.disabled=(d.state===1);
         }
 
-        function parseCSV(text) {
-            var lines = text.split(/\r?\n/), results = [];
-            for (var i = 0; i < lines.length; i++) {
-                if (lines[i].trim()) results.push(parseCSVLine(lines[i]));
-            }
-            return results;
+        const phaseInfo=document.getElementById('phase-info');
+        if(d.mode===2&&d.state===1){
+            phaseInfo.style.display='block';
+            phaseInfo.textContent=d.phase===0?'المرحلة 1: Breakdown (15Hz)':'المرحلة 2: Drainage (50Hz)';
+        }else{
+            phaseInfo.style.display='none';
         }
 
-        function timeToMinutes(timeStr) {
-            if (!timeStr) return 0;
-            var parts = timeStr.split(':');
-            var hours = parseInt(parts[0]);
-            var minutes = parseInt(parts[1]);
-            if (hours < 7 && hours > 0) hours += 12;
-            return hours * 60 + minutes;
+        const badge=document.getElementById('status-badge');
+        if(d.state===0){badge.className='status-badge status-idle';badge.textContent='في وضع الانتظار';}
+        else if(d.state===1){badge.className='status-badge status-running';badge.textContent='🔄 الجلسة نشطة';}
+        else if(d.state===2){
+            badge.className='status-badge status-alarm';
+            if(d.alarm===1)badge.textContent='⚠️ تحذير حراري';
+            else if(d.alarm===2)badge.textContent='⚠️ تيار زائد';
+            else if(d.alarm===3)badge.textContent='⚠️ عطل في الحساس';
+            else badge.textContent='⚠️ إنذار';
         }
+        else{badge.className='status-badge status-completed';badge.textContent='✅ اكتملت الجلسة';}
+    }).catch(e=>console.error(e));
+}
 
-        function getCurrentTimeInMinutes() {
-            var now = new Date();
-            return now.getHours() * 60 + now.getMinutes();
-        }
+function sendCommand(cmd){
+    fetch('/'+cmd).then(()=>updateData());
+}
 
-        function getCurrentAndNextPeriod() {
-            var currentTimeInMinutes = getCurrentTimeInMinutes();
-            var isSecondShift = currentTimeInMinutes >= 12 * 60;
-            var currentPeriod = null, nextPeriod = null;
-
-            for (var i = 0; i < timeTable.length; i++) {
-                var period = timeTable[i];
-                var timeSlot = period.times[isSecondShift ? 1 : 0];
-                var start = timeToMinutes(timeSlot.start);
-                var end   = timeToMinutes(timeSlot.end);
-                if (currentTimeInMinutes >= start && currentTimeInMinutes < end) {
-                    currentPeriod = { index: i, period: period.period, start: timeSlot.start, end: timeSlot.end };
-                    break;
-                }
-            }
-            if (currentPeriod && timeTable[currentPeriod.index + 1]) {
-                var nextP    = timeTable[currentPeriod.index + 1];
-                var nextSlot = nextP.times[isSecondShift ? 1 : 0];
-                nextPeriod   = { period: nextP.period, start: nextSlot.start };
-            }
-            return { currentPeriod: currentPeriod, nextPeriod: nextPeriod };
-        }
-
-        /* ===== تحديث الوقت ===== */
-        function updateCurrentTime() {
-            var now = new Date();
-            document.getElementById('currentTime').textContent =
-                now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('currentDate').textContent =
-                now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        }
-
-        /*
-         * ✅ الحل #2 (Smart Update) + الحل #3 (Triple Buffering):
-         * - لا يُمسح الشريط إلا إذا تغير المحتوى فعلاً (Smart Update).
-         * - كل رسالة تُكرَّر 3 مرات لملء الشاشات العريضة (Triple Buffering).
-         */
-        function buildSafetyHTML(messages) {
-            var unit = '';
-            for (var i = 0; i < messages.length; i++) {
-                unit += '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
-                        '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
-                        '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
-            }
-            // تكرار ثلاثي لضمان الاستمرارية على الشاشات العريضة
-            return unit + unit + unit;
-        }
-
-        function updateSafetyMarquee(notes) {
-            var messages = (notes && notes.length) ? notes : DEFAULT_SAFETY_MESSAGES;
-            var newContent = buildSafetyHTML(messages);
-
-            /*
-             * ✅ التحديث الذكي: لا نمسح الشريط إذا كان المحتوى لم يتغير.
-             * هذا يمنع "الوميض" عند التحديث الدوري كل 5 دقائق.
-             */
-            if (newContent === lastSafetyContent) return;
-            lastSafetyContent = newContent;
-
-            var container = document.getElementById('safetyMarqueeContainer');
-
-            /*
-             * بدلاً من مسح الشريط مباشرة، نضيف المحتوى الجديد ثم نزيل القديم
-             * بعد تأخير بسيط لتجنب الفجوة البصرية.
-             */
-            var oldAnimation = container.style.animationName;
-            container.style.animation = 'none'; // إيقاف الحركة مؤقتاً
-
-            // استبدال المحتوى
-            container.innerHTML = newContent;
-
-            // إعادة تشغيل الحركة في الإطار التالي (reflow trick)
-            void container.offsetWidth;
-            container.style.animation = '';
-        }
-
-        /* ===== تحديث شريط الحصص ===== */
-        function updateMarquee() {
-            var marqueeContainer = document.getElementById('marqueeContainer');
-            var data    = getCurrentAndNextPeriod();
-            var current = data.currentPeriod;
-            var next    = data.nextPeriod;
-
-            var item;
-            if (!current) {
-                item = '<div class="marquee-item"><i class="fas fa-moon"></i> لا توجد حصة حالياً - خارج أوقات الدراسة</div>';
-            } else {
-                var curBook   = currentBookings[current.period];
-                var curLesson = curBook ? curBook.lesson : 'متاح للحجز';
-                var nextBook  = next ? currentBookings[next.period] : null;
-                var nextLesson = nextBook ? nextBook.lesson : 'متاح للحجز';
-
-                item = '<div class="marquee-item current"><i class="fas fa-circle" style="color:#e74c3c;font-size:0.7rem;"></i> الحصة الحالية: ' +
-                            escapeHTML(current.period) + ' | الدرس: ' + escapeHTML(curLesson) +
-                       '</div>' +
-                       (next ? '<div class="marquee-item next"><i class="fas fa-clock"></i> التالية: ' +
-                            escapeHTML(next.period) + ' | ' + escapeHTML(nextLesson) +
-                       '</div>' : '');
-            }
-
-            // تكرار ثلاثي لشريط الحصص أيضاً
-            marqueeContainer.innerHTML = item + item + item;
-        }
-
-        /* ===== تحديث نسبة الحجز ===== */
-        function updatePercentage(booked, total) {
-            var percentage = total > 0 ? Math.round((booked / total) * 100) : 0;
-            document.getElementById('percentageValue').textContent = percentage + '%';
-            
-            var radius = 16;
-            var circumference = 2 * Math.PI * radius;
-            var offset = circumference - (percentage / 100) * circumference;
-            var fillCircle = document.querySelector('#progressCircle .progress-fill');
-            if (fillCircle) {
-                fillCircle.style.strokeDashoffset = offset;
-                if (percentage >= 70)      fillCircle.style.stroke = '#27ae60';
-                else if (percentage >= 40) fillCircle.style.stroke = '#f39c12';
-                else                       fillCircle.style.stroke = '#e74c3c';
-            }
-        }
-
-        /* ===== رسم الجدول ===== */
-        function renderSchedule(bookings) {
-            var data = getCurrentAndNextPeriod();
-            var bookedCount = 0, totalBookable = 0;
-
-            // بناء صفوف الجدول (مرتين للتمرير الدائري)
-            function buildRows() {
-                var rows = '';
-                for (var i = 0; i < timeTable.length; i++) {
-                    var period  = timeTable[i];
-                    var booking = bookings[period.period];
-                    
-                    if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
-                        totalBookable++;
-                        if (booking) bookedCount++;
-                    }
-
-                    var rowClass = '';
-                    if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
-                    else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
-                    else if (booking) rowClass = 'booked';
-
-                    rows += '<tr class="' + rowClass + '">';
-                    rows += '<td><strong>' + escapeHTML(period.period) + '</strong></td>';
-
-                    if (booking) {
-                        rows += '<td>' + escapeHTML(booking.grade)   + '</td>';
-                        rows += '<td>' + escapeHTML(booking.subject) + '</td>';
-                        rows += '<td>' + escapeHTML(booking.teacher) + '</td>';
-                        rows += '<td><span class="experiment-badge">' + escapeHTML(booking.lesson) + '</span></td>';
-                    } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
-                        rows += '<td colspan="4" class="empty-cell">استراحة</td>';
-                    } else {
-                        rows += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
-                    }
-                    rows += '</tr>';
-                }
-                return rows;
-            }
-
-            var rowsHTML = buildRows();
-            // إعادة الحساب (bookedCount/totalBookable يُحسبان داخل buildRows)
-            bookedCount = 0; totalBookable = 0;
-            for (var i = 0; i < timeTable.length; i++) {
-                var p = timeTable[i].period;
-                if (p !== 'الطابور' && p !== 'الفسحة') {
-                    totalBookable++;
-                    if (bookings[p]) bookedCount++;
-                }
-            }
-
-            var html = '<table class="schedule-table">' +
-                '<thead><tr>' +
-                '<th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>' +
-                '</tr></thead>' +
-                '<tbody class="scrollable-tbody auto-scroll" id="movableTbody">' +
-                rowsHTML + rowsHTML + // تكرار مزدوج للتمرير الدائري
-                '</tbody></table>';
-
-            document.getElementById('tableContent').innerHTML = html;
-            document.getElementById('bookedCount').textContent  = bookedCount;
-            document.getElementById('emptyCount').textContent   = totalBookable - bookedCount;
-            document.getElementById('totalPeriods').textContent = totalBookable;
-            updatePercentage(bookedCount, totalBookable);
-        }
-
-        /* ===== جلب البيانات من Google Sheets ===== */
-        function fetchSchedule() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', csvUrl + '&t=' + Date.now(), true);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState !== 4) return;
-
-                if (xhr.status === 200) {
-                    var rows  = parseCSV(xhr.responseText);
-                    var now   = new Date();
-                    var today = now.getFullYear() + '/' +
-                                String(now.getMonth() + 1).padStart(2, '0') + '/' +
-                                String(now.getDate()).padStart(2, '0');
-
-                    var bookings = {}, notes = [];
-                    for (var i = 1; i < rows.length; i++) {
-                        if (rows[i][2] === today) {
-                            bookings[rows[i][3]] = {
-                                teacher: rows[i][4], subject: rows[i][5],
-                                grade:   rows[i][6], lesson:  rows[i][7]
-                            };
-                            if (rows[i][8]) notes.push(rows[i][8]);
-                        }
-                    }
-
-                    currentBookings = bookings;
-                    renderSchedule(bookings);
-
-                    /*
-                     * ✅ الحل #2: تمرير الملاحظات المستخرجة إلى updateSafetyMarquee.
-                     * الدالة نفسها ستقرر إن كان يجب تحديث الشريط أم لا.
-                     */
-                    updateSafetyMarquee(notes);
-                    updateMarquee();
-
-                } else {
-                    /*
-                     * عند فشل الاتصال: الشريط الافتراضي يبقى دون تغيير (لا نمسحه).
-                     * نعرض فقط رسالة خطأ في الجدول إذا كان لا يزال يعرض "جاري التحميل".
-                     */
-                    var tableContent = document.getElementById('tableContent');
-                    if (tableContent.querySelector('.loading')) {
-                        tableContent.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> تعذّر الاتصال بالشبكة. سيتم المحاولة مجدداً...</div>';
-                    }
-                }
-            };
-
-            xhr.send();
-        }
-
-        /* ===== بدء التشغيل ===== */
-        document.addEventListener('DOMContentLoaded', function () {
-            // 1. تحديث الوقت فوراً
-            updateCurrentTime();
-
-            // 2. تحديث شريط الحصص بناءً على الوقت الحالي (دون انتظار الشبكة)
-            updateMarquee();
-
-            // 3. جلب البيانات من الشبكة
-            fetchSchedule();
-
-            // 4. تكرار دوري
-            setInterval(updateCurrentTime, 1000);
-            setInterval(function () {
-                fetchSchedule();
-                updateMarquee();
-            }, REFRESH_INTERVAL);
-        });
-    </script>
+setInterval(updateData,800);
+updateData();
+</script>
 </body>
 </html>
+)rawliteral";
+
+    server.send(200, "text/html", html);
+}
+
+// =============================================================
+//  API ENDPOINT
+// =============================================================
+void handleAPI()
+{
+    uint32_t elapsed = (appState == STATE_RUNNING) ? (uint32_t)(millis() - sessionStartMs) : 0u;
+    uint32_t phaseElapsed = (appState == STATE_RUNNING && currentMode == MODE_SMART) ? (uint32_t)(millis() - phaseStartMs) : 0u;
+
+    String json = "{";
+    json += "\"temp\":" + String(temperature, 1) + ",";
+    json += "\"current\":" + String(current_mA, 0) + ",";
+    json += "\"voltage\":" + String(voltage_V, 1) + ",";
+    json += "\"freq\":" + String((int)pemfFreq) + ",";
+    json += "\"state\":" + String((int)appState) + ",";
+    json += "\"mode\":" + String((int)currentMode) + ",";
+    json += "\"phase\":" + String((int)currentPhase) + ",";
+    json += "\"alarm\":" + String((int)currentAlarm) + ",";
+    json += "\"elapsed\":" + String(elapsed) + ",";
+    json += "\"phaseElapsed\":" + String(phaseElapsed);
+    json += "}";
+
+    server.send(200, "application/json", json);
+}
+
+// =============================================================
+//  COMMAND HANDLERS
+// =============================================================
+void handleStart()
+{
+    if (appState == STATE_IDLE) {
+        beepSuccess();
+        appState = STATE_RUNNING;
+        sessionStartMs = millis();
+        phaseStartMs = millis();
+        pemfPhase = 0;
+        currentPhase = PHASE_BREAKDOWN;
+        globalIntensity = 255;
+        intensityLocked = false;
+        updatePEMFFrequency();
+        drawUI();
+        Serial.printf("[WebServer] Session started - Mode: %d\n", (int)currentMode);
+        server.send(200, "text/plain", "Started");
+    } else {
+        server.send(400, "text/plain", "Already running");
+    }
+}
+
+void handleStop()
+{
+    beepShort();
+    stopPEMF();
+    digitalWrite(FAN_PIN, LOW);
+    appState = STATE_IDLE;
+    currentAlarm = ALARM_NONE;
+    intensityLocked = false;
+    ntcFailCount = 0;
+    currAlarmCnt = 0;
+    currWarnCnt = 0;
+    drawUI();
+    Serial.println("[WebServer] E-STOP via web.");
+    server.send(200, "text/plain", "Stopped");
+}
+
+void handleSetMode()
+{
+    if (appState != STATE_IDLE) {
+        server.send(400, "text/plain", "Cannot change mode while running");
+        return;
+    }
+    if (server.hasArg("mode")) {
+        int mode = server.arg("mode").toInt();
+        if (mode >= 0 && mode <= 2) {
+            beepShort();
+            currentMode = (TherapyMode)mode;
+            updatePEMFFrequency();
+            drawUI();
+            Serial.printf("[WebServer] Mode changed to: %d\n", mode);
+            server.send(200, "text/plain", "Mode changed");
+        } else {
+            server.send(400, "text/plain", "Invalid mode");
+        }
+    } else {
+        server.send(400, "text/plain", "Missing mode parameter");
+    }
+}
+
+void handleSetSound()
+{
+    if (server.hasArg("enable")) {
+        soundEnabled = (server.arg("enable") == "1");
+        if (soundEnabled) beepShort();
+        Serial.printf("[WebServer] Sound %s\n", soundEnabled ? "enabled" : "disabled");
+        server.send(200, "text/plain", soundEnabled ? "Sound ON" : "Sound OFF");
+    } else {
+        server.send(400, "text/plain", "Missing enable parameter");
+    }
+}
+
+// =============================================================
+//  DISPLAY WIFI INFO ON LCD
+// =============================================================
+void displayWiFiInfo()
+{
+    gfx->fillRect(0, 275, LCD_WIDTH, 45, C_PANEL);
+    gfx->setTextColor(C_ACCENT); gfx->setTextSize(1);
+    gfx->setCursor(5, 278); gfx->print("WiFi: " + String(AP_SSID));
+    gfx->setTextColor(C_WHITE);
+    gfx->setCursor(5, 290); gfx->print("Pass: " + String(AP_PASSWORD));
+    gfx->setCursor(5, 302); gfx->print("URL: http://" + WiFi.softAPIP().toString());
+}
