@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
     <meta http-equiv="refresh" content="300" />
- 
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
- 
+
     <style>
         :root {
             --primary-color: #3498db;
@@ -24,11 +24,11 @@
             --next-period-bg: rgba(135, 206, 235, 0.1);
             --card-bg: rgba(255, 255, 255, 0.98);
             --shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-            --icon-uniform: #3498db; /* لون موحد لجميع الأيقونات */
+            --icon-uniform: #3498db;
         }
- 
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
- 
+
         html, body {
             min-height: 100vh;
             width: 100vw;
@@ -42,41 +42,41 @@
             padding: 15px;
             position: relative;
         }
- 
+
         @media (min-width: 1024px) {
             html, body { height: 100vh; overflow: hidden; align-items: center; }
         }
- 
+
         .tv-background {
             position: fixed; inset: 0; z-index: 0;
             background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
             opacity: 0.15; pointer-events: none;
         }
- 
+
         .container {
             position: relative; z-index: 1;
             width: 100%; height: 100%;
             display: flex; flex-direction: column; gap: 12px;
             max-width: 1920px;
         }
- 
+
         .header, .table-container, .stat-card, .footer {
             background: var(--card-bg);
             backdrop-filter: blur(15px);
             box-shadow: var(--shadow);
         }
- 
+
         .header {
             border-radius: 20px;
             padding: 15px 25px;
             border: 2px solid rgba(255, 255, 255, 0.5);
             flex-shrink: 0;
         }
- 
+
         .header-content {
             display: flex; align-items: center; justify-content: space-between; gap: 20px;
         }
- 
+
         .qr-code {
             flex-shrink: 0; background: white; padding: 8px; border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid var(--primary-color);
@@ -85,7 +85,7 @@
         .qr-code:hover { transform: scale(1.05); }
         .qr-code img { display: block; width: 80px; height: 80px; object-fit: contain; }
         @media (min-width: 768px) { .qr-code img { width: 100px; height: 100px; } }
- 
+
         .time-info-container {
             flex-shrink: 0;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -95,21 +95,21 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             min-width: 180px;
         }
- 
+
         .info-item {
             display: flex; align-items: center; gap: 8px; font-size: 1rem; width: 100%; justify-content: center;
         }
-        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; color: white; } /* توحيد لون أيقونات الوقت والتاريخ */
- 
+        .info-item i { font-size: 1.2rem; min-width: 25px; text-align: center; color: white; }
+
         .update-badge {
             background: rgba(255, 215, 0, 0.25);
             padding: 5px 15px; border-radius: 30px; border: 1px solid #ffd700;
             display: flex; align-items: center; gap: 8px; font-size: 0.9rem; width: 100%; justify-content: center;
             margin-top: 5px;
         }
-        .update-badge i { animation: spin 3s linear infinite; color: #ffd700; } /* بقاء لون أيقونة التحديث ذهبياً للتمييز */
+        .update-badge i { animation: spin 3s linear infinite; color: #ffd700; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
- 
+
         .school-name-container { flex: 1; text-align: center; }
         .school-name h1 {
             color: #2c3e50;
@@ -119,39 +119,38 @@
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
             display: flex; align-items: center; justify-content: center; gap: 15px;
         }
-        /* توحيد لون أيقونات عنوان المختبر */
         .school-name h1 i { 
             color: var(--icon-uniform); 
             animation: pulse 2s infinite; 
             font-size: clamp(1.3rem, 2.8vw, 2rem); 
         }
         @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
-        
+
         .school-name .subtitle {
             color: #7f8c8d; font-size: clamp(0.9rem, 1.6vw, 1.2rem); font-weight: 400;
             border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 4px;
         }
- 
+
         .periods-marquee {
             border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);
             background: linear-gradient(135deg, #2c3e50, #34495e); padding: 12px 15px;
         }
-        
+
         .marquee-container {
             display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
             animation: scrollLeftToRight 140s linear infinite;
         }
-        
+
         @keyframes scrollLeftToRight { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        
+
         .marquee-item {
             display: inline-flex; align-items: center; gap: 12px; padding: 8px 25px; border-radius: 35px;
             background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
             font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;
             color: white;
         }
-        .marquee-item i { color: white; } /* أيقونات الشريط بيضاء */
+        .marquee-item i { color: white; }
         .marquee-item.current { 
             background: linear-gradient(135deg, #ffd700, #f39c12); 
             color: #1a1a2e; 
@@ -166,7 +165,7 @@
             font-size: 1.35rem;
             border: 2px solid #fff;
         }
- 
+
         .safety-marquee {
             border-radius: 40px; overflow: hidden; position: relative; flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 2px solid #ffcc00;
@@ -180,13 +179,13 @@
             50% { background: linear-gradient(135deg, #e74c3c, #ff6b6b); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
             100% { background: linear-gradient(135deg, #c0392b, #e74c3c); }
         }
-        
+
         .safety-marquee-container {
             display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
             animation: scrollSafety 160s linear infinite;
         }
         @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        
+
         .safety-icon {
             width: 48px; height: 48px; background: rgba(0,0,0,0.3); border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
@@ -194,9 +193,8 @@
             flex-shrink: 0;
             margin: 0 5px;
         }
-        /* أيقونات شريط الأمان بلون ذهبي ثابت */
         .safety-icon i { color: #ffd700; }
-        
+
         .safety-text {
             font-size: 1.6rem;
             font-weight: 900;
@@ -208,7 +206,7 @@
             border-radius: 40px;
             display: inline-block;
         }
- 
+
         .stats-cards {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; flex-shrink: 0;
         }
@@ -219,26 +217,24 @@
             transition: transform 0.2s;
         }
         .stat-card:hover { transform: translateY(-2px); }
-        
-        /* توحيد لون جميع أيقونات البطاقات الأربع إلى اللون الأزرق المحدد */
+
         .stat-icon {
             width: 50px; height: 50px; 
-            background: linear-gradient(135deg, var(--icon-uniform), #1f618d); /* تدرج أزرق موحد */
+            background: linear-gradient(135deg, var(--icon-uniform), #1f618d);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center; 
             font-size: 1.5rem; 
             color: white; 
             flex-shrink: 0;
         }
-        /* إزالة التدرج الخاص بنسبة الحجز */
         .stat-card.percentage-card .stat-icon {
-            background: linear-gradient(135deg, var(--icon-uniform), #1f618d); /* نفس اللون الأزرق الموحد */
+            background: linear-gradient(135deg, var(--icon-uniform), #1f618d);
         }
-        
+
         .stat-details { display: flex; flex-direction: column; gap: 5px; flex: 1; }
         .stat-details h3 { color: #7f8c8d; font-size: clamp(0.8rem, 1.3vw, 1rem); font-weight: 500; margin: 0; }
         .stat-number { color: #2c3e50; font-size: clamp(1.3rem, 2.2vw, 1.8rem); font-weight: 800; line-height: 1; }
-        
+
         .progress-circle-container {
             display: flex;
             align-items: center;
@@ -272,13 +268,13 @@
             font-weight: 700;
             color: #2c3e50;
         }
- 
+
         .table-container {
             border-radius: 20px; padding: 0; border: 2px solid rgba(255,255,255,0.8);
             flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
             min-height: 0;
         }
-        
+
         .table-responsive {
             width: 100%;
             height: 100%;
@@ -289,7 +285,7 @@
             display: flex;
             flex-direction: column;
         }
-        
+
         .table-responsive::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -302,7 +298,7 @@
             background: var(--primary-color);
             border-radius: 10px;
         }
-        
+
         .schedule-table {
             width: 100%; 
             border-collapse: separate; 
@@ -310,14 +306,14 @@
             table-layout: auto;
             min-width: 600px;
         }
-        
+
         .schedule-table thead {
             position: sticky;
             top: 0;
             z-index: 20;
             background: white;
         }
-        
+
         .schedule-table th {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white; 
@@ -331,7 +327,7 @@
         .schedule-table th:nth-child(3) { width: 20%; }
         .schedule-table th:nth-child(4) { width: 20%; }
         .schedule-table th:nth-child(5) { width: 25%; }
- 
+
         .schedule-table td {
             background: white; 
             padding: 10px 8px; 
@@ -350,38 +346,38 @@
             white-space: normal;
             word-break: break-word;
         }
- 
+
         .scrollable-tbody {
             display: block;
             overflow-y: hidden;
         }
-        
+
         .auto-scroll {
             animation: slowScrollUp 60s linear infinite;
         }
-        
+
         @keyframes slowScrollUp {
             0% { transform: translateY(0); }
             100% { transform: translateY(-100%); }
         }
-        
+
         .table-responsive:hover .auto-scroll {
             animation-play-state: paused;
         }
-        
+
         .schedule-table thead,
         .schedule-table tbody {
             display: table;
             width: 100%;
             table-layout: fixed;
         }
- 
+
         .current-period { background: var(--current-period-bg) !important; border-right: 4px solid var(--current-period-color) !important; }
         .next-period { background: var(--next-period-bg) !important; border-right: 4px solid var(--next-period-color) !important; }
- 
+
         .booked { background: linear-gradient(135deg, #27ae60, #2ecc71) !important; }
         .booked td { background: transparent !important; color: white !important; }
- 
+
         .experiment-badge {
             display: inline-block; background: rgba(52, 152, 219, 0.1); padding: 4px 10px; border-radius: 25px;
             border: 1px solid var(--primary-color); color: var(--primary-color); font-size: 0.8rem;
@@ -390,11 +386,11 @@
         .booked .experiment-badge {
             background: rgba(255,255,255,0.2); color: white; border-color: white;
         }
- 
+
         .empty-cell { color: #95a5a6; font-style: italic; background: #f8f9fa !important; }
         .break-row { background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important; }
         .break-row td { background: transparent !important; color: white !important; font-weight: 700; }
- 
+
         .footer {
             text-align: center; padding: 8px 15px; background: rgba(0, 0, 0, 0.3);
             border-radius: 30px; backdrop-filter: blur(5px); flex-shrink: 0;
@@ -410,31 +406,31 @@
         }
         .footer-right { text-align: right; }
         .footer-left { text-align: left; }
-        /* أيقونات التذييل بلون أبيض */
         .footer-content i { color: white; }
- 
+
         .loading, .error { text-align: center; padding: 20px; color: #2c3e50; }
         .error { color: #e74c3c; }
     </style>
+<base target="_blank">
 </head>
- 
+
 <body>
     <div class="tv-background"></div>
- 
+
     <div class="container">
         <div class="header">
             <div class="header-content">
                 <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="QR">
                 </div>
- 
+
                 <div class="school-name-container">
                     <div class="school-name">
                         <h1><i class="fas fa-flask"></i> مختبر مدرسة الحوراء <i class="fas fa-microscope"></i></h1>
                         <div class="subtitle">عرض مرئي تفاعلي لحجز المختبر</div>
                     </div>
                 </div>
- 
+
                 <div class="time-info-container">
                     <div class="info-item"><i class="fas fa-calendar-day"></i> <span id="currentDate"></span></div>
                     <div class="info-item"><i class="fas fa-clock"></i> <span id="currentTime">--:-- --</span></div>
@@ -442,11 +438,11 @@
                 </div>
             </div>
         </div>
- 
+
         <div class="periods-marquee" id="periodsMarquee">
             <div class="marquee-container" id="marqueeContainer"></div>
         </div>
- 
+
         <div class="stats-cards">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-list-ol"></i></div>
@@ -476,7 +472,7 @@
                 </div>
             </div>
         </div>
- 
+
         <div class="table-container">
             <div id="tableWrapper" class="table-responsive">
                 <div id="tableContent">
@@ -484,22 +480,27 @@
                 </div>
             </div>
         </div>
- 
+
+        <!-- شريط السلامة مع نص افتراضي يظهر فوراً -->
         <div class="safety-marquee">
             <div class="safety-marquee-container" id="safetyMarqueeContainer">
                 <!-- نص افتراضي يظهر فوراً لمنع التأخير -->
                 <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
+                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
+                <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                <!-- تكرار النص لضمان انسيابية الحركة -->
+                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
+                <span class="safety-text">⚠️ اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
                 <span class="safety-icon"><i class="fas fa-flask"></i></span>
                 <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
+                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
                 <span class="safety-icon"><i class="fas fa-flask"></i></span>
                 <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
+                <span class="safety-text">⚠️ اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
                 <span class="safety-icon"><i class="fas fa-flask"></i></span>
             </div>
         </div>
- 
+
         <div class="footer">
             <div class="footer-content">
                 <div class="footer-right">
@@ -511,12 +512,12 @@
             </div>
         </div>
     </div>
- 
+
     <script>
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
-        var DEFAULT_SAFETY_MSG = '⚠️ تنبيه: اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️';
+        var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
         var REFRESH_INTERVAL = 300000;
- 
+
         var timeTable = [
             { period: "الطابور", duration: 10, times: [{ start: "7:00", end: "7:10" }, { start: "7:10", end: "7:20" }] },
             { period: "الأولى", duration: 40, times: [{ start: "7:10", end: "7:50" }, { start: "7:20", end: "8:00" }] },
@@ -529,9 +530,10 @@
             { period: "السابعة", duration: 40, times: [{ start: "11:55", end: "12:35" }, { start: "12:05", end: "12:45" }] },
             { period: "الثامنة", duration: 40, times: [{ start: "12:40", end: "1:20" }, { start: "12:50", end: "1:30" }] }
         ];
- 
+
         var currentBookings = {};
- 
+        var lastSafetyHTML = '';
+
         function escapeHTML(str) {
             if (!str) return '';
             return String(str)
@@ -541,7 +543,7 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
         }
- 
+
         function parseCSVLine(line) {
             var result = [];
             var current = '';
@@ -557,7 +559,7 @@
             result.push(current.trim());
             return result;
         }
- 
+
         function parseCSV(text) {
             var lines = text.split(/\r?\n/);
             var results = [];
@@ -566,7 +568,7 @@
             }
             return results;
         }
- 
+
         function timeToMinutes(timeStr) {
             if (!timeStr) return 0;
             var parts = timeStr.split(':');
@@ -575,18 +577,18 @@
             if (hours < 7 && hours > 0) hours += 12;
             return hours * 60 + minutes;
         }
- 
+
         function getCurrentTimeInMinutes() {
             var now = new Date();
             return now.getHours() * 60 + now.getMinutes();
         }
- 
+
         function getCurrentAndNextPeriod() {
             var currentTimeInMinutes = getCurrentTimeInMinutes();
             var isSecondShift = currentTimeInMinutes >= 12 * 60;
             var currentPeriod = null;
             var nextPeriod = null;
- 
+
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var timeSlot = period.times[isSecondShift ? 1 : 0];
@@ -604,55 +606,65 @@
             }
             return { currentPeriod: currentPeriod, nextPeriod: nextPeriod };
         }
- 
+
         function updateCurrentTime() {
             var now = new Date();
             document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
- 
+
+        // تحسين دالة تحديث شريط السلامة - لا تعيد البناء إذا لم تتغير البيانات
         function updateSafetyMarquee(notes) {
             var safetyContainer = document.getElementById('safetyMarqueeContainer');
+
+            // استخدام الملاحظات من الجدول أو الرسالة الافتراضية
             var messages = (notes && notes.length > 0) ? notes : [DEFAULT_SAFETY_MSG];
+
             var content = '';
+            // بناء المحتوى
             for (var i = 0; i < messages.length; i++) {
-                content += '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
-                           '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
-                           '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
+                var msg = '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
+                          '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
+                          '<span class="safety-icon"><i class="fas fa-flask"></i></span>';
+                content += msg;
             }
-            // تكرار المحتوى 3 مرات لضمان عدم وجود فراغ في الشريط
-            var finalHTML = content + content + content;
-            // تحديث المحتوى فقط إذا كان مختلفاً لمنع الاختفاء المفاجئ
-            if (safetyContainer.innerHTML !== finalHTML) {
+
+            // تكرار المحتوى 4 مرات لضمان عدم وجود فراغ في الشريط المتحرك
+            var finalHTML = content + content + content + content;
+
+            // تحديث المحتوى فقط إذا كان مختلفاً عما هو موجود حالياً
+            // هذا يمنع "الرمشة" أو الاختفاء المفاجئ عند التحديث الدوري
+            if (lastSafetyHTML !== finalHTML) {
                 safetyContainer.innerHTML = finalHTML;
+                lastSafetyHTML = finalHTML;
             }
         }
- 
+
         function updateMarquee() {
             var marqueeContainer = document.getElementById('marqueeContainer');
             var data = getCurrentAndNextPeriod();
             var current = data.currentPeriod;
             var next = data.nextPeriod;
- 
+
             if (!current) {
                 marqueeContainer.innerHTML = '<div class="marquee-item">لا توجد حصة حالياً</div>';
                 return;
             }
- 
+
             var curBook = currentBookings[current.period];
             var curLesson = curBook ? curBook.lesson : 'متاح';
             var nextBook = next ? currentBookings[next.period] : null;
             var nextLesson = nextBook ? nextBook.lesson : 'متاح';
- 
+
             var item = '<div class="marquee-item current">🔴 الحصة: ' + escapeHTML(current.period) + ' | الدرس: ' + escapeHTML(curLesson) + '</div>' +
                        '<div class="marquee-item next">⏳ التالية: ' + (next ? escapeHTML(next.period) : '---') + ' | الدرس: ' + escapeHTML(nextLesson) + '</div>';
             marqueeContainer.innerHTML = item + item + item;
         }
- 
+
         function updatePercentage(booked, total) {
             var percentage = total > 0 ? Math.round((booked / total) * 100) : 0;
             document.getElementById('percentageValue').textContent = percentage + '%';
-            
+
             var radius = 16;
             var circumference = 2 * Math.PI * radius;
             var offset = circumference - (percentage / 100) * circumference;
@@ -664,38 +676,38 @@
                 else fillCircle.style.stroke = '#e74c3c';
             }
         }
- 
+
         function renderSchedule(bookings) {
             var now = new Date();
             var isSecondShift = now.getHours() >= 12;
             var data = getCurrentAndNextPeriod();
             var bookedCount = 0;
             var totalBookable = 0;
-            
+
             var html = '<table class="schedule-table">';
             html += '<thead><tr>';
             html += '<th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلمة</th><th>عنوان الدرس</th>';
             html += '<tr></thead>';
-            
+
             html += '<tbody class="scrollable-tbody auto-scroll" id="movableTbody">';
-            
+
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var booking = bookings[period.period];
-                
+
                 if (period.period !== 'الطابور' && period.period !== 'الفسحة') {
                     totalBookable++;
                     if (booking) bookedCount++;
                 }
- 
+
                 var rowClass = '';
                 if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
                 else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
                 else if (booking) rowClass = 'booked';
- 
+
                 html += '<tr class="' + rowClass + '">';
                 html += '<td><strong>' + period.period + '</strong></td>';
-                
+
                 if (booking) {
                     html += '<td>' + escapeHTML(booking.grade) + '</td>';
                     html += '<td>' + escapeHTML(booking.subject) + '</td>';
@@ -704,23 +716,24 @@
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
                     html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
                 } else {
-                    html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
+                    html += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
                 }
                 html += '</tr>';
             }
-            
+
+            // تكرار الصفوف للتمرير التلقائي
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var booking = bookings[period.period];
- 
+
                 var rowClass = '';
                 if (data.currentPeriod && data.currentPeriod.index === i) rowClass = 'current-period';
                 else if (period.period === 'الطابور' || period.period === 'الفسحة') rowClass = 'break-row';
                 else if (booking) rowClass = 'booked';
- 
+
                 html += '<tr class="' + rowClass + '">';
                 html += '<td><strong>' + period.period + '</strong></td>';
-                
+
                 if (booking) {
                     html += '<td>' + escapeHTML(booking.grade) + '</td>';
                     html += '<td>' + escapeHTML(booking.subject) + '</td>';
@@ -729,21 +742,21 @@
                 } else if (period.period === 'الطابور' || period.period === 'الفسحة') {
                     html += '<td colspan="4" class="empty-cell">استراحة (لا يوجد حجز)</td>';
                 } else {
-                    html += '<td colspan="4" class="empty-cell">متاح للحجز<\/td>';
+                    html += '<td colspan="4" class="empty-cell">متاح للحجز</td>';
                 }
-                html += '<tr>';
+                html += '</tr>';
             }
-            
+
             html += '</tbody></table>';
-            
+
             document.getElementById('tableContent').innerHTML = html;
             document.getElementById('bookedCount').textContent = bookedCount;
             document.getElementById('emptyCount').textContent = totalBookable - bookedCount;
             document.getElementById('totalPeriods').textContent = totalBookable;
-            
+
             updatePercentage(bookedCount, totalBookable);
         }
- 
+
         function fetchSchedule() {
             var xhr = new XMLHttpRequest();
             var finalUrl = csvUrl + '&t=' + new Date().getTime();
@@ -754,7 +767,7 @@
                     var rows = parseCSV(data);
                     var now = new Date();
                     var today = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0');
-                    
+
                     var bookings = {};
                     var notes = [];
                     for (var i = 1; i < rows.length; i++) {
@@ -771,7 +784,7 @@
             };
             xhr.send();
         }
- 
+
         document.addEventListener('DOMContentLoaded', function() {
             updateCurrentTime();
             fetchSchedule();
@@ -781,7 +794,3 @@
     </script>
 </body>
 </html>
- 
-
-
-
