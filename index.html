@@ -180,11 +180,17 @@
             100% { background: linear-gradient(135deg, #c0392b, #e74c3c); }
         }
 
+        /* تم التعديل هنا: اتجاه rtl لتناسب اللغة العربية */
         .safety-marquee-container {
-            display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: ltr; width: fit-content;
+            display: flex; align-items: center; gap: 30px; white-space: nowrap; direction: rtl; width: fit-content;
             animation: scrollSafety 160s linear infinite;
         }
-        @keyframes scrollSafety { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        
+        /* تم التعديل هنا: تبدأ من 0% لتجنب الفراغ */
+        @keyframes scrollSafety { 
+            0% { transform: translateX(0%); } 
+            100% { transform: translateX(-100%); } 
+        }
 
         .safety-icon {
             width: 48px; height: 48px; background: rgba(0,0,0,0.3); border-radius: 50%;
@@ -481,23 +487,9 @@
             </div>
         </div>
 
-        <!-- شريط السلامة مع نص افتراضي يظهر فوراً -->
         <div class="safety-marquee">
             <div class="safety-marquee-container" id="safetyMarqueeContainer">
-                <!-- نص افتراضي يظهر فوراً لمنع التأخير -->
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                <!-- تكرار النص لضمان انسيابية الحركة -->
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="safety-text">⚠️ اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
-                <span class="safety-icon"><i class="fas fa-flask"></i></span>
+                <!-- سيتم ملؤه بالنص الافتراضي فوراً بواسطة الجافاسكريبت -->
             </div>
         </div>
 
@@ -613,15 +605,11 @@
             document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        // تحسين دالة تحديث شريط السلامة - لا تعيد البناء إذا لم تتغير البيانات
         function updateSafetyMarquee(notes) {
             var safetyContainer = document.getElementById('safetyMarqueeContainer');
-
-            // استخدام الملاحظات من الجدول أو الرسالة الافتراضية
             var messages = (notes && notes.length > 0) ? notes : [DEFAULT_SAFETY_MSG];
-
             var content = '';
-            // بناء المحتوى
+            
             for (var i = 0; i < messages.length; i++) {
                 var msg = '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
                           '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
@@ -629,11 +617,8 @@
                 content += msg;
             }
 
-            // تكرار المحتوى 4 مرات لضمان عدم وجود فراغ في الشريط المتحرك
             var finalHTML = content + content + content + content;
 
-            // تحديث المحتوى فقط إذا كان مختلفاً عما هو موجود حالياً
-            // هذا يمنع "الرمشة" أو الاختفاء المفاجئ عند التحديث الدوري
             if (lastSafetyHTML !== finalHTML) {
                 safetyContainer.innerHTML = finalHTML;
                 lastSafetyHTML = finalHTML;
@@ -721,7 +706,6 @@
                 html += '</tr>';
             }
 
-            // تكرار الصفوف للتمرير التلقائي
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var booking = bookings[period.period];
@@ -787,6 +771,8 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             updateCurrentTime();
+            // تم التعديل هنا: استدعاء فوري بنص افتراضي قبل جلب البيانات لمنع الشاشة الفارغة
+            updateSafetyMarquee([]); 
             fetchSchedule();
             setInterval(updateCurrentTime, 1000);
             setInterval(fetchSchedule, REFRESH_INTERVAL);
