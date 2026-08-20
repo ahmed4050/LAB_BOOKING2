@@ -119,10 +119,10 @@
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
             display: flex; align-items: center; justify-content: center; gap: 15px;
         }
-        .school-name h1 i { 
-            color: var(--icon-uniform); 
-            animation: pulse 2s infinite; 
-            font-size: clamp(1.3rem, 2.8vw, 2rem); 
+        .school-name h1 i {
+            color: var(--icon-uniform);
+            animation: pulse 2s infinite;
+            font-size: clamp(1.3rem, 2.8vw, 2rem);
         }
         @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
 
@@ -151,15 +151,15 @@
             color: white;
         }
         .marquee-item i { color: white; }
-        .marquee-item.current { 
-            background: linear-gradient(135deg, #ffd700, #f39c12); 
-            color: #1a1a2e; 
+        .marquee-item.current {
+            background: linear-gradient(135deg, #ffd700, #f39c12);
+            color: #1a1a2e;
             font-weight: 900;
             font-size: 1.35rem;
             border: 2px solid #fff;
         }
-        .marquee-item.next { 
-            background: linear-gradient(135deg, #87CEEB, #00BFFF); 
+        .marquee-item.next {
+            background: linear-gradient(135deg, #87CEEB, #00BFFF);
             color: #1a1a2e;
             font-weight: 900;
             font-size: 1.35rem;
@@ -189,7 +189,7 @@
         .safety-icon {
             width: 48px; height: 48px; background: rgba(0,0,0,0.3); border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; 
+            font-size: 1.5rem;
             flex-shrink: 0;
             margin: 0 5px;
         }
@@ -219,12 +219,12 @@
         .stat-card:hover { transform: translateY(-2px); }
 
         .stat-icon {
-            width: 50px; height: 50px; 
+            width: 50px; height: 50px;
             background: linear-gradient(135deg, var(--icon-uniform), #1f618d);
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 1.5rem; 
-            color: white; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            color: white;
             flex-shrink: 0;
         }
         .stat-card.percentage-card .stat-icon {
@@ -300,9 +300,9 @@
         }
 
         .schedule-table {
-            width: 100%; 
-            border-collapse: separate; 
-            border-spacing: 0 6px; 
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 6px;
             table-layout: auto;
             min-width: 600px;
         }
@@ -316,8 +316,8 @@
 
         .schedule-table th {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white; 
-            padding: 12px 8px; 
+            color: white;
+            padding: 12px 8px;
             font-size: clamp(0.8rem, 1.3vw, 1rem);
             font-weight: 700;
             white-space: nowrap;
@@ -329,19 +329,19 @@
         .schedule-table th:nth-child(5) { width: 25%; }
 
         .schedule-table td {
-            background: white; 
-            padding: 10px 8px; 
+            background: white;
+            padding: 10px 8px;
             text-align: center;
-            font-size: clamp(0.8rem, 1.3vw, 1rem); 
+            font-size: clamp(0.8rem, 1.3vw, 1rem);
             border: 1px solid rgba(0,0,0,0.05);
             white-space: nowrap;
         }
-        .schedule-table td:first-child { 
-            border-radius: 12px 0 0 12px; 
-            font-weight: bold; 
+        .schedule-table td:first-child {
+            border-radius: 12px 0 0 12px;
+            font-weight: bold;
             background: linear-gradient(to left, white, #f0f7ff);
         }
-        .schedule-table td:last-child { 
+        .schedule-table td:last-child {
             border-radius: 0 12px 12px 0;
             white-space: normal;
             word-break: break-word;
@@ -410,6 +410,144 @@
 
         .loading, .error { text-align: center; padding: 20px; color: #2c3e50; }
         .error { color: #e74c3c; }
+
+        /* ==================== شاشة الإغلاق ==================== */
+        .off-screen-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at 50% 50%, #0d1b2a, #000000);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Tajawal', sans-serif;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .off-screen-overlay .off-icon {
+            font-size: 5rem;
+            color: #3498db;
+            margin-bottom: 25px;
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .off-screen-overlay h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #3498db, #87CEEB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .off-screen-overlay .off-message {
+            font-size: clamp(1.3rem, 3vw, 2rem);
+            color: #87CEEB;
+            margin-bottom: 10px;
+        }
+
+        .off-screen-overlay .off-next {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            color: #ffd700;
+            margin-top: 15px;
+            padding: 10px 30px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 40px;
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .off-screen-overlay .off-time {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            color: #95a5a6;
+            margin-top: 20px;
+        }
+
+        /* ==================== العد التنازلي ==================== */
+        .countdown-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at 50% 50%, #1a237e, #000000);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Tajawal', sans-serif;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .countdown-screen .cd-icon {
+            font-size: 5rem;
+            color: #3498db;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .countdown-screen h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #3498db, #87CEEB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .countdown-screen .cd-label {
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            color: #87CEEB;
+            margin-bottom: 30px;
+        }
+
+        .countdown-screen .cd-time {
+            font-size: clamp(4rem, 10vw, 8rem);
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+            direction: ltr;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+        }
+
+        .countdown-screen .cd-status {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            color: #95a5a6;
+            padding: 10px 30px;
+            border: 1px solid rgba(149, 165, 166, 0.3);
+            border-radius: 30px;
+        }
+
+        .countdown-screen .cd-progress {
+            width: 300px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-top: 30px;
+            overflow: hidden;
+        }
+
+        .countdown-screen .cd-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #ffd700);
+            border-radius: 3px;
+            transition: width 1s linear;
+        }
     </style>
 <base target="_blank">
 </head>
@@ -417,7 +555,29 @@
 <body>
     <div class="tv-background"></div>
 
-    <div class="container">
+    <!-- ==================== شاشة الإغلاق ==================== -->
+    <div class="off-screen-overlay" id="offScreen">
+        <i class="fas fa-flask off-icon"></i>
+        <h1>مختبر مدرسة الحوراء</h1>
+        <div class="off-message" id="offMessage"></div>
+        <div class="off-next" id="offNext"></div>
+        <div class="off-time" id="offCurrentTime"></div>
+    </div>
+
+    <!-- ==================== العد التنازلي ==================== -->
+    <div class="countdown-screen" id="countdownScreen">
+        <i class="fas fa-microscope cd-icon"></i>
+        <h1>مختبر مدرسة الحوراء</h1>
+        <div class="cd-label">يبدأ الدوام الرسمي بعد</div>
+        <div class="cd-time" id="cdTime">00:00:00</div>
+        <div class="cd-status" id="cdStatus"></div>
+        <div class="cd-progress">
+            <div class="cd-progress-bar" id="cdProgressBar"></div>
+        </div>
+    </div>
+
+    <!-- ==================== الصفحة الرئيسية ==================== -->
+    <div class="container" id="mainContainer">
         <div class="header">
             <div class="header-content">
                 <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')">
@@ -481,14 +641,11 @@
             </div>
         </div>
 
-        <!-- شريط السلامة مع نص افتراضي يظهر فوراً -->
         <div class="safety-marquee">
             <div class="safety-marquee-container" id="safetyMarqueeContainer">
-                <!-- نص افتراضي يظهر فوراً لمنع التأخير -->
                 <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
                 <span class="safety-text">⚠️ سلامتك تبدأ من سلوكك الواعي داخل المختبر ⚠️</span>
                 <span class="safety-icon"><i class="fas fa-flask"></i></span>
-                <!-- تكرار النص لضمان انسيابية الحركة -->
                 <span class="safety-icon"><i class="fas fa-shield-alt"></i></span>
                 <span class="safety-text">⚠️ اتباع إرشادات السلامة في المختبر أمر إلزامي ⚠️</span>
                 <span class="safety-icon"><i class="fas fa-flask"></i></span>
@@ -514,9 +671,18 @@
     </div>
 
     <script>
+        // ==================== الإعدادات الأساسية ====================
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
         var REFRESH_INTERVAL = 300000;
+
+        // ==================== جدول التشغيل والإيقاف (توقيت عمان) ====================
+        var SCHEDULE = {
+            timezone: 'Asia/Muscat',
+            countdownStartMinutes: 390,  // 6:30 ص = 390 دقيقة
+            screenOnMinutes: 420,         // 7:00 ص = 420 دقيقة (بداية الطابور)
+            screenOffMinutes: 810         // 1:30 م = 810 دقيقة
+        };
 
         var timeTable = [
             { period: "الطابور", duration: 10, times: [{ start: "7:00", end: "7:10" }, { start: "7:10", end: "7:20" }] },
@@ -533,7 +699,191 @@
 
         var currentBookings = {};
         var lastSafetyHTML = '';
+        var countdownInterval = null;
+        var scheduleCheckInterval = null;
+        var dataRefreshInterval = null;
 
+        // ==================== أداة الحصول على الوقت بتوقيت عمان ====================
+        function getOmanDate() {
+            var now = new Date();
+            var options = { timeZone: SCHEDULE.timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            var parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(now);
+            var obj = {};
+            parts.forEach(function(p) { obj[p.type] = p.value; });
+            return {
+                year: parseInt(obj.year),
+                month: parseInt(obj.month),
+                day: parseInt(obj.day),
+                hour: parseInt(obj.hour),
+                minute: parseInt(obj.minute),
+                second: parseInt(obj.second),
+                dayOfWeek: now.getDay()
+            };
+        }
+
+        function getOmanMinutes() {
+            var o = getOmanDate();
+            return o.hour * 60 + o.minute;
+        }
+
+        // ==================== فحص حالة الشاشة ====================
+        function getCurrentStatus() {
+            var o = getOmanDate();
+            var totalMinutes = o.hour * 60 + o.minute;
+            var dayOfWeek = o.dayOfWeek;
+
+            // الجمعة (5) والسبت (6)
+            if (dayOfWeek === 5 || dayOfWeek === 6) {
+                var nextDay = (dayOfWeek === 5) ? 'السبت' : 'الأحد';
+                return {
+                    status: 'off',
+                    message: 'إجازة رسمية',
+                    nextEvent: 'نراكم الأحد إن شاء الله',
+                    detail: 'الجمعة والسبت - أيام راحة رسمية'
+                };
+            }
+
+            // قبل بدء العد التنازلي (قبل 6:30 ص)
+            if (totalMinutes < SCHEDULE.countdownStartMinutes) {
+                return {
+                    status: 'off',
+                    message: 'المختبر مغلق',
+                    nextEvent: 'يبدأ العد التنازلي الساعة 6:30 صباحاً',
+                    detail: 'الدوام الرسمي يبدأ الساعة 7:00 صباحاً'
+                };
+            }
+
+            // العد التنازلي (6:30 - 7:00 ص)
+            if (totalMinutes >= SCHEDULE.countdownStartMinutes && totalMinutes < SCHEDULE.screenOnMinutes) {
+                var remainingSeconds = (SCHEDULE.screenOnMinutes - totalMinutes) * 60 - o.second;
+                return {
+                    status: 'countdown',
+                    remainingSeconds: remainingSeconds
+                };
+            }
+
+            // الدوام الرسمي (7:00 ص - 1:30 م)
+            if (totalMinutes >= SCHEDULE.screenOnMinutes && totalMinutes <= SCHEDULE.screenOffMinutes) {
+                return { status: 'on' };
+            }
+
+            // بعد الدوام (بعد 1:30 م)
+            return {
+                status: 'off',
+                message: 'انتهى الدوام الرسمي',
+                nextEvent: 'نراكم غداً إن شاء الله',
+                detail: 'المختبر مغلق حتى الصباح'
+            };
+        }
+
+        // ==================== إدارة العرض ====================
+        function updateScreen() {
+            var status = getCurrentStatus();
+            var offScreen = document.getElementById('offScreen');
+            var countdownScreen = document.getElementById('countdownScreen');
+            var mainContainer = document.getElementById('mainContainer');
+
+            // إخفاء كل شيء
+            offScreen.style.display = 'none';
+            countdownScreen.style.display = 'none';
+            mainContainer.style.display = 'none';
+
+            // إيقاف العد التنازلي إذا لم يعد مطلوباً
+            if (status.status !== 'countdown' && countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+
+            // إيقاف جلب البيانات إذا الشاشة مغلقة
+            if (status.status !== 'on' && dataRefreshInterval) {
+                clearInterval(dataRefreshInterval);
+                dataRefreshInterval = null;
+            }
+
+            if (status.status === 'off') {
+                // شاشة إغلاق
+                offScreen.style.display = 'flex';
+                document.getElementById('offMessage').textContent = status.message;
+                document.getElementById('offNext').textContent = status.nextEvent;
+                updateOffScreenTime();
+
+            } else if (status.status === 'countdown') {
+                // العد التنازلي
+                countdownScreen.style.display = 'flex';
+                startCountdown(status.remainingSeconds);
+
+            } else if (status.status === 'on') {
+                // الصفحة الرئيسية
+                mainContainer.style.display = 'flex';
+
+                // بدء جلب البيانات إذا لم يكن يعمل
+                if (!dataRefreshInterval) {
+                    fetchSchedule();
+                    dataRefreshInterval = setInterval(fetchSchedule, REFRESH_INTERVAL);
+                }
+            }
+        }
+
+        // ==================== تحديث الوقت في شاشة الإغلاق ====================
+        function updateOffScreenTime() {
+            var now = new Date();
+            var timeStr = now.toLocaleTimeString('ar-OM', { timeZone: SCHEDULE.timezone, hour: '2-digit', minute: '2-digit' });
+            var dateStr = now.toLocaleDateString('ar-OM', { timeZone: SCHEDULE.timezone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            var el = document.getElementById('offCurrentTime');
+            if (el) el.textContent = dateStr + ' - ' + timeStr;
+        }
+
+        // ==================== العد التنازلي ====================
+        function startCountdown(initialSeconds) {
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            var totalDuration = SCHEDULE.countdownStartMinutes !== undefined ? 30 * 60 : 30 * 60;
+            var seconds = initialSeconds;
+
+            function tick() {
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    updateScreen();
+                    return;
+                }
+
+                seconds--;
+
+                var hours = Math.floor(seconds / 3600);
+                var mins = Math.floor((seconds % 3600) / 60);
+                var secs = seconds % 60;
+
+                var display = String(hours).padStart(2, '0') + ':' +
+                              String(mins).padStart(2, '0') + ':' +
+                              String(secs).padStart(2, '0');
+
+                document.getElementById('cdTime').textContent = display;
+
+                // تحديث الرسالة
+                var statusEl = document.getElementById('cdStatus');
+                if (hours > 0) {
+                    statusEl.textContent = hours + ' ساعة و ' + mins + ' دقيقة';
+                } else if (mins > 0) {
+                    statusEl.textContent = mins + ' دقيقة و ' + secs + ' ثانية';
+                } else {
+                    statusEl.textContent = secs + ' ثانية فقط!';
+                }
+
+                // شريط التقدم
+                var elapsed = totalDuration - seconds;
+                var progress = (elapsed / totalDuration) * 100;
+                document.getElementById('cdProgressBar').style.width = Math.min(progress, 100) + '%';
+            }
+
+            // عرض فوري
+            tick();
+
+            // تحديث كل ثانية
+            countdownInterval = setInterval(tick, 1000);
+        }
+
+        // ==================== الدوال الأصلية ====================
         function escapeHTML(str) {
             if (!str) return '';
             return String(str)
@@ -579,8 +929,8 @@
         }
 
         function getCurrentTimeInMinutes() {
-            var now = new Date();
-            return now.getHours() * 60 + now.getMinutes();
+            var o = getOmanDate();
+            return o.hour * 60 + o.minute;
         }
 
         function getCurrentAndNextPeriod() {
@@ -609,19 +959,15 @@
 
         function updateCurrentTime() {
             var now = new Date();
-            document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-OM', { timeZone: SCHEDULE.timezone, hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-OM', { timeZone: SCHEDULE.timezone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        // تحسين دالة تحديث شريط السلامة - لا تعيد البناء إذا لم تتغير البيانات
         function updateSafetyMarquee(notes) {
             var safetyContainer = document.getElementById('safetyMarqueeContainer');
-
-            // استخدام الملاحظات من الجدول أو الرسالة الافتراضية
             var messages = (notes && notes.length > 0) ? notes : [DEFAULT_SAFETY_MSG];
 
             var content = '';
-            // بناء المحتوى
             for (var i = 0; i < messages.length; i++) {
                 var msg = '<span class="safety-icon"><i class="fas fa-shield-alt"></i></span>' +
                           '<span class="safety-text">⚠️ ' + escapeHTML(messages[i]) + ' ⚠️</span>' +
@@ -629,11 +975,7 @@
                 content += msg;
             }
 
-            // تكرار المحتوى 4 مرات لضمان عدم وجود فراغ في الشريط المتحرك
             var finalHTML = content + content + content + content;
-
-            // تحديث المحتوى فقط إذا كان مختلفاً عما هو موجود حالياً
-            // هذا يمنع "الرمشة" أو الاختفاء المفاجئ عند التحديث الدوري
             if (lastSafetyHTML !== finalHTML) {
                 safetyContainer.innerHTML = finalHTML;
                 lastSafetyHTML = finalHTML;
@@ -679,7 +1021,7 @@
 
         function renderSchedule(bookings) {
             var now = new Date();
-            var isSecondShift = now.getHours() >= 12;
+            var isSecondShift = getCurrentTimeInMinutes() >= 12 * 60;
             var data = getCurrentAndNextPeriod();
             var bookedCount = 0;
             var totalBookable = 0;
@@ -721,7 +1063,6 @@
                 html += '</tr>';
             }
 
-            // تكرار الصفوف للتمرير التلقائي
             for (var i = 0; i < timeTable.length; i++) {
                 var period = timeTable[i];
                 var booking = bookings[period.period];
@@ -766,7 +1107,7 @@
                     var data = xhr.responseText;
                     var rows = parseCSV(data);
                     var now = new Date();
-                    var today = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0');
+                    var today = now.toLocaleDateString('sv-SE', { timeZone: SCHEDULE.timezone }).replace(/-/g, '/');
 
                     var bookings = {};
                     var notes = [];
@@ -785,11 +1126,23 @@
             xhr.send();
         }
 
+        // ==================== التشغيل ====================
         document.addEventListener('DOMContentLoaded', function() {
+            // فحص فوري
+            updateScreen();
             updateCurrentTime();
-            fetchSchedule();
-            setInterval(updateCurrentTime, 1000);
-            setInterval(fetchSchedule, REFRESH_INTERVAL);
+
+            // تحديث الوقت كل ثانية (يعمل دائماً)
+            setInterval(function() {
+                updateCurrentTime();
+                // تحديث الوقت في شاشة الإغلاق إذا كانت ظاهرة
+                if (document.getElementById('offScreen').style.display === 'flex') {
+                    updateOffScreenTime();
+                }
+            }, 1000);
+
+            // فحص الحالة كل 30 ثانية
+            scheduleCheckInterval = setInterval(updateScreen, 30000);
         });
     </script>
 </body>
