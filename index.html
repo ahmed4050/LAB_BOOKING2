@@ -1261,9 +1261,9 @@
                 var now = new Date();
                 var today = normalizeDateString(now.toLocaleDateString('sv-SE', { timeZone: SCHEDULE.timezone }));
 
-                var bookings = {};
+                var bookings = Object.create(null);
                 var notes = [];
-                var periodTeacherChains = {};
+                var periodTeacherChains = Object.create(null);
                 var duplicatePeriodsOrder = [];
                 for (var i = 1; i < rows.length; i++) {
                     var row = rows[i];
