@@ -664,6 +664,7 @@
         </div>
 
         <div class="error" id="fetchErrorBanner" style="display:none;"></div>
+        <div class="error" id="duplicateWarningBanner" style="display:none;"></div>
 
         <div class="table-container">
             <div id="tableWrapper" class="table-responsive">
@@ -734,6 +735,7 @@
         var countdownInterval = null;
         var countdownEndTime = null;
         var dataRefreshInterval = null;
+        var scheduleCheckInterval = null;
         var isFetchingSchedule = false;
 
         // ==================== أداة الحصول على الوقت بتوقيت عمان ====================
@@ -1165,6 +1167,22 @@
             banner.textContent = '';
         }
 
+        // تحذير مستقل عن أخطاء الشبكة، يخصّ جودة البيانات (مثل الحجوزات المكررة)
+        // حتى لا يُفقد أحدهما عند حدوث الآخر.
+        function showDuplicateWarning(message) {
+            var banner = document.getElementById('duplicateWarningBanner');
+            if (!banner) return;
+            banner.textContent = message;
+            banner.style.display = 'block';
+        }
+
+        function clearDuplicateWarning() {
+            var banner = document.getElementById('duplicateWarningBanner');
+            if (!banner) return;
+            banner.style.display = 'none';
+            banner.textContent = '';
+        }
+
         // يوحّد صيغة التاريخ (يزيل المسافات الزائدة ويوحّد الفواصل إلى '/')
         function normalizeDateString(value) {
             return String(value || '').trim().replace(/-/g, '/');
@@ -1208,6 +1226,7 @@
 
                 var bookings = {};
                 var notes = [];
+                var duplicatePeriods = [];
                 for (var i = 1; i < rows.length; i++) {
                     var row = rows[i];
                     if (!row || row.length < 9) continue;
@@ -1219,6 +1238,7 @@
                     if (!period) continue;
 
                     if (bookings[period]) {
+                        duplicatePeriods.push(period);
                         console.warn('حجز مكرر لنفس الفترة "' + period + '" في اليوم الحالي؛ سيتم استخدام آخر إدخال.');
                     }
 
@@ -1233,6 +1253,11 @@
                     if (note) notes.push(note);
                 }
 
+                if (duplicatePeriods.length > 0) {
+                    showDuplicateWarning('تنبيه: يوجد أكثر من حجز لنفس الحصة (' + duplicatePeriods.join('، ') + ') لهذا اليوم، تم اعتماد آخر إدخال.');
+                } else {
+                    clearDuplicateWarning();
+                }
                 clearFetchError();
                 currentBookings = bookings;
                 renderSchedule(bookings);
@@ -1269,7 +1294,7 @@
             }, 1000);
 
             // فحص الحالة كل 30 ثانية
-            setInterval(updateScreen, 30000);
+            scheduleCheckInterval = setInterval(updateScreen, 30000);
         });
     </script>
 </body>
