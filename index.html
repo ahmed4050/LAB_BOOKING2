@@ -1199,11 +1199,27 @@
             xhr.open('GET', finalUrl, true);
             xhr.timeout = 15000;
 
+            var settled = false;
+
             function finish() {
+                if (settled) return;
+                settled = true;
+                clearTimeout(watchdog);
                 isFetchingSchedule = false;
             }
 
+            // احتياط إضافي في حال لم يُطلق المتصفح onload/onerror/ontimeout إطلاقاً
+            // (بعض المتصفحات القديمة قد لا تحترم xhr.timeout)، لضمان عدم تعليق حالة الجلب للأبد.
+            var watchdog = setTimeout(function() {
+                if (settled) return;
+                settled = true;
+                isFetchingSchedule = false;
+                try { xhr.abort(); } catch (e) { /* تجاهل */ }
+                showFetchError('انتهت مهلة الاتصال أثناء تحديث البيانات، يتم عرض آخر نسخة متوفرة.');
+            }, 20000);
+
             xhr.onload = function() {
+                if (settled) return;
                 finish();
                 if (xhr.status !== 200) {
                     showFetchError('تعذر تحديث البيانات (خطأ ' + xhr.status + ')، يتم عرض آخر نسخة متوفرة.');
@@ -1267,11 +1283,13 @@
             };
 
             xhr.onerror = function() {
+                if (settled) return;
                 finish();
                 showFetchError('تعذر الاتصال بالخادم لتحديث البيانات، يتم عرض آخر نسخة متوفرة.');
             };
 
             xhr.ontimeout = function() {
+                if (settled) return;
                 finish();
                 showFetchError('انتهت مهلة الاتصال أثناء تحديث البيانات، يتم عرض آخر نسخة متوفرة.');
             };
