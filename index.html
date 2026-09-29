@@ -1267,7 +1267,7 @@
                 var duplicatePeriodsOrder = [];
                 for (var i = 1; i < rows.length; i++) {
                     var row = rows[i];
-                    if (!row || row.length < 9) continue;
+                    if (!row || row.length < 8) continue;
 
                     var rowDate = normalizeDateString(row[2]);
                     if (rowDate !== today) continue;
