@@ -719,7 +719,11 @@
         }
 
         function handleBookingPageKeydown(event) {
-            if (event.key === 'Enter' || event.key === ' ') {
+            // بعض المتصفحات القديمة تُبلّغ عن مفتاح المسافة باسم 'Spacebar' بدلاً من ' '،
+            // لذا نتحقق أيضاً من event.code كخيار احتياطي لدعم أوسع للمتصفحات.
+            var isEnter = event.key === 'Enter';
+            var isSpace = event.key === ' ' || event.key === 'Spacebar' || event.code === 'Space';
+            if (isEnter || isSpace) {
                 event.preventDefault();
                 openBookingPage();
             }
@@ -1260,6 +1264,7 @@
                 var bookings = {};
                 var notes = [];
                 var duplicatePeriods = [];
+                var seenDuplicatePeriods = {};
                 for (var i = 1; i < rows.length; i++) {
                     var row = rows[i];
                     if (!row || row.length < 9) continue;
@@ -1270,13 +1275,16 @@
                     var period = String(row[3] || '').trim();
                     if (!period) continue;
 
-                    if (bookings[period] && duplicatePeriods.indexOf(period) === -1) {
-                        duplicatePeriods.push(period);
+                    var newTeacher = String(row[4] || '').trim();
+                    if (bookings[period] && !seenDuplicatePeriods[period]) {
+                        seenDuplicatePeriods[period] = true;
+                        var previousTeacher = bookings[period].teacher || 'غير معروف';
+                        duplicatePeriods.push(period + ' (' + previousTeacher + ' ← ' + (newTeacher || 'غير معروف') + ')');
                         console.warn('حجز مكرر لنفس الفترة "' + period + '" في اليوم الحالي؛ سيتم استخدام آخر إدخال.');
                     }
 
                     bookings[period] = {
-                        teacher: String(row[4] || '').trim(),
+                        teacher: newTeacher,
                         subject: String(row[5] || '').trim(),
                         grade: String(row[6] || '').trim(),
                         lesson: String(row[7] || '').trim()
