@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
     <title>نظام حجوزات المختبر - مدرسة الحوراء</title>
-    <meta http-equiv="refresh" content="300" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -118,6 +117,7 @@
             margin-bottom: 5px;
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
             display: flex; align-items: center; justify-content: center; gap: 15px;
+            flex-wrap: wrap;
         }
         .school-name h1 i {
             color: var(--icon-uniform);
@@ -548,6 +548,36 @@
             border-radius: 3px;
             transition: width 1s linear;
         }
+
+        @media (max-width: 700px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .time-info-container {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .school-name h1 {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            .marquee-container, .safety-marquee-container {
+                animation: none !important;
+                transform: none !important;
+            }
+        }
     </style>
 <base target="_blank">
 </head>
@@ -580,8 +610,8 @@
     <div class="container" id="mainContainer">
         <div class="header">
             <div class="header-content">
-                <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank')">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="QR">
+                <div class="qr-code" role="button" tabindex="0" aria-label="فتح صفحة حجوزات المختبر" onclick="openBookingPage()" onkeydown="handleBookingPageKeydown(event)">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="رمز QR للوصول إلى صفحة حجوزات المختبر" loading="lazy">
                 </div>
 
                 <div class="school-name-container">
@@ -633,6 +663,9 @@
             </div>
         </div>
 
+        <div class="error" id="fetchErrorBanner" style="display:none;"></div>
+        <div class="error" id="duplicateWarningBanner" style="display:none;"></div>
+
         <div class="table-container">
             <div id="tableWrapper" class="table-responsive">
                 <div id="tableContent">
@@ -675,6 +708,26 @@
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
         var REFRESH_INTERVAL = 300000;
+        var BOOKING_PAGE_URL = 'https://ahmed4050.github.io/LAB_BOOKING2/';
+        // مهلة XHR الأساسية، ومهلة الحارس الاحتياطي (watchdog) التي يجب أن تبقى أكبر منها
+        // بفارق زمني كافٍ حتى يُتاح لـ xhr.ontimeout فرصة الإطلاق أولاً في المتصفحات التي تدعمه.
+        var FETCH_XHR_TIMEOUT_MS = 15000;
+        var FETCH_WATCHDOG_TIMEOUT_MS = FETCH_XHR_TIMEOUT_MS + 5000;
+
+        function openBookingPage() {
+            window.open(BOOKING_PAGE_URL, '_blank', 'noopener,noreferrer');
+        }
+
+        function handleBookingPageKeydown(event) {
+            // بعض المتصفحات القديمة تُبلّغ عن مفتاح المسافة باسم 'Spacebar' بدلاً من ' '،
+            // لذا نتحقق أيضاً من event.code كخيار احتياطي لدعم أوسع للمتصفحات.
+            var isEnter = event.key === 'Enter';
+            var isSpace = event.key === ' ' || event.key === 'Spacebar' || event.code === 'Space';
+            if (isEnter || isSpace) {
+                event.preventDefault();
+                openBookingPage();
+            }
+        }
 
         // ==================== جدول التشغيل والإيقاف (توقيت عمان) ====================
         var SCHEDULE = {
@@ -700,8 +753,10 @@
         var currentBookings = {};
         var lastSafetyHTML = '';
         var countdownInterval = null;
-        var scheduleCheckInterval = null;
+        var countdownEndTime = null;
         var dataRefreshInterval = null;
+        var scheduleCheckInterval = null;
+        var isFetchingSchedule = false;
 
         // ==================== أداة الحصول على الوقت بتوقيت عمان ====================
         function getOmanDate() {
@@ -710,20 +765,29 @@
             var parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(now);
             var obj = {};
             parts.forEach(function(p) { obj[p.type] = p.value; });
+            var year = parseInt(obj.year, 10);
+            var month = parseInt(obj.month, 10);
+            var day = parseInt(obj.day, 10);
+            // يوم الأسبوع يُحسب من تاريخ Asia/Muscat نفسه (وليس توقيت الجهاز المحلي)
+            // باستخدام Date.UTC لتجنّب أي تأثير من توقيت المتصفح.
+            var dayOfWeek = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
             return {
-                year: parseInt(obj.year),
-                month: parseInt(obj.month),
-                day: parseInt(obj.day),
-                hour: parseInt(obj.hour),
-                minute: parseInt(obj.minute),
-                second: parseInt(obj.second),
-                dayOfWeek: now.getDay()
+                year: year,
+                month: month,
+                day: day,
+                hour: parseInt(obj.hour, 10),
+                minute: parseInt(obj.minute, 10),
+                second: parseInt(obj.second, 10),
+                dayOfWeek: dayOfWeek
             };
         }
 
-        function getOmanMinutes() {
-            var o = getOmanDate();
-            return o.hour * 60 + o.minute;
+        // يحوّل وقتاً بتوقيت عمان (سنة/شهر/يوم + عدد دقائق منذ منتصف الليل) إلى epoch ms.
+        // عُمان لا تطبق التوقيت الصيفي وتوقيتها ثابت UTC+4 دائماً.
+        function omanWallTimeToEpoch(year, month, day, totalMinutes) {
+            var hour = Math.floor(totalMinutes / 60);
+            var minute = totalMinutes % 60;
+            return Date.UTC(year, month - 1, day, hour - 4, minute, 0);
         }
 
         // ==================== فحص حالة الشاشة ====================
@@ -734,7 +798,6 @@
 
             // الجمعة (5) والسبت (6)
             if (dayOfWeek === 5 || dayOfWeek === 6) {
-                var nextDay = (dayOfWeek === 5) ? 'السبت' : 'الأحد';
                 return {
                     status: 'off',
                     message: 'إجازة رسمية',
@@ -755,10 +818,9 @@
 
             // العد التنازلي (6:30 - 7:00 ص)
             if (totalMinutes >= SCHEDULE.countdownStartMinutes && totalMinutes < SCHEDULE.screenOnMinutes) {
-                var remainingSeconds = (SCHEDULE.screenOnMinutes - totalMinutes) * 60 - o.second;
                 return {
                     status: 'countdown',
-                    remainingSeconds: remainingSeconds
+                    countdownEndTime: omanWallTimeToEpoch(o.year, o.month, o.day, SCHEDULE.screenOnMinutes)
                 };
             }
 
@@ -810,7 +872,7 @@
             } else if (status.status === 'countdown') {
                 // العد التنازلي
                 countdownScreen.style.display = 'flex';
-                startCountdown(status.remainingSeconds);
+                startCountdown(status.countdownEndTime);
 
             } else if (status.status === 'on') {
                 // الصفحة الرئيسية
@@ -834,21 +896,34 @@
         }
 
         // ==================== العد التنازلي ====================
-        function startCountdown(initialSeconds) {
-            if (countdownInterval) clearInterval(countdownInterval);
+        function startCountdown(endTime) {
+            // تجنّب إعادة ضبط العداد إذا كان يعمل بالفعل لنفس وقت النهاية
+            // (يُستدعى updateScreen كل 30 ثانية وقد يمرّر نفس endTime)
+            if (countdownInterval && countdownEndTime === endTime) return;
 
-            var totalDuration = SCHEDULE.countdownStartMinutes !== undefined ? 30 * 60 : 30 * 60;
-            var seconds = initialSeconds;
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            countdownEndTime = endTime;
+
+            // مدة العد الكاملة بالثواني، تُحسب من قيم SCHEDULE الحالية في كل استدعاء
+            // لتجنّب الاعتماد على قيمة مخبّأة (cached) قد لا تعكس أي تعديل لاحق على SCHEDULE.
+            var totalDuration = (SCHEDULE.screenOnMinutes - SCHEDULE.countdownStartMinutes) * 60;
 
             function tick() {
+                // الحساب دائماً من الفارق بين وقت النهاية والوقت الحالي (Date.now())
+                // بدلاً من إنقاص عدّاد محلي، لتجنّب التأخر عند تعليق المتصفح.
+                var remainingMs = countdownEndTime - Date.now();
+                var seconds = Math.max(0, Math.ceil(remainingMs / 1000));
+
                 if (seconds <= 0) {
                     clearInterval(countdownInterval);
                     countdownInterval = null;
+                    countdownEndTime = null;
                     updateScreen();
                     return;
                 }
-
-                seconds--;
 
                 var hours = Math.floor(seconds / 3600);
                 var mins = Math.floor((seconds % 3600) / 60);
@@ -873,7 +948,7 @@
                 // شريط التقدم
                 var elapsed = totalDuration - seconds;
                 var progress = (elapsed / totalDuration) * 100;
-                document.getElementById('cdProgressBar').style.width = Math.min(progress, 100) + '%';
+                document.getElementById('cdProgressBar').style.width = Math.min(Math.max(progress, 0), 100) + '%';
             }
 
             // عرض فوري
@@ -911,6 +986,8 @@
         }
 
         function parseCSV(text) {
+            // إزالة BOM من بداية النص إن وجدت
+            if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
             var lines = text.split(/\r?\n/);
             var results = [];
             for (var i = 0; i < lines.length; i++) {
@@ -1098,31 +1175,153 @@
             updatePercentage(bookedCount, totalBookable);
         }
 
+        function showFetchError(message) {
+            var banner = document.getElementById('fetchErrorBanner');
+            if (!banner) return;
+            banner.textContent = message;
+            banner.style.display = 'block';
+        }
+
+        function clearFetchError() {
+            var banner = document.getElementById('fetchErrorBanner');
+            if (!banner) return;
+            banner.style.display = 'none';
+            banner.textContent = '';
+        }
+
+        // تحذير مستقل عن أخطاء الشبكة، يخصّ جودة البيانات (مثل الحجوزات المكررة)
+        // حتى لا يُفقد أحدهما عند حدوث الآخر.
+        function showDuplicateWarning(message) {
+            var banner = document.getElementById('duplicateWarningBanner');
+            if (!banner) return;
+            banner.textContent = message;
+            banner.style.display = 'block';
+        }
+
+        function clearDuplicateWarning() {
+            var banner = document.getElementById('duplicateWarningBanner');
+            if (!banner) return;
+            banner.style.display = 'none';
+            banner.textContent = '';
+        }
+
+        // يوحّد صيغة التاريخ (يزيل المسافات الزائدة ويوحّد الفواصل إلى '/')
+        function normalizeDateString(value) {
+            return String(value || '').trim().replace(/-/g, '/');
+        }
+
         function fetchSchedule() {
+            // منع الطلبات المتزامنة: تجاهل أي طلب جديد أثناء انتظار طلب سابق
+            if (isFetchingSchedule) return;
+            isFetchingSchedule = true;
+
             var xhr = new XMLHttpRequest();
             var finalUrl = csvUrl + '&t=' + new Date().getTime();
             xhr.open('GET', finalUrl, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    var data = xhr.responseText;
-                    var rows = parseCSV(data);
-                    var now = new Date();
-                    var today = now.toLocaleDateString('sv-SE', { timeZone: SCHEDULE.timezone }).replace(/-/g, '/');
+            xhr.timeout = FETCH_XHR_TIMEOUT_MS;
 
-                    var bookings = {};
-                    var notes = [];
-                    for (var i = 1; i < rows.length; i++) {
-                        if (rows[i][2] === today) {
-                            bookings[rows[i][3]] = { teacher: rows[i][4], subject: rows[i][5], grade: rows[i][6], lesson: rows[i][7] };
-                            if (rows[i][8]) notes.push(rows[i][8]);
-                        }
-                    }
-                    currentBookings = bookings;
-                    renderSchedule(bookings);
-                    updateSafetyMarquee(notes);
-                    updateMarquee();
+            var settled = false;
+
+            function finish() {
+                if (settled) return;
+                settled = true;
+                clearTimeout(watchdog);
+                isFetchingSchedule = false;
+            }
+
+            // احتياط إضافي في حال لم يُطلق المتصفح onload/onerror/ontimeout إطلاقاً
+            // (بعض المتصفحات القديمة قد لا تحترم xhr.timeout)، لضمان عدم تعليق حالة الجلب للأبد.
+            var watchdog = setTimeout(function() {
+                if (settled) return;
+                finish();
+                try { xhr.abort(); } catch (e) { /* تجاهل */ }
+                showFetchError('انتهت مهلة الاتصال أثناء تحديث البيانات، يتم عرض آخر نسخة متوفرة.');
+            }, FETCH_WATCHDOG_TIMEOUT_MS);
+
+            xhr.onload = function() {
+                if (settled) return;
+                finish();
+                if (xhr.status !== 200) {
+                    showFetchError('تعذر تحديث البيانات (خطأ ' + xhr.status + ')، يتم عرض آخر نسخة متوفرة.');
+                    return;
                 }
+
+                var data = xhr.responseText;
+                if (!data || !data.trim()) {
+                    showFetchError('تعذر تحديث البيانات (بيانات فارغة)، يتم عرض آخر نسخة متوفرة.');
+                    return;
+                }
+
+                var rows = parseCSV(data);
+                if (!rows || rows.length < 2) {
+                    showFetchError('تعذر تحديث البيانات (بيانات غير صالحة)، يتم عرض آخر نسخة متوفرة.');
+                    return;
+                }
+
+                var now = new Date();
+                var today = normalizeDateString(now.toLocaleDateString('sv-SE', { timeZone: SCHEDULE.timezone }));
+
+                var bookings = Object.create(null);
+                var notes = [];
+                var periodTeacherChains = Object.create(null);
+                var duplicatePeriodsOrder = [];
+                for (var i = 1; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!row || row.length < 8) continue;
+
+                    var rowDate = normalizeDateString(row[2]);
+                    if (rowDate !== today) continue;
+
+                    var period = String(row[3] || '').trim();
+                    if (!period) continue;
+
+                    var newTeacher = String(row[4] || '').trim() || 'غير معروف';
+                    if (periodTeacherChains[period]) {
+                        periodTeacherChains[period].push(newTeacher);
+                        if (periodTeacherChains[period].length === 2) duplicatePeriodsOrder.push(period);
+                        console.warn('حجز مكرر لنفس الفترة "' + period + '" في اليوم الحالي؛ سيتم استخدام آخر إدخال.');
+                    } else {
+                        periodTeacherChains[period] = [newTeacher];
+                    }
+
+                    bookings[period] = {
+                        teacher: newTeacher,
+                        subject: String(row[5] || '').trim(),
+                        grade: String(row[6] || '').trim(),
+                        lesson: String(row[7] || '').trim()
+                    };
+
+                    var note = String(row[8] || '').trim();
+                    if (note) notes.push(note);
+                }
+
+                if (duplicatePeriodsOrder.length > 0) {
+                    var duplicateDetails = duplicatePeriodsOrder.map(function(p) {
+                        return p + ' (' + periodTeacherChains[p].join(' ← ') + ')';
+                    });
+                    showDuplicateWarning('تنبيه: يوجد أكثر من حجز لنفس الحصة (' + duplicateDetails.join('، ') + ') لهذا اليوم، تم اعتماد آخر إدخال.');
+                } else {
+                    clearDuplicateWarning();
+                }
+                clearFetchError();
+                currentBookings = bookings;
+                renderSchedule(bookings);
+                updateSafetyMarquee(notes);
+                updateMarquee();
             };
+
+            xhr.onerror = function() {
+                if (settled) return;
+                finish();
+                showFetchError('تعذر الاتصال بالخادم لتحديث البيانات، يتم عرض آخر نسخة متوفرة.');
+            };
+
+            xhr.ontimeout = function() {
+                if (settled) return;
+                finish();
+                showFetchError('انتهت مهلة الاتصال أثناء تحديث البيانات، يتم عرض آخر نسخة متوفرة.');
+            };
+
             xhr.send();
         }
 
