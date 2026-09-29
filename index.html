@@ -1278,7 +1278,7 @@
                     var newTeacher = String(row[4] || '').trim() || 'غير معروف';
                     if (periodTeacherChains[period]) {
                         periodTeacherChains[period].push(newTeacher);
-                        if (duplicatePeriodsOrder.indexOf(period) === -1) duplicatePeriodsOrder.push(period);
+                        if (periodTeacherChains[period].length === 2) duplicatePeriodsOrder.push(period);
                         console.warn('حجز مكرر لنفس الفترة "' + period + '" في اليوم الحالي؛ سيتم استخدام آخر إدخال.');
                     } else {
                         periodTeacherChains[period] = [newTeacher];
