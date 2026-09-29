@@ -610,7 +610,7 @@
     <div class="container" id="mainContainer">
         <div class="header">
             <div class="header-content">
-                <div class="qr-code" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank', 'noopener,noreferrer')">
+                <div class="qr-code" role="button" tabindex="0" aria-label="فتح صفحة حجوزات المختبر" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank', 'noopener,noreferrer')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank', 'noopener,noreferrer'); }">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="رمز QR للوصول إلى صفحة حجوزات المختبر" loading="lazy">
                 </div>
 
@@ -900,6 +900,7 @@
                 if (seconds <= 0) {
                     clearInterval(countdownInterval);
                     countdownInterval = null;
+                    countdownEndTime = null;
                     updateScreen();
                     return;
                 }
@@ -1212,8 +1213,7 @@
             // (بعض المتصفحات القديمة قد لا تحترم xhr.timeout)، لضمان عدم تعليق حالة الجلب للأبد.
             var watchdog = setTimeout(function() {
                 if (settled) return;
-                settled = true;
-                isFetchingSchedule = false;
+                finish();
                 try { xhr.abort(); } catch (e) { /* تجاهل */ }
                 showFetchError('انتهت مهلة الاتصال أثناء تحديث البيانات، يتم عرض آخر نسخة متوفرة.');
             }, 20000);
