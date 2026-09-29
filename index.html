@@ -876,9 +876,6 @@
         }
 
         // ==================== العد التنازلي ====================
-        // totalDuration: مدة العد الكاملة بالثواني (من بداية العد حتى بداية الدوام)
-        var COUNTDOWN_TOTAL_SECONDS = (SCHEDULE.screenOnMinutes - SCHEDULE.countdownStartMinutes) * 60;
-
         function startCountdown(endTime) {
             // تجنّب إعادة ضبط العداد إذا كان يعمل بالفعل لنفس وقت النهاية
             // (يُستدعى updateScreen كل 30 ثانية وقد يمرّر نفس endTime)
@@ -889,6 +886,10 @@
                 countdownInterval = null;
             }
             countdownEndTime = endTime;
+
+            // مدة العد الكاملة بالثواني، تُحسب من قيم SCHEDULE الحالية في كل استدعاء
+            // لتجنّب الاعتماد على قيمة مخبّأة (cached) قد لا تعكس أي تعديل لاحق على SCHEDULE.
+            var totalDuration = (SCHEDULE.screenOnMinutes - SCHEDULE.countdownStartMinutes) * 60;
 
             function tick() {
                 // الحساب دائماً من الفارق بين وقت النهاية والوقت الحالي (Date.now())
@@ -924,8 +925,8 @@
                 }
 
                 // شريط التقدم
-                var elapsed = COUNTDOWN_TOTAL_SECONDS - seconds;
-                var progress = (elapsed / COUNTDOWN_TOTAL_SECONDS) * 100;
+                var elapsed = totalDuration - seconds;
+                var progress = (elapsed / totalDuration) * 100;
                 document.getElementById('cdProgressBar').style.width = Math.min(Math.max(progress, 0), 100) + '%';
             }
 
@@ -1237,7 +1238,7 @@
                     var period = String(row[3] || '').trim();
                     if (!period) continue;
 
-                    if (bookings[period]) {
+                    if (bookings[period] && duplicatePeriods.indexOf(period) === -1) {
                         duplicatePeriods.push(period);
                         console.warn('حجز مكرر لنفس الفترة "' + period + '" في اليوم الحالي؛ سيتم استخدام آخر إدخال.');
                     }
