@@ -610,7 +610,7 @@
     <div class="container" id="mainContainer">
         <div class="header">
             <div class="header-content">
-                <div class="qr-code" role="button" tabindex="0" aria-label="فتح صفحة حجوزات المختبر" onclick="openBookingPage()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBookingPage(); }">
+                <div class="qr-code" role="button" tabindex="0" aria-label="فتح صفحة حجوزات المختبر" onclick="openBookingPage()" onkeydown="handleBookingPageKeydown(event)">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="رمز QR للوصول إلى صفحة حجوزات المختبر" loading="lazy">
                 </div>
 
@@ -716,6 +716,13 @@
 
         function openBookingPage() {
             window.open(BOOKING_PAGE_URL, '_blank', 'noopener,noreferrer');
+        }
+
+        function handleBookingPageKeydown(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openBookingPage();
+            }
         }
 
         // ==================== جدول التشغيل والإيقاف (توقيت عمان) ====================
