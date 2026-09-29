@@ -610,7 +610,7 @@
     <div class="container" id="mainContainer">
         <div class="header">
             <div class="header-content">
-                <div class="qr-code" role="button" tabindex="0" aria-label="فتح صفحة حجوزات المختبر" onclick="window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank', 'noopener,noreferrer')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.open('https://ahmed4050.github.io/LAB_BOOKING2/', '_blank', 'noopener,noreferrer'); }">
+                <div class="qr-code" role="button" tabindex="0" aria-label="فتح صفحة حجوزات المختبر" onclick="openBookingPage()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBookingPage(); }">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ahmed4050.github.io/LAB_BOOKING2/" alt="رمز QR للوصول إلى صفحة حجوزات المختبر" loading="lazy">
                 </div>
 
@@ -708,6 +708,15 @@
         var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRASDUlO20FT6MI1NVQKSAKF4EBY1cVP0usamiNw37msjkFklLvqyUHtomJMOQu9_YfOERTok-X9ti/pub?output=csv';
         var DEFAULT_SAFETY_MSG = 'سلامتك تبدأ من سلوكك الواعي داخل المختبر';
         var REFRESH_INTERVAL = 300000;
+        var BOOKING_PAGE_URL = 'https://ahmed4050.github.io/LAB_BOOKING2/';
+        // مهلة XHR الأساسية، ومهلة الحارس الاحتياطي (watchdog) التي يجب أن تبقى أكبر منها
+        // بفارق زمني كافٍ حتى يُتاح لـ xhr.ontimeout فرصة الإطلاق أولاً في المتصفحات التي تدعمه.
+        var FETCH_XHR_TIMEOUT_MS = 15000;
+        var FETCH_WATCHDOG_TIMEOUT_MS = FETCH_XHR_TIMEOUT_MS + 5000;
+
+        function openBookingPage() {
+            window.open(BOOKING_PAGE_URL, '_blank', 'noopener,noreferrer');
+        }
 
         // ==================== جدول التشغيل والإيقاف (توقيت عمان) ====================
         var SCHEDULE = {
@@ -1198,7 +1207,7 @@
             var xhr = new XMLHttpRequest();
             var finalUrl = csvUrl + '&t=' + new Date().getTime();
             xhr.open('GET', finalUrl, true);
-            xhr.timeout = 15000;
+            xhr.timeout = FETCH_XHR_TIMEOUT_MS;
 
             var settled = false;
 
@@ -1216,7 +1225,7 @@
                 finish();
                 try { xhr.abort(); } catch (e) { /* تجاهل */ }
                 showFetchError('انتهت مهلة الاتصال أثناء تحديث البيانات، يتم عرض آخر نسخة متوفرة.');
-            }, 20000);
+            }, FETCH_WATCHDOG_TIMEOUT_MS);
 
             xhr.onload = function() {
                 if (settled) return;
